@@ -1,0 +1,64 @@
+"use client";
+
+import React from "react";
+import { useGetStaffsForListQuery } from "@/hooks/api/use-staff";
+import { Avatar } from "@/components/shared/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { Users, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const StaffsPage = () => {
+  const { data, isFetching, isError, refetch } = useGetStaffsForListQuery();
+
+  if (isFetching) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner className="size-10" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center text-red-600">
+        <AlertTriangle className="h-10 w-10 mb-2" />
+        <p className="font-medium mb-1">Failed to load staff</p>
+        <Button onClick={() => refetch()} variant="outline" className="mt-2">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!data?.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+        <Users className="h-12 w-12 mb-4" />
+        <h3 className="text-lg font-semibold mb-1 text-foreground">No staff members yet</h3>
+        <p className="text-sm">Add staff from a property's staff tab.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Staff Members</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {data.map((staff) => (
+          <Card key={staff.id}>
+            <CardContent className="flex items-center gap-4 p-4">
+              <Avatar name={staff.name} src={staff.image} />
+              <div>
+                <p className="font-medium text-foreground">{staff.name}</p>
+                <p className="text-sm text-muted-foreground">{staff.email}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default StaffsPage;

@@ -1,0 +1,25 @@
+model CommissionSetting {
+  id          String  @id @default(uuid())
+  description String?
+
+  // global platform-level percentage
+  platformPercent Float
+
+  // optional per-broker commission (global)
+  brokerPercent Float?
+
+  // Relation back to Property (1:1)
+  propertyId String?        @unique // ✅ ensures one setting per property
+  property   Property?      @relation(fields: [propertyId], references: [id])
+  type       CommissionType
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CommissionType {
+  PLATFORM // global commission applied to all properties
+  PROPERTY // commission specific to a property
+}

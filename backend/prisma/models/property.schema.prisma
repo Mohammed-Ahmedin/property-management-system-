@@ -1,0 +1,223 @@
+model Property {
+  id         String             @id @default(uuid())
+  name       String
+  address    String
+  accessType PropertyAccessType @default(SHARED)
+
+  type       PropertyType @default(HOTEL)
+  visibility Boolean      @default(true)
+
+  // Relations
+  images     PropertyImage[]
+  about      About?
+  location   Location?
+  facilities Facility[]
+  contact    Contact?
+  rooms      Room[]
+  bookings   Booking[]
+  activities Activity[]
+  history    History[]
+  reviews    Review[]
+  favorites  Favorite[]
+
+  // ✅ One-to-one License
+  license License?
+
+  averageRating Float @default(0)
+  reviewCount   Int   @default(0)
+
+  // Status
+  commissionSetting CommissionSetting?
+  status            PropertyStatus     @default(PENDING)
+  statusReason      String?
+
+  managers ManagedProperty[]
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  chapaSubAccount ChapaSubAccount?
+
+  propertyServices PropertyService[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  carServices CarService[]
+}
+
+model CarService {
+  id         String   @id @default(uuid())
+  property   Property @relation(fields: [propertyId], references: [id])
+  propertyId String
+
+  name        String // Airport Pickup, Rental, Shuttle
+  description String?
+
+  price       Float?
+  currency    String? // ETB, USD
+  pricingType CarServicePricingType @default(PER_TRIP)
+
+  isAvailable Boolean @default(true)
+
+  createdAt DateTime @default(now())
+}
+
+model License {
+  id String @id @default(uuid())
+
+  // ✅ Relation fields live here ONLY
+  propertyId String   @unique
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  fileUrl String
+
+  status LicenseStatus @default(PENDING)
+
+  submittedBy String?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PropertyService {
+  id String @id @default(uuid())
+
+  // Property this service belongs to
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+
+  // Service definition (inline)
+  name        String // "Car Transport", "Airport Pickup"
+  description String?
+  icon        String?
+
+  // Pricing
+  price    Float? // null = free
+  pricing  ServicePricingType @default(PER_BOOKING)
+  required Boolean            @default(false)
+
+  // Control
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+}
+
+// --- Property images ---
+model PropertyImage {
+  id   String @id @default(uuid())
+  url  String
+  name String
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+}
+
+// --- About (one per property) ---
+model About {
+  id          String @id @default(uuid())
+  description String
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- Reviews ---
+model Review {
+  id      String @id @default(uuid())
+  content String
+  rating  Int?
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- Location ---
+model Location {
+  id           String  @id @default(uuid())
+  continent    String
+  country      String
+  city         String
+  subcity      String
+  nearby       String?
+  latitude     String?
+  longitude    String?
+  neighborhood String?
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- Facilities ---
+model Facility {
+  id   String  @id @default(uuid())
+  name String
+  icon String?
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+}
+
+// --- Contact ---
+model Contact {
+  id    String @id @default(uuid())
+  phone String
+  email String
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String   @unique
+}
+
+enum LicenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PropertyStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PropertyAccessType {
+  PRIVATE
+  SHARED
+}
+
+enum PropertyType {
+  APARTMENT
+  HOTEL
+  RESORT
+  VILLA
+  GUEST_HOUSE
+  HOSTEL
+  LODGE
+}
+
+enum ServicePricingType {
+  PER_BOOKING
+  PER_NIGHT
+  PER_PERSON
+  PER_TRIP
+}
+
+enum CarServicePricingType {
+  FREE
+  PER_TRIP
+  PER_DAY
+  PER_HOUR
+}

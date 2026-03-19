@@ -1,0 +1,41 @@
+model History {
+  id String @id @default(cuid())
+
+  date  DateTime @unique // Snapshot date (daily granularity)
+  year  Int
+  month Int
+  day   Int
+
+  totalRooms    Int // Total number of rooms available in the property (Property.rooms.count)
+  occupiedRooms Int // Number of rooms actually occupied on this day
+  occupancyRate Float // Formula: occupiedRooms / totalRooms * 100
+
+  totalReservations Int // Total number of reservations created on this day
+  totalIncome       Float // Total successful payments for bookings on this day (SUM of booking payments with status=SUCCESS)
+
+  averageDailyRate Float // ADR: Formula = totalIncome / occupiedRooms
+  revPAR           Float // Revenue per available room: Formula = totalIncome / totalRooms
+  totalProfit      Float // Revenue - expenses (if you track costs separately)
+  gopPAR           Float? // Gross Operating Profit per available room: Formula = totalProfit / totalRooms
+
+  averageLengthOfStay Float? // Formula: SUM(nights stayed per booking) / totalReservations
+  bookingPace         Int? // Number of new bookings made *today* for any future date
+  averageLeadTime     Float? // Formula: AVG(days between bookingDate and checkInDate)
+
+  directBookings Int?
+  otaBookings    Int?
+  groupBookings  Int?
+
+  avgRating Float? // Average rating of reviews submitted on this day
+  npsScore  Float? // Net Promoter Score (promoters - detractors) / total respondents * 100
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+
+  Activity Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("history")
+}

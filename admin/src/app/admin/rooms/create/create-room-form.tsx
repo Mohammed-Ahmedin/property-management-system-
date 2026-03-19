@@ -1,0 +1,604 @@
+"use client";
+
+import { useForm, useFieldArray } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Plus, Trash2, Building2, HomeIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { CreateRoomFormData, RoomType } from "@/types";
+import { createRoomValidationSchema } from "@/schemas";
+import { useCreateRoomMutation } from "@/hooks/api/use-rooms";
+import { useGetProtectedPropertyForListQuery } from "@/hooks/api/use-property";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { RoomFeatures } from "./feeatures-selector";
+
+export function CreateRoomForm() {
+  const form = useForm<CreateRoomFormData>({
+    resolver: yupResolver(createRoomValidationSchema as any),
+    defaultValues: {
+      availability: true,
+      features: [],
+      images: [],
+      services: [],
+    },
+  });
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = form;
+
+  const {
+    fields: featureFields,
+    append: appendFeature,
+    remove: removeFeature,
+  } = useFieldArray({
+    control,
+    name: "features",
+  });
+
+  const {
+    fields: imageFields,
+    append: appendImage,
+    remove: removeImage,
+  } = useFieldArray({
+    control,
+    name: "images",
+  });
+
+  const {
+    fields: serviceFields,
+    append: appendService,
+    remove: removeService,
+  } = useFieldArray({
+    control,
+    name: "services",
+  });
+  const router = useRouter();
+
+  const createRoomMutation = useCreateRoomMutation();
+  const propertiesQuery = useGetProtectedPropertyForListQuery();
+
+  const onSubmit = (data: CreateRoomFormData) => {
+    createRoomMutation.mutateAsync({ roomData: data }).then(() => {
+      router.back();
+    });
+  };
+
+  const availability = watch("availability");
+
+  return (
+    <div className=" space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle className="text-xl">Basic Information</CardTitle>
+            <CardDescription>Essential details about the room</CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-semibold">
+                  Room Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="e.g., Ocean View Suite"
+                  {...register("name")}
+                  className={errors.name ? "border-destructive" : ""}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="roomId" className="text-sm font-semibold">
+                  Room ID <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="roomId"
+                  placeholder="e.g., R-101"
+                  {...register("roomId")}
+                  className={errors.roomId ? "border-destructive" : ""}
+                />
+                {errors.roomId && (
+                  <p className="text-sm text-destructive">
+                    {errors.roomId.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-sm font-semibold">
+                  Room Type
+                </Label>
+                <Select
+                  onValueChange={(value) => setValue("type", value as RoomType)}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select room type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(RoomType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type.charAt(0) + type.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-sm font-semibold">
+                  Price (per night) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  placeholder="0"
+                  {...register("price", { valueAsNumber: true })}
+                  className={errors.price ? "border-destructive" : ""}
+                />
+                {errors.price && (
+                  <p className="text-sm text-destructive">
+                    {errors.price.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="squareMeters" className="text-sm font-semibold">
+                  Square Meters <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="squareMeters"
+                  type="number"
+                  placeholder="0"
+                  {...register("squareMeters", { valueAsNumber: true })}
+                  className={errors.squareMeters ? "border-destructive" : ""}
+                />
+                {errors.squareMeters && (
+                  <p className="text-sm text-destructive">
+                    {errors.squareMeters.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="maxOccupancy" className="text-sm font-semibold">
+                  Max Occupancy <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="maxOccupancy"
+                  type="number"
+                  placeholder="0"
+                  {...register("maxOccupancy", { valueAsNumber: true })}
+                  className={errors.maxOccupancy ? "border-destructive" : ""}
+                />
+                {errors.maxOccupancy && (
+                  <p className="text-sm text-destructive">
+                    {errors.maxOccupancy.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="description" className="text-sm font-semibold">
+                  Description <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe the room in detail..."
+                  rows={4}
+                  {...register("description")}
+                  className={errors.description ? "border-destructive" : ""}
+                />
+                {errors.description && (
+                  <p className="text-sm text-destructive">
+                    {errors.description.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between md:col-span-2 p-4 bg-muted rounded-lg">
+                <div className="space-y-0.5">
+                  <Label
+                    htmlFor="availability"
+                    className="text-sm font-semibold"
+                  >
+                    Room Availability
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Is this room currently available for booking?
+                  </p>
+                </div>
+                <Switch
+                  id="availability"
+                  checked={availability}
+                  onCheckedChange={(checked) =>
+                    setValue("availability", checked)
+                  }
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Features */}
+        {/* <Card className="border-2">
+          <CardHeader>
+            <CardTitle className="text-xl">Room Features</CardTitle>
+            <CardDescription>
+              Add amenities and features available in this room
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {featureFields.map((field, index) => (
+              <div
+                key={field.id}
+                className="p-4 border rounded-lg bg-card space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">
+                    Feature #{index + 1}
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeFeature(index)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor={`features.${index}.category`}
+                      className="text-sm"
+                    >
+                      Category
+                    </Label>
+                    <Input
+                      id={`features.${index}.category`}
+                      placeholder="e.g., kitchen, bathroom"
+                      {...register(`features.${index}.category`)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor={`features.${index}.name`}
+                      className="text-sm"
+                    >
+                      Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id={`features.${index}.name`}
+                      placeholder="e.g., wifi, tv"
+                      {...register(`features.${index}.name`)}
+                      className={
+                        errors.features?.[index]?.name
+                          ? "border-destructive"
+                          : ""
+                      }
+                    />
+                    {errors.features?.[index]?.name && (
+                      <p className="text-sm text-destructive">
+                        {errors.features[index]?.name?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor={`features.${index}.value`}
+                      className="text-sm"
+                    >
+                      Value
+                    </Label>
+                    <Input
+                      id={`features.${index}.value`}
+                      placeholder="e.g., true, 2 beds"
+                      {...register(`features.${index}.value`)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                appendFeature({ category: "", name: "", value: "" })
+              }
+              className="w-full border-dashed"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Feature
+            </Button>
+          </CardContent>
+        </Card> */}
+
+        <RoomFeatures form={form} />
+
+        {/* Images */}
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle className="text-xl">Room Images</CardTitle>
+            <CardDescription>
+              Add image URLs to showcase the room
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {imageFields.map((field, index) => (
+              <div
+                key={field.id}
+                className="p-4 border rounded-lg bg-card space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">Image #{index + 1}</h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeImage(index)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`images.${index}.url`} className="text-sm">
+                      Image URL <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id={`images.${index}.url`}
+                      placeholder="https://example.com/image.jpg"
+                      {...register(`images.${index}.url`)}
+                      className={
+                        errors.images?.[index]?.url ? "border-destructive" : ""
+                      }
+                    />
+                    {errors.images?.[index]?.url && (
+                      <p className="text-sm text-destructive">
+                        {errors.images[index]?.url?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`images.${index}.name`} className="text-sm">
+                      Image Name
+                    </Label>
+                    <Input
+                      id={`images.${index}.name`}
+                      placeholder="e.g., Main bedroom view"
+                      {...register(`images.${index}.name`)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => appendImage({ url: "", name: "" })}
+              className="w-full border-dashed"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Image
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Properties */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HomeIcon className="h-5 w-5" />
+              Property
+            </CardTitle>
+            <CardDescription>Select the property here</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Select
+              value={watch("propertyId")}
+              onValueChange={(value) => {
+                setValue("propertyId", value);
+              }}
+            >
+              <SelectTrigger id="property" className="w-[200px]">
+                <SelectValue placeholder="Select property" />
+              </SelectTrigger>
+              <SelectContent>
+                {propertiesQuery.data &&
+                  propertiesQuery?.data?.map((property: any) => (
+                    <SelectItem
+                      key={property.id}
+                      value={property.id.toString()}
+                    >
+                      {property.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+
+            {errors.propertyId && (
+              <p className="text-sm text-destructive">
+                {errors.propertyId.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Services */}
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle className="text-xl">Additional Services</CardTitle>
+            <CardDescription>
+              Add paid or complimentary services for this room
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {serviceFields.map((field, index) => (
+              <div
+                key={field.id}
+                className="p-4 border rounded-lg bg-card space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">
+                    Service #{index + 1}
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeService(index)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor={`services.${index}.name`}
+                      className="text-sm"
+                    >
+                      Service Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id={`services.${index}.name`}
+                      placeholder="e.g., Breakfast"
+                      {...register(`services.${index}.name`)}
+                      className={
+                        errors.services?.[index]?.name
+                          ? "border-destructive"
+                          : ""
+                      }
+                    />
+                    {errors.services?.[index]?.name && (
+                      <p className="text-sm text-destructive">
+                        {errors.services[index]?.name?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor={`services.${index}.price`}
+                      className="text-sm"
+                    >
+                      Price (leave empty for free)
+                    </Label>
+                    <Input
+                      id={`services.${index}.price`}
+                      type="number"
+                      placeholder="0"
+                      {...register(`services.${index}.price`, {
+                        valueAsNumber: true,
+                      })}
+                      className={
+                        errors.services?.[index]?.price
+                          ? "border-destructive"
+                          : ""
+                      }
+                    />
+                    {errors.services?.[index]?.price && (
+                      <p className="text-sm text-destructive">
+                        {errors.services[index]?.price?.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label
+                      htmlFor={`services.${index}.description`}
+                      className="text-sm"
+                    >
+                      Description
+                    </Label>
+                    <Textarea
+                      id={`services.${index}.description`}
+                      placeholder="Describe the service..."
+                      rows={2}
+                      {...register(`services.${index}.description`)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between md:col-span-2 p-3 bg-muted rounded-lg">
+                    <Label
+                      htmlFor={`services.${index}.isActive`}
+                      className="text-sm"
+                    >
+                      Service Active
+                    </Label>
+                    <Switch
+                      id={`services.${index}.isActive`}
+                      onCheckedChange={(checked) =>
+                        setValue(`services.${index}.isActive`, checked)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                appendService({
+                  name: "",
+                  description: "",
+                  price: 0,
+                  isActive: true,
+                })
+              }
+              className="w-full border-dashed"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Service
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Separator />
+
+        {/* Submit Button */}
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" size="lg">
+            Cancel
+          </Button>
+          <Button type="submit" size="lg" className="min-w-[150px]">
+            Create Room
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}

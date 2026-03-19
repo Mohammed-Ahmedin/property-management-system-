@@ -1,0 +1,60 @@
+{
+  "name": "Guest-House-Backend",
+  "version": "1.0.0",
+  "main": "app.js",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "vercel-start": "node dist/app.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "prisma:migrate": "prisma migrate deploy",
+    "deploy": "vercel --prod",
+    "seed": "ts-node ./src/seed/index.ts"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/genai": "^1.29.1",
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^6.19.1",
+    "@vercel/node": "^4.0.0",
+    "axios": "^1.12.2",
+    "bcrypt": "^6.0.0",
+    "better-auth": "^1.3.25",
+    "chapa-nodejs": "^2.0.1",
+    "cloudinary": "^2.7.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-fileupload": "^1.5.2",
+    "express-oas-generator": "^1.0.45",
+    "generate-schema": "^2.6.0",
+    "nodemailer": "^7.0.9",
+    "socket.io": "^4.8.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/express-fileupload": "^1.5.1",
+    "@types/swagger-ui-express": "^4.1.8",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.19.1",
+    "ts-node-dev": "^2.0.0"
+  }
+}

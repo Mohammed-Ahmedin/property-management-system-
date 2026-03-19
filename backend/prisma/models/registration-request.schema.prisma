@@ -1,0 +1,26 @@
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RegistrationType {
+  OWNER
+  BROKER
+}
+
+model RegistrationRequest {
+  id               String           @id @default(cuid())
+  registrationType RegistrationType @default(OWNER)
+  json             Json
+
+  contactName String
+  email       String
+  phone       String?
+
+  nationalId String?
+  status     Status  @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

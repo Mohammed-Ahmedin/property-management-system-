@@ -1,0 +1,15 @@
+model Category {
+    id          String  @id @default(cuid())
+    name        String  @unique
+    description String?
+    image       String? // optional category banner or icon
+    parentId    String?
+    icon        String?
+
+    parent        Category?  @relation("Subcategories", fields: [parentId], references: [id])
+    subcategories Category[] @relation("Subcategories")
+    properties    Property[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

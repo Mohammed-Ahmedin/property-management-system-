@@ -1,0 +1,91 @@
+// ✅ ROOM MODEL
+model Room {
+  id     String   @id @default(uuid())
+  roomId String   @unique
+  name   String
+  type   RoomType @default(SINGLE)
+
+  price Int
+
+  description  String?
+  availability Boolean @default(false)
+  squareMeters Int
+  maxOccupancy Int
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  occupiedById String?
+  occupiedBy   User?   @relation("OccupiedRooms", fields: [occupiedById], references: [id], onDelete: Cascade)
+
+  images    RoomImage[]
+  features  RoomFeature[]
+  services  AdditionalService[]
+  bookings  Booking[]
+  favorites Favorite[]
+  activity  Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ✅ ROOM IMAGES
+model RoomImage {
+  id        String   @id @default(uuid())
+  url       String
+  name      String?
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ✅ DYNAMIC ROOM FEATURES (supports category)
+model RoomFeature {
+  id     String @id @default(uuid())
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // e.g., "kitchen", "livingroom", "bathroom", "hygiene", "accessibility"
+  category String?
+
+  // e.g., "tv", "wifi", "bathtub", "microwave"
+  name String
+
+  // e.g., "true", "false", "2 queen beds", "large fridge"
+  value String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ✅ ADDITIONAL SERVICES (Room or Property level)
+model AdditionalService {
+  id          String  @id @default(uuid())
+  name        String // e.g., "Breakfast", "Laundry", "Airport Pickup"
+  description String?
+  price       Int? // null = free service
+  isActive    Boolean @default(true)
+
+  // Service can belong to either a room or the whole property
+  roomId String?
+  room   Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ✅ ENUM FOR ROOM TYPES
+enum RoomType {
+  SINGLE
+  DOUBLE
+  TWIN
+  DELUXE
+  SUITE
+  FAMILY
+  STUDIO
+  EXECUTIVE
+  PRESIDENTIAL
+}

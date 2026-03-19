@@ -1,0 +1,78 @@
+import { PropertyType } from "@prisma/client";
+import z from "zod";
+
+export const createPropertySchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  type: z.nativeEnum(PropertyType).optional(),
+  about: z
+    .object({
+      description: z
+        .string()
+        .min(10, "Description must be at least 10 characters"),
+    })
+    .optional(),
+  location: z
+    .object({
+      continent: z.string(),
+      country: z.string(),
+      city: z.string(),
+      subcity: z.string(),
+      neighborhood: z.string().optional(),
+      nearby: z.string().optional(),
+      longitude: z.string().optional(),
+      latitude: z.string().optional(),
+    })
+    .optional(),
+
+  facilities: z.array(z.object({ name: z.string() })).optional(),
+  contact: z
+    .object({
+      phone: z.string(),
+      email: z.string().email(),
+    })
+    .optional(),
+  images: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        name: z.string(),
+      })
+    )
+    .optional(),
+});
+
+export const updatePropertySchema = z.object({
+  name: z.string().min(3).optional(),
+  address: z.string().min(5).optional(),
+  type: z.nativeEnum(PropertyType).optional(),
+  about: z
+    .object({
+      description: z.string().min(10),
+    })
+    .optional(),
+  location: z
+    .object({
+      continent: z.string(),
+      country: z.string(),
+      city: z.string(),
+      subcity: z.string(),
+      nearby: z.string().optional(),
+    })
+    .optional(),
+  facilities: z.array(z.object({ name: z.string() })).optional(),
+  contact: z
+    .object({
+      phone: z.string(),
+      email: z.string().email(),
+    })
+    .optional(),
+  images: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        name: z.string(),
+      })
+    )
+    .optional(),
+});

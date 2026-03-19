@@ -1,0 +1,75 @@
+model Activity {
+  id String @id @default(cuid())
+
+  // Action performed
+  action    ActivityAction
+  status    ActivityStatus @default(INFO)
+  timestamp DateTime       @default(now())
+
+  // Optional: user who performed the action
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  description String?
+
+  // Optional relations
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  bookingId String?
+
+  room   Room?   @relation(fields: [roomId], references: [id])
+  roomId String?
+
+  property   Property? @relation(fields: [propertyId], references: [id])
+  propertyId String?
+
+  history   History? @relation(fields: [historyId], references: [id])
+  historyId String?
+
+  // Optional metadata
+  details   Json? // structured info about the activity
+  ipAddress String? // IP address of the user
+  userAgent String? // user agent string
+
+  createdAt DateTime @default(now())
+
+  // Indices for fast querying
+  @@index([userId])
+  @@index([bookingId])
+  @@index([roomId])
+  @@index([propertyId])
+  @@map("activity") // table name in DB
+}
+
+enum ActivityAction {
+  BOOKED
+  UPDATED_BOOKING
+  CANCELLED_BOOKING
+  APPROVED_BOOKING
+  REJECTED_BOOKING
+  CHECKED_IN
+  CHECKED_OUT
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  USER_BANNED
+  USER_UNBANNED
+  DELETE_GUEST_HOUSE
+  UPDATE_GUEST_HOUSE
+  DELETE_ROOM
+  UPDATE_ROOM
+  CREATE_GUEST_HOUSE
+  CREATE_ROOM
+  LOGIN
+  LOGOUT
+  PASSWORD_RESET
+  COMMISSION_UPDATED
+  REPORT_SUBMITTED
+  REPORT_APPROVED
+  REPORT_REJECTED
+}
+
+enum ActivityStatus {
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}

@@ -1,0 +1,150 @@
+model User {
+    id            String  @id @default(cuid())
+    name          String
+    email         String
+    emailVerified Boolean @default(false)
+    image         String?
+    phone         String?
+
+    role       UserRole  @default(GUEST)
+    banned     Boolean   @default(false)
+    banReason  String?
+    banExpires DateTime?
+
+    status UserStatus @default(APPROVED)
+
+    // Relations
+    sessions Session[]
+    accounts Account[]
+    rooms    Room[]    @relation("OccupiedRooms")
+
+    bookings         Booking[] // bookings made by the user
+    approvedBookings Booking[] @relation("ApprovedBookings") // bookings approved by staff/admin
+
+    activities Activity[] // user-related activities
+    favorites  Favorite[]
+
+    managedProperties ManagedProperty[]
+
+    reviews         Review[]
+    chapaSubAccount ChapaSubAccount?
+
+    documents Document[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([email])
+    @@map("user")
+}
+
+model Document {
+    id         String   @id @default(cuid())
+    type       String // e.g., NATIONAL_ID_FRONT, NATIONAL_ID_BACK, 
+    url        String // cloud storage URL
+    fileFormat String // jpg, png, pdf
+    uploadedAt DateTime @default(now())
+
+    // Relations (nullable, so reusable for different entities)
+    userId String?
+    user   User?   @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ManagedProperty {
+    id String @id @default(cuid())
+
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    property   Property @relation(fields: [propertyId], references: [id])
+    propertyId String
+
+    // OWNER / STAFF / BROKER / ADMIN
+    role UserRoleOnProperty @default(STAFF)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, propertyId])
+}
+
+model Session {
+    id        String   @id @default(cuid())
+    expiresAt DateTime
+    token     String
+
+    ipAddress      String?
+    userAgent      String?
+    userId         String
+    user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    impersonatedBy String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([token])
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id @default(cuid())
+    accountId             String
+    providerId            String
+    userId                String
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("account")
+}
+
+model Verification {
+    id         String   @id @default(cuid())
+    identifier String
+    value      String
+    expiresAt  DateTime
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("verification")
+}
+
+enum UserStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+enum RegistrationStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+enum UserRole {
+    GUEST
+    OWNER
+    STAFF
+    ADMIN
+    BROKER
+}
+
+// ================= ENUMS =================
+enum UserRoleOnProperty {
+    OWNER
+    STAFF
+    BROKER
+    ADMIN
+}
