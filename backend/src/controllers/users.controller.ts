@@ -1,6 +1,5 @@
 import { tryCatch } from "../utils/async-handler";
 import { prisma } from "../lib/prisma";
-import { auth } from "../lib/auth";
 
 export default {
   getClients: tryCatch(async (req, res) => {
@@ -97,11 +96,12 @@ export default {
     const { id } = req.params;
     const { banReason, banExpires } = req.body;
 
-    await auth.api.banUser({
-      body: {
-        userId: id,
+    await prisma.user.update({
+      where: { id },
+      data: {
+        banned: true,
         banReason: banReason || "Banned by admin",
-        banExpiresIn: banExpires ? new Date(banExpires).getTime() - Date.now() : undefined,
+        banExpires: banExpires ? new Date(banExpires) : null,
       },
     });
 
@@ -111,7 +111,10 @@ export default {
   unbanUser: tryCatch(async (req, res) => {
     const { id } = req.params;
 
-    await auth.api.unbanUser({ body: { userId: id } });
+    await prisma.user.update({
+      where: { id },
+      data: { banned: false, banReason: null, banExpires: null },
+    });
 
     res.json({ message: "User unbanned successfully" });
   }),
