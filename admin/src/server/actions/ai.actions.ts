@@ -39,14 +39,14 @@ export async function guesthouseManagementAI({
     ];
 
     const aiResponse = await aiConfig.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       config: { systemInstruction: characterPrompt },
       contents: aiContents,
     });
 
     const textResponse =
-      aiResponse?.text ??
       aiResponse?.candidates?.[0]?.content?.parts?.[0]?.text ??
+      (aiResponse as any)?.text ??
       "Sorry, I couldn't process that request right now.";
 
     return { success: true, reply: textResponse };
