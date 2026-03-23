@@ -23,7 +23,7 @@ const Page = () => {
   return (
     <div>
       <UserStatsCards/>
-      <UsersListContainer users={data?.data} />
+      <UsersListContainer users={data?.data ?? []} />
     </div>
   );
 };
