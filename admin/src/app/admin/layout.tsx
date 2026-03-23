@@ -21,7 +21,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
     redirect("/auth");
   }
 
-  if (!isPending && userData && userData.role === "GUEST") {
+  if (!isPending && userData && (userData as any).role === "GUEST") {
     redirect("/auth");
   }
 
