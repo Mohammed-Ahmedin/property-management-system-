@@ -25,6 +25,8 @@ const orgin = [
   "http://localhost:5173",
   "https://property-management-system-s61h-f20us0qvf.vercel.app",
   "https://property-management-system-6wk84gdqk-mohammed-ahmedins-projects.vercel.app",
+  "https://property-management-system-ifoqipqs3-mohammed-ahmedins-projects.vercel.app",
+  "https://property-management-system-s61h-2wxy4q7rh.vercel.app",
 ];
 
 app.use(
