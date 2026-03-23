@@ -415,13 +415,14 @@ export default {
         manualBooked: true,
         status: "PENDING",
         totalAmount: 200.0,
+        subTotal: 150.0,
         basePrice: 150.0,
         taxAmount: 30.0,
         discount: 0.0,
-        propertyId: roomDoc.propertyId,
+        property: { connect: { id: roomDoc.propertyId } },
         currency: "USD",
-        userId,
-        roomId,
+        user: { connect: { id: userId } },
+        room: { connect: { id: roomId } },
         payment: {
           create: {
             method: "ONLINE",
@@ -435,7 +436,7 @@ export default {
         room: true,
         payment: true,
       },
-    });
+    } as any);
 
     return res.status(201).json({
       success: true,
