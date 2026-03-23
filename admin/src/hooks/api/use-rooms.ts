@@ -138,7 +138,7 @@ export const useGetRoomServicesQuery = ({ roomId }: { roomId: string }) => {
     enabled: isAuthenticated && !!roomId,
     retry: false,
     queryFn: async () => {
-      const response = await api.get<Service[]>(`/rooms/${roomId}/get-services`);
+      const response = await api.get<any[]>(`/rooms/${roomId}/get-services`);
       return response.data;
     },
   });
