@@ -17,24 +17,27 @@ app.set("trust proxy", 1);
 const CLIENT_FRONTEND_URL = process.env.CLIENT_FRONTEND_URL;
 const ADMIN_FRONTEND_URL = process.env.ADMIN_FRONTEND_URL;
 
-const orgin = [
+const allowedOriginPatterns = [
+  /^https:\/\/property-management-system[\w-]*\.vercel\.app$/,
+  /^https:\/\/property-management-system[\w-]*-mohammed-ahmedins-projects\.vercel\.app$/,
+  /^https:\/\/solomongetnet\.pro\.et$/,
+  /^http:\/\/localhost:(4000|5173|3000)$/,
+];
+
+const staticOrigins = [
   CLIENT_FRONTEND_URL,
   ADMIN_FRONTEND_URL,
-  "https://solomongetnet.pro.et",
-  "http://localhost:4000",
-  "http://localhost:5173",
-  "https://property-management-system-s61h-f20us0qvf.vercel.app",
-  "https://property-management-system-6wk84gdqk-mohammed-ahmedins-projects.vercel.app",
-  "https://property-management-system-ifoqipqs3-mohammed-ahmedins-projects.vercel.app",
-  "https://property-management-system-s61h-2wxy4q7rh.vercel.app",
-  "https://property-management-system-s61h-i1fy4jr1a.vercel.app",
-  "https://property-management-system-if6x3e54y-mohammed-ahmedins-projects.vercel.app",
-];
+].filter(Boolean) as string[];
 
 app.use(
   cors({
-    origin: [...orgin],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allowed HTTP methods
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (staticOrigins.includes(origin)) return callback(null, true);
+      if (allowedOriginPatterns.some((p) => p.test(origin))) return callback(null, true);
+      callback(new Error(`CORS blocked: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
