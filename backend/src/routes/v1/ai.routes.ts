@@ -51,19 +51,29 @@ router.post(
     ];
 
     const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
-    const geminiRes = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        system_instruction: { parts: [{ text: prompt }] },
-        contents: aiContents,
-      }
-    );
 
-    const textResponse =
-      geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "Sorry, I couldn't process that request right now.";
+    if (!GEMINI_API_KEY) {
+      return res.status(200).json({ success: false, reply: "AI service not configured (missing API key)." });
+    }
 
-    return res.status(200).json({ success: true, reply: textResponse });
+    try {
+      const geminiRes = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          system_instruction: { parts: [{ text: prompt }] },
+          contents: aiContents,
+        }
+      );
+
+      const textResponse =
+        geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text ??
+        "Sorry, I couldn't process that request right now.";
+
+      return res.status(200).json({ success: true, reply: textResponse });
+    } catch (err: any) {
+      const detail = err?.response?.data?.error?.message ?? err?.message ?? "Unknown error";
+      return res.status(200).json({ success: false, reply: `AI error: ${detail}` });
+    }
   })
 );
 

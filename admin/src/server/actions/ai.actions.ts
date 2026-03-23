@@ -54,7 +54,7 @@ export async function guesthouseManagementAI({
   } catch (error: any) {
     return {
       success: false,
-      reply: "Something went wrong while generating the response. Please try again later.",
+      reply: `Error: ${error?.response?.data?.error?.message ?? error?.message ?? "Unknown error"}`,
     };
   }
 }
