@@ -22,6 +22,9 @@ const orgin = [
   ADMIN_FRONTEND_URL,
   "https://solomongetnet.pro.et",
   "http://localhost:4000",
+  "http://localhost:5173",
+  "https://property-management-system-s61h-f20us0qvf.vercel.app",
+  "https://property-management-system-6wk84gdqk-mohammed-ahmedins-projects.vercel.app",
 ];
 
 app.use(
