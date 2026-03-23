@@ -1,7 +1,6 @@
 "use server";
 
-import { aiConfig } from "../config/ai";
-
+import axios from "axios";
 
 interface ChatMessage {
   role: "USER" | "ASSISTANT";
@@ -38,24 +37,24 @@ export async function guesthouseManagementAI({
       { role: "user", parts: [{ text: message }] },
     ];
 
-    const aiResponse = await aiConfig.models.generateContent({
-      model: "gemini-1.5-flash",
-      config: { systemInstruction: characterPrompt },
-      contents: aiContents,
-    });
+    const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
+    const geminiRes = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        system_instruction: { parts: [{ text: characterPrompt }] },
+        contents: aiContents,
+      }
+    );
 
     const textResponse =
-      aiResponse?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      (aiResponse as any)?.text ??
+      geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text ??
       "Sorry, I couldn't process that request right now.";
 
     return { success: true, reply: textResponse };
-  } catch (error) {
-    console.error("Guesthouse Management AI Error:", error);
+  } catch (error: any) {
     return {
       success: false,
-      reply:
-        "Something went wrong while generating the response. Please try again later.",
+      reply: "Something went wrong while generating the response. Please try again later.",
     };
   }
 }
