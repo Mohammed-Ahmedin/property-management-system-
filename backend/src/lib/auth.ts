@@ -16,13 +16,15 @@ const trustedOrigins = [
   "https://property-admin-web.vercel.app",
   "https://property-booking-project-ui9i.vercel.app",
   "myapp://",
+  ...(CLIENT_FRONTEND_URL ? [CLIENT_FRONTEND_URL] : []),
+  ...(ADMIN_FRONTEND_URL ? [ADMIN_FRONTEND_URL] : []),
 ];
 
 const BASE_URL = process.env.BASE_URL!;
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
-    provider: "mysql",
+    provider: "postgresql",
   }),
   trustedOrigins,
 
