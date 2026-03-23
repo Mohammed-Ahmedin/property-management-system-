@@ -16,6 +16,7 @@ const subAccountSchema = z.object({
     .regex(/^\d+$/, "Account number must be digits only"),
   accountName: z.string().min(3).max(100),
   businessName: z.string().min(2).max(100),
+  propertyId: z.string().optional(),
 });
 
 import crypto from "crypto";
@@ -39,7 +40,7 @@ export default {
       return res.status(400).json({ message: "Invalid data", success: false });
     }
 
-    const { bankCode, accountNumber, accountName, businessName } = parsed.data;
+    const { bankCode, accountNumber, accountName, businessName, propertyId } = parsed.data;
 
     // ✅ Check for existing subaccount
     const existingSubAccount = await prisma.chapaSubAccount.findFirst({
@@ -94,7 +95,8 @@ export default {
     // ✅ Save to database
     const createdSubAccount = await prisma.chapaSubAccount.create({
       data: {
-        ownerId: userId,
+        owner: { connect: { id: userId } },
+        ...(propertyId ? { property: { connect: { id: propertyId } } } : {}),
         accountName,
         accountNumber,
         chapaSubId: chapaResponse.data.subaccount_id,
@@ -104,7 +106,7 @@ export default {
         type: userRole === "ADMIN" ? "PLATFORM" : (userRole as any),
         businessName,
       },
-    });
+    } as any);
 
     return res.status(201).json({
       message: "Subaccount created successfully",

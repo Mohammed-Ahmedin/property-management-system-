@@ -148,13 +148,12 @@ export default {
         taxAmount: 0,
         discount: validated.discount ?? 0,
         currency: "ETB",
-        userId: validated.userId,
-        roomId: validated.roomId,
-        propertyId: roomDoc.propertyId,
+        user: { connect: { id: validated.userId } },
+        room: { connect: { id: validated.roomId } },
+        property: { connect: { id: roomDoc.propertyId } },
         additionalServices: {
           connect: validated.additionalServices.map((s) => ({ id: s.id })),
         },
-
         payment: {
           create: {
             transactionRef: txRef,
