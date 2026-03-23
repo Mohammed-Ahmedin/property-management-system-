@@ -43,10 +43,12 @@ router.post(
     const prompt = lang === "am" ? AM_PROMPT : EN_PROMPT;
 
     const aiContents = [
-      ...messages.map((m: { role: string; content: string }) => ({
-        role: m.role === "ASSISTANT" ? "model" : "user",
-        parts: [{ text: m.content }],
-      })),
+      ...messages
+        .filter((m: { role: string; content: string }) => m.content?.trim())
+        .map((m: { role: string; content: string }) => ({
+          role: m.role === "ASSISTANT" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
       { role: "user", parts: [{ text: message }] },
     ];
 

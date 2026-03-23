@@ -30,10 +30,12 @@ export async function guesthouseManagementAI({
     `;
 
     const aiContents = [
-      ...messages.map((m) => ({
-        role: m.role === "ASSISTANT" ? "model" : "user",
-        parts: [{ text: m.content }],
-      })),
+      ...messages
+        .filter((m) => m.content?.trim())
+        .map((m) => ({
+          role: m.role === "ASSISTANT" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
       { role: "user", parts: [{ text: message }] },
     ];
 
