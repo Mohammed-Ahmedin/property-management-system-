@@ -133,7 +133,7 @@ export const useGetSingleRoomQuery = ({ id }: { id: string }) => {
 
 export const useGetRoomServicesQuery = ({ roomId }: { roomId: string }) => {
   const { isAuthenticated } = useAuthSession();
-  return useQuery<Service[]>({
+  return useQuery<any[]>({
     queryKey: ["room_service", roomId],
     enabled: isAuthenticated && !!roomId,
     retry: false,
