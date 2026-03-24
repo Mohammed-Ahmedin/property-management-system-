@@ -21,9 +21,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
 
-  const lowestPrice = data.rooms?.length
-    ? Math.min(...data.rooms.map((r: any) => r.price ?? Infinity))
-    : null;
+  const lowestPrice = null; // price not available in listing response
 
   const ratingLabel =
     !averageRating ? null
