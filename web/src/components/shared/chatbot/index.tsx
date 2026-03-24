@@ -32,12 +32,13 @@ export function ChatBotContainer() {
         content: m.text,
       }));
       
+      const ADMIN_URL = import.meta.env.VITE_ADMIN_BASE_URL ?? "https://property-management-system-s61h.vercel.app";
       return (
-        await api.post<{ reply: string; success: boolean }>("/ai/chatbot", {
+        await api.post<{ reply: string; success: boolean }>(`${ADMIN_URL}/api/chatbot`, {
           messages: chatMessages,
           message: input,
           lang: selectedLanguage,
-        })
+        }, { baseURL: "" })
       ).data;
     },
     onError: (error) => handleTanstackError({ error }),
