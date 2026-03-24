@@ -15,7 +15,7 @@ const features = [
 const HeroSection = () => {
   return (
     <div className="c-px pt-4">
-      <div className="w-full min-h-[480px] relative flex flex-col justify-center items-center pb-16">
+      <div className="w-full min-h-[520px] relative flex flex-col justify-center items-center pb-24">
         {/* Background Image */}
         <div className="w-full h-full absolute inset-0 rounded-2xl overflow-hidden">
           <img

@@ -2,25 +2,15 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Calendar, LogOut, Menu, Settings, User } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Calendar, Globe, LogOut, Menu, Settings, User, Heart, HelpCircle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ModeToggle } from "../mode-toggle";
 import { cn } from "@/lib/utils";
 import { mainNavLinks } from "@/const/links";
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "../avatar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useClientAuth } from "@/hooks/use-client-auth";
 
 export function Header() {
@@ -30,194 +20,126 @@ export function Header() {
   const { signOut, isAuthenticated } = useClientAuth();
   const navigate = useNavigate();
 
+  const UserMenu = () => (
+    <Popover>
+      <PopoverTrigger>
+        <Avatar src={data?.user?.image!} fallback={data?.user?.name ?? ""} />
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-2" align="end">
+        <div className="flex gap-2 items-center px-2 py-2 border-b mb-2">
+          <Avatar src={data?.user?.image || ""} fallback={data?.user?.name ?? ""} />
+          <div className="flex flex-col min-w-0">
+            <p className="text-sm font-medium truncate">{data?.user?.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{data?.user?.email}</p>
+          </div>
+        </div>
+        <button className="w-full text-start text-sm px-2 py-2 rounded-lg flex items-center gap-2 hover:bg-muted transition-colors" onClick={() => navigate("/account")}>
+          <Settings className="w-4 h-4" /> Account settings
+        </button>
+        <button className="w-full text-start text-sm px-2 py-2 rounded-lg flex items-center gap-2 hover:bg-muted transition-colors" onClick={() => navigate("/account/bookings")}>
+          <Calendar className="w-4 h-4" /> My bookings
+        </button>
+        <button className="w-full text-start text-sm px-2 py-2 rounded-lg flex items-center gap-2 hover:bg-muted transition-colors text-destructive" onClick={() => signOut()}>
+          <LogOut className="w-4 h-4" /> Sign out
+        </button>
+      </PopoverContent>
+    </Popover>
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
       <div className="c-px">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo + Desktop Nav */}
-          <div className="flex items-center gap-16">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-foreground">Bete</span>
-            </Link>
+        <div className="flex h-16 items-center justify-between gap-4">
 
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-8">
-              {mainNavLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    location.pathname === link.href
-                      ? "text-primary border-b-2 border-primary pb-1"
-                      : "text-foreground"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-2">
-            <div className="pl-2">
-              <ModeToggle />
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">B</span>
             </div>
+            <span className="text-xl font-bold text-foreground">Bete</span>
+          </Link>
 
-            {isPending ? (
-              "Loading..."
-            ) : data?.user ? (
-              <div>
-                <Popover>
-                  <PopoverTrigger>
-                    <Avatar src={data.user.image!} fallback={data.user.name} />
-                  </PopoverTrigger>
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1 flex-1">
+            {mainNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  "text-sm font-medium px-3 py-2 rounded-lg transition-colors hover:bg-muted",
+                  location.pathname === link.href
+                    ? "text-primary bg-primary/5"
+                    : "text-foreground"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-                  <PopoverContent>
-                    <div className="flex gap-2 items-center">
-                      <Avatar
-                        src={data.user.image || ""}
-                        fallback={data.user.name}
-                      />
-                      <div className="flex flex-col px-2 py-3">
-                        <h2 className="text-sm">{data.user.name}</h2>
-                        <h2 className="text-xs">{data.user.email}</h2>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5 mt-3">
-                      <button
-                        className="w-full text-start text-sm border px-2 py-2 rounded-lg flex items-center gap-2"
-                        onClick={() => {
-                          navigate("/account");
-                        }}
-                      >
-                        <Settings className="w-4" />
-                        Account
-                      </button>
-                      <button
-                        className="w-full text-start text-sm border px-2 py-2 rounded-lg flex items-center gap-2"
-                        onClick={() => {
-                          navigate("/account/bookings");
-                        }}
-                      >
-                        <Calendar className="w-4" />
-                        Bookings
-                      </button>
-                      <button
-                        className="w-full text-start text-sm border px-2 py-2 rounded-lg flex items-center gap-2"
-                        onClick={() => {
-                          signOut();
-                        }}
-                      >
-                        <LogOut className="w-4" />
-                        Signout
-                      </button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            ) : (
+          {/* Right side */}
+          <div className="hidden md:flex items-center gap-1">
+            <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-muted transition-colors">
+              <HelpCircle className="w-4 h-4" />
+              Support
+            </button>
+
+            <ModeToggle />
+
+            {isPending ? null : data?.user ? (
               <>
-                <Button
-                  className="rounded-3xl py-4 px-8"
-                  variant="outline"
-                  onClick={() => {
-                    navigate("/auth/register");
-                  }}
+                <button
+                  onClick={() => navigate("/account/bookings")}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-muted transition-colors"
                 >
-                  Sign up
+                  <Heart className="w-4 h-4" />
+                  Saved
+                </button>
+                <UserMenu />
+              </>
+            ) : (
+              <div className="flex items-center gap-2 ml-2">
+                <Button variant="ghost" className="text-sm" onClick={() => navigate("/auth/register")}>
+                  Register
                 </Button>
-                <Button
-                  className="rounded-3xl py-4 px-8"
-                  onClick={() => {
-                    navigate("/auth/signin");
-                  }}
-                >
+                <Button className="text-sm rounded-lg px-5" onClick={() => navigate("/auth/signin")}>
                   Sign in
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
-          {/* Mobile Menu Trigger */}
+          {/* Mobile */}
           <div className="md:hidden flex items-center gap-2">
-            {data?.user && (
-              <div>
-                <Popover>
-                  <PopoverTrigger>
-                    <Avatar src={data.user.image!} fallback={data.user.name} />
-                  </PopoverTrigger>
-
-                  <PopoverContent>
-                    <div className="flex gap-2 items-center">
-                      <Avatar
-                        src={data.user.image || ""}
-                        fallback={data.user.name}
-                      />
-                      <div className="flex flex-col px-2 py-3">
-                        <h2 className="text-sm">{data.user.name}</h2>
-                        <h2 className="text-xs">{data.user.email}</h2>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5 mt-3">
-                      <button
-                        className="w-full text-start text-sm border px-2 py-2 rounded-lg flex items-center gap-2"
-                        onClick={() => {
-                          navigate("/account");
-                        }}
-                      >
-                        <Settings className="w-4" />
-                        Account
-                      </button>
-                      <button
-                        className="w-full text-start text-sm border px-2 py-2 rounded-lg flex items-center gap-2"
-                        onClick={() => {
-                          navigate("/account/bookings");
-                        }}
-                      >
-                        <Calendar className="w-4" />
-                        Bookings
-                      </button>
-                      <button
-                        className="w-full text-start text-sm border px-2 py-2 rounded-lg flex items-center gap-2"
-                        onClick={() => {
-                          signOut();
-                        }}
-                      >
-                        <LogOut className="w-4" />
-                        Signout
-                      </button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
+            <ModeToggle />
+            {data?.user && <UserMenu />}
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="flex flex-col justify-between px-4 pb-4"
-              >
+              <SheetContent side="right" className="flex flex-col justify-between px-4 pb-6">
                 <div>
-                  <SheetHeader>
-                    <SheetTitle className="text-2xl font-bold">Bete</SheetTitle>
+                  <SheetHeader className="mb-6">
+                    <SheetTitle className="text-xl font-bold flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                        <span className="text-primary-foreground font-bold text-xs">B</span>
+                      </div>
+                      Bete
+                    </SheetTitle>
                   </SheetHeader>
-                  <div className="mt-6 flex flex-col gap-4">
+                  <div className="flex flex-col gap-1">
                     {mainNavLinks.map((link) => (
                       <Link
                         key={link.href}
                         to={link.href}
                         onClick={() => setOpen(false)}
                         className={cn(
-                          "text-base font-medium transition-colors hover:text-primary",
+                          "text-sm font-medium px-3 py-2.5 rounded-lg transition-colors",
                           location.pathname === link.href
-                            ? "text-primary border-l-4 border-primary pl-3"
-                            : "text-foreground pl-3"
+                            ? "text-primary bg-primary/5"
+                            : "text-foreground hover:bg-muted"
                         )}
                       >
                         {link.label}
@@ -225,33 +147,20 @@ export function Header() {
                     ))}
                   </div>
                 </div>
-
-                {/* Auth actions inside sheet */}
                 {!isAuthenticated && (
-                  <div className="mt-8 flex flex-col gap-2 ">
-                    <Button
-                      variant="outline"
-                      className="rounded-3xl w-full"
-                      onClick={() => {
-                        navigate("/auth/register");
-                      }}
-                    >
-                      Sign up
+                  <div className="flex flex-col gap-2">
+                    <Button variant="outline" className="w-full" onClick={() => { navigate("/auth/register"); setOpen(false); }}>
+                      Register
                     </Button>
-                    <Button
-                      className="rounded-3xl w-full flex items-center justify-center gap-2"
-                      onClick={() => {
-                        navigate("/auth/signin");
-                      }}
-                    >
-                      <User className="h-4 w-4" />
-                      Sign in
+                    <Button className="w-full" onClick={() => { navigate("/auth/signin"); setOpen(false); }}>
+                      <User className="h-4 w-4 mr-2" /> Sign in
                     </Button>
                   </div>
                 )}
               </SheetContent>
             </Sheet>
           </div>
+
         </div>
       </div>
     </header>
