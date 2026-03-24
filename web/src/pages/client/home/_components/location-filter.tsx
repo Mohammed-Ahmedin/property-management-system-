@@ -58,9 +58,11 @@ const ethiopianLocations = [
 export function LocationFilter({
   location,
   setLocation,
+  dark = false,
 }: {
   location: string;
   setLocation: (val: string) => void;
+  dark?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -68,8 +70,10 @@ export function LocationFilter({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="w-full flex flex-col items-start cursor-pointer">
-          <h2 className="text-base md:text-lg font-semibold text-gray-900">Location</h2>
-          <p className="text-sm text-gray-400 truncate max-w-[180px]">
+          <h2 className={`text-base md:text-lg font-semibold transition-colors duration-700 ${dark ? "text-white" : "text-gray-900"}`}>
+            Location
+          </h2>
+          <p className={`text-sm truncate max-w-[180px] transition-colors duration-700 ${dark ? "text-gray-400" : "text-gray-400"}`}>
             {location || "Where are you going?"}
           </p>
         </div>

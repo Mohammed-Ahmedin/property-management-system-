@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -35,8 +35,14 @@ const FilterTab = () => {
   const [pickupDate, setPickupDate] = useState<Date>();
   const [passengers, setPassengers] = useState<number>(1);
   const [transferDirection, setTransferDirection] = useState<"from" | "to">("from");
+  const [locDark, setLocDark] = useState(false);
   const navigate = useNavigate();
   const [filterOpen, setFilterOpen] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setLocDark((d) => !d), 2000);
+    return () => clearInterval(id);
+  }, []);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -78,18 +84,19 @@ const FilterTab = () => {
             <>
               {/* Row 1 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                {/* Destination — animated glow */}
-                <div className={cn(BOX, "px-4 py-3 relative animate-pulse-border")}>
-                  <style>{`
-                    @keyframes borderGlow {
-                      0%, 100% { border-color: #d1d5db; box-shadow: none; }
-                      50% { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-                    }
-                    .location-glow { animation: borderGlow 2s ease-in-out infinite; }
-                  `}</style>
-                  <div className="location-glow absolute inset-0 rounded-lg pointer-events-none border-2 border-transparent" />
-                  <p className={LABEL}>Destination</p>
-                  <LocationFilter location={location} setLocation={setLocation} />
+                {/* Destination — color-toggling animation */}
+                <div
+                  className={cn(
+                    "border-2 rounded-lg px-4 py-3 relative cursor-pointer transition-colors duration-700",
+                    locDark
+                      ? "bg-gray-900 border-gray-900"
+                      : "bg-white border-gray-300 hover:border-primary"
+                  )}
+                >
+                  <p className={cn("text-xs font-semibold mb-1", locDark ? "text-gray-400" : "text-gray-500")}>
+                    Destination
+                  </p>
+                  <LocationFilter location={location} setLocation={setLocation} dark={locDark} />
                 </div>
 
                 {/* Check-in */}
@@ -163,17 +170,17 @@ const FilterTab = () => {
             </>
           ) : activeTab === "homes" || activeTab === "longstay" ? (
             <>
-              {/* Full-width destination — animated */}
-              <div className={cn(BOX, "px-4 py-3 flex items-center gap-3 mb-3 location-glow relative")}>
-                <style>{`
-                  @keyframes borderGlow {
-                    0%, 100% { border-color: #d1d5db; box-shadow: none; }
-                    50% { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-                  }
-                  .location-glow { animation: borderGlow 2s ease-in-out infinite; }
-                `}</style>
-                <Search className="w-4 h-4 text-gray-400 shrink-0" />
-                <LocationFilter location={location} setLocation={setLocation} />
+              {/* Full-width destination — color toggling */}
+              <div
+                className={cn(
+                  "border-2 rounded-lg px-4 py-3 flex items-center gap-3 mb-3 cursor-pointer transition-colors duration-700",
+                  locDark
+                    ? "bg-gray-900 border-gray-900"
+                    : "bg-white border-gray-300 hover:border-primary"
+                )}
+              >
+                <Search className={cn("w-4 h-4 shrink-0", locDark ? "text-gray-400" : "text-gray-400")} />
+                <LocationFilter location={location} setLocation={setLocation} dark={locDark} />
               </div>
 
               {/* Inline row */}
