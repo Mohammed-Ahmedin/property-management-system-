@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { MapPin, Search, Filter, Car, Building2, Home, Clock, Plane } from "lucide-react";
+import { MapPin, Search, Filter, Building2, Home, Clock, Plane, PlaneTakeoff, PlaneLanding, ArrowLeftRight, CalendarDays, Clock3, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LocationFilter } from "./location-filter";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +28,7 @@ const FilterTab = () => {
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [pickupDate, setPickupDate] = useState<Date>();
   const [passengers, setPassengers] = useState<number>(1);
+  const [transferDirection, setTransferDirection] = useState<"from" | "to">("from");
   const navigate = useNavigate();
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -150,37 +151,70 @@ const FilterTab = () => {
             </>
           ) : (
             <>
-              {/* Transport: Row 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                <div className="border border-border rounded-lg px-4 py-3 hover:border-primary/50 transition-colors">
-                  <p className="text-xs text-muted-foreground mb-1">Pick-up airport</p>
+              {/* From / To airport toggle */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setTransferDirection("from")}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                    transferDirection === "from"
+                      ? "bg-white border-primary text-primary shadow-sm"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  From airport
+                </button>
+                <button
+                  onClick={() => setTransferDirection("to")}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                    transferDirection === "to"
+                      ? "bg-white border-primary text-primary shadow-sm"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  To airport
+                </button>
+              </div>
+
+              {/* Row 1: Pick-up + swap icon + Destination */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex-1 border border-border rounded-lg px-4 py-3 flex items-center gap-3 hover:border-primary/50 transition-colors">
+                  <PlaneTakeoff className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
-                    className="w-full text-sm font-medium bg-transparent outline-none placeholder:text-muted-foreground placeholder:font-normal"
-                    placeholder="Airport name or code"
+                    className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                    placeholder="Pick-up airport"
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
                   />
                 </div>
-                <div className="border border-border rounded-lg px-4 py-3 hover:border-primary/50 transition-colors">
-                  <p className="text-xs text-muted-foreground mb-1">Destination location</p>
+                <button
+                  onClick={() => { const tmp = pickupLocation; setPickupLocation(dropoffLocation); setDropoffLocation(tmp); }}
+                  className="p-2 rounded-full border border-border hover:bg-muted transition-colors shrink-0"
+                  aria-label="Swap locations"
+                >
+                  <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <div className="flex-1 border border-border rounded-lg px-4 py-3 flex items-center gap-3 hover:border-primary/50 transition-colors">
+                  <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
                   <input
-                    className="w-full text-sm font-medium bg-transparent outline-none placeholder:text-muted-foreground placeholder:font-normal"
-                    placeholder="Hotel, address or area"
+                    className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                    placeholder="Destination location"
                     value={dropoffLocation}
                     onChange={(e) => setDropoffLocation(e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* Transport: Row 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+              {/* Row 2: Date + Time + Passengers */}
+              <div className="border border-border rounded-lg flex divide-x divide-border mb-4 overflow-hidden">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors w-full">
-                      <p className="text-xs text-muted-foreground mb-1">Pick-up date</p>
-                      <p className={cn("text-sm font-medium", !pickupDate && "text-muted-foreground")}>
-                        {pickupDate ? format(pickupDate, "EEE, MMM d") : "Select date"}
-                      </p>
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
+                      <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className={cn("text-sm", !pickupDate && "text-muted-foreground")}>
+                        {pickupDate ? format(pickupDate, "EEE, MMM d") : "Pick-up date"}
+                      </span>
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -188,31 +222,41 @@ const FilterTab = () => {
                   </PopoverContent>
                 </Popover>
 
-                <div className="border border-border rounded-lg px-4 py-3 hover:border-primary/50 transition-colors">
-                  <p className="text-xs text-muted-foreground mb-1">Pick-up time</p>
-                  <p className="text-sm font-medium text-muted-foreground">12:00 PM</p>
+                <div className="flex-1 px-4 py-3 flex items-center gap-3">
+                  <Clock3 className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-muted-foreground">12:00 PM</span>
                 </div>
 
-                <div className="border border-border rounded-lg px-4 py-3 hover:border-primary/50 transition-colors">
-                  <p className="text-xs text-muted-foreground mb-1">Passengers</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{passengers} passenger{passengers > 1 ? "s" : ""}</p>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setPassengers((p) => Math.max(1, p - 1))} className="w-5 h-5 rounded-full border flex items-center justify-center text-xs hover:bg-muted">-</button>
-                      <button onClick={() => setPassengers((p) => p + 1)} className="w-5 h-5 rounded-full border flex items-center justify-center text-xs hover:bg-muted">+</button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
+                      <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm">{passengers} passenger{passengers > 1 ? "s" : ""}</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-52 p-4" align="start">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Passengers</span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPassengers((p) => Math.max(1, p - 1))} disabled={passengers <= 1}>-</Button>
+                        <span className="w-5 text-center text-sm">{passengers}</span>
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPassengers((p) => p + 1)}>+</Button>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              {/* Search button */}
-              <button
-                onClick={() => navigate(`/properties?transport=true&pickup=${pickupLocation}&dropoff=${dropoffLocation}`)}
-                className="w-full bg-primary hover:bg-primary/90 text-white rounded-lg py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-                Search
-              </button>
+              {/* Search button — centered, rounded-full */}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => navigate(`/properties?transport=true&direction=${transferDirection}&pickup=${pickupLocation}&dropoff=${dropoffLocation}`)}
+                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-semibold flex items-center gap-2 transition-colors"
+                >
+                  <Search className="w-4 h-4" />
+                  Search
+                </button>
+              </div>
             </>
           )}
         </div>
