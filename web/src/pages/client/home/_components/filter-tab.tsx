@@ -42,8 +42,6 @@ const FilterTab = () => {
     navigate(`/properties?${params.toString()}`);
   };
 
-  const isStay = activeTab !== "transport";
-
   return (
     <>
       {/* White card */}
@@ -70,17 +68,86 @@ const FilterTab = () => {
 
         {/* Fields */}
         <div className="p-4">
-          {isStay ? (
+          {activeTab === "hotels" ? (
             <>
-              {/* Row 1: Full-width destination */}
+              {/* Row 1: Destination + Check-in + Check-out */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <div className="border border-border rounded-lg px-4 py-3 hover:border-primary/50 transition-colors">
+                  <p className="text-xs text-muted-foreground mb-1">Destination</p>
+                  <LocationFilter location={location} setLocation={setLocation} />
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors w-full">
+                      <p className="text-xs text-muted-foreground mb-1">Check in</p>
+                      <p className={cn("text-sm font-medium", !checkIn && "text-muted-foreground")}>
+                        {checkIn ? format(checkIn, "EEE, MMM d") : "Add date"}
+                      </p>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus />
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors w-full">
+                      <p className="text-xs text-muted-foreground mb-1">Check out</p>
+                      <p className={cn("text-sm font-medium", !checkOut && "text-muted-foreground")}>
+                        {checkOut ? format(checkOut, "EEE, MMM d") : "Add date"}
+                      </p>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {/* Row 2: Guests + Filters + Search */}
+              <div className="flex gap-3 items-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors flex-1 md:flex-none md:w-48">
+                      <p className="text-xs text-muted-foreground mb-1">Guests</p>
+                      <p className="text-sm font-medium">{guests} Guest{guests > 1 ? "s" : ""}</p>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-52 p-4" align="start">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Guests</span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setGuests((p) => Math.max(1, p - 1))} disabled={guests <= 1}>-</Button>
+                        <span className="w-5 text-center text-sm">{guests}</span>
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setGuests((p) => p + 1)}>+</Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <button
+                  onClick={() => setFilterOpen(true)}
+                  className="border border-border rounded-lg px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="hidden md:inline">More filters</span>
+                </button>
+                <button
+                  onClick={handleSearch}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-lg py-3 px-6 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Search className="w-4 h-4" />
+                  Search
+                </button>
+              </div>
+            </>
+          ) : activeTab === "homes" || activeTab === "longstay" ? (
+            <>
+              {/* Full-width destination */}
               <div className="border border-border rounded-lg px-4 py-3 flex items-center gap-3 mb-3 hover:border-primary/50 transition-colors">
                 <Search className="w-4 h-4 text-muted-foreground shrink-0" />
                 <LocationFilter location={location} setLocation={setLocation} />
               </div>
-
-              {/* Row 2: Check-in + Check-out + Guests in one bordered row */}
+              {/* Check-in + Check-out + Guests in one bordered row */}
               <div className="border border-border rounded-lg flex divide-x divide-border mb-4 overflow-hidden">
-                {/* Check-in */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
@@ -97,8 +164,6 @@ const FilterTab = () => {
                     <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus />
                   </PopoverContent>
                 </Popover>
-
-                {/* Check-out */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
@@ -115,8 +180,6 @@ const FilterTab = () => {
                     <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} initialFocus />
                   </PopoverContent>
                 </Popover>
-
-                {/* Guests */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex-1 px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-muted/40 transition-colors">
@@ -127,7 +190,6 @@ const FilterTab = () => {
                           <p className="text-xs text-muted-foreground">1 room</p>
                         </div>
                       </div>
-                      <Search className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-52 p-4" align="end">
@@ -142,8 +204,6 @@ const FilterTab = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-
-              {/* Search button — centered, rounded-full */}
               <div className="flex justify-center">
                 <button
                   onClick={handleSearch}
