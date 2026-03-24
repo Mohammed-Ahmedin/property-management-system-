@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -68,19 +67,12 @@ export function LocationFilter({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-full flex-1 h-full flex justify-start px-0 hover:bg-transparent"
-        >
-          <div className="flex items-center gap-2 text-left">
-            <div className="flex flex-col items-start">
-              <h2 className="text-base md:text-lg font-semibold text-gray-900">Location</h2>
-              <p className="text-sm text-gray-400 truncate max-w-[140px]">
-                {location || "Where are you going?"}
-              </p>
-            </div>
-          </div>
-        </Button>
+        <div className="w-full flex flex-col items-start cursor-pointer">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900">Location</h2>
+          <p className="text-sm text-gray-400 truncate max-w-[180px]">
+            {location || "Where are you going?"}
+          </p>
+        </div>
       </PopoverTrigger>
 
       <PopoverContent className="w-72 p-0">
