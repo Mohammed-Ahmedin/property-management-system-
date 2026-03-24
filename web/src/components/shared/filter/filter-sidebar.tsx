@@ -3,53 +3,45 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import { RotateCcw } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import type { PropertyFilters } from "@/types/property.types";
 import CitySubcityFilter from "./city-filter";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
-interface FilterSidebarProps {
-  onSearch: (filters: PropertyFilters) => void;
+const FACILITIES = ["WiFi", "Kitchen", "Air Conditioning", "Heating", "Parking", "Washer", "Dryer", "TV", "Pool", "Gym", "Breakfast", "Airport Transfer"];
+const PROPERTY_TYPES = ["SHARED", "PRIVATE", "ENTIRE"];
+const RATINGS = [5, 4, 3, 2, 1];
+
+function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="py-4 border-b border-border last:border-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-0"
+      >
+        {title}
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && <div className="mt-3">{children}</div>}
+    </div>
+  );
 }
-
-const FACILITIES = [
-  "WiFi",
-  "Kitchen",
-  "Air Conditioning",
-  "Heating",
-  "Parking",
-  "Washer",
-  "Dryer",
-  "TV",
-  "Pool",
-  "Gym",
-];
 
 export function FilterSidebar() {
   const [filters, setFilters] = useState<PropertyFilters>({});
   const navigate = useNavigate();
 
-  const handleFilterChange = useCallback(
-    (key: keyof PropertyFilters, value: any) => {
-      setFilters((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
-    },
-    []
-  );
+  const handleFilterChange = useCallback((key: keyof PropertyFilters, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const handleClearFilters = () => {
     setFilters({});
@@ -58,355 +50,128 @@ export function FilterSidebar() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-
-    // Add filters to search params
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
-        if (Array.isArray(value)) {
-          params.append(key, JSON.stringify(value));
-        } else if (typeof value === "number") {
-          params.append(key, value.toString());
-        } else if (typeof value === "boolean") {
-          params.append(key, value.toString());
-        } else {
-          params.append(key, value);
-        }
+        if (Array.isArray(value)) params.append(key, JSON.stringify(value));
+        else if (typeof value === "number") params.append(key, value.toString());
+        else if (typeof value === "boolean") params.append(key, value.toString());
+        else params.append(key, value);
       }
     });
-
     navigate(`/properties?${params.toString()}`);
   };
 
-  // const handleSearch = (filters: PropertyFilters) => {
-
-  //   if (filters.search) {
-  //     results = results.filter((house) =>
-  //       house.name.toLowerCase().includes(filters.search.toLowerCase())
-  //     );
-  //   }
-
-  //   if (filters.city) {
-  //     results = results.filter((house) => house.city === filters.city);
-  //   }
-
-  //   if (filters.subcity) {
-  //     results = results.filter((house) => house.subcity === filters.subcity);
-  //   }
-
-  //   if (filters.minPrice) {
-  //     results = results.filter((house) => house.price >= filters.minPrice);
-  //   }
-
-  //   if (filters.maxPrice) {
-  //     results = results.filter((house) => house.price <= filters.maxPrice);
-  //   }
-
-  //   if (filters.minRating) {
-  //     results = results.filter((house) => house.rating >= filters.minRating);
-  //   }
-
-  //   if (filters.maxRating) {
-  //     results = results.filter((house) => house.rating <= filters.maxRating);
-  //   }
-
-  //   if (filters.facilityNames && filters.facilityNames.length > 0) {
-  //     results = results.filter((house) =>
-  //       filters.facilityNames!.some((facility) =>
-  //         house.facilities.includes(facility)
-  //       )
-  //     );
-  //   }
-
-  //   setFilteredProperties(results);
-  // };
-
-  const renderStars = (count: number) => {
-    const stars = [];
-    for (let i = 0; i < count; i++) {
-      stars.push(
-        <FaStar key={i} className="w-3 h-3 inline-block text-yellow-500" />
-      );
-    }
-    return stars;
-  };
-
   return (
-    <div className="hidden lg:flex flex-col h-full bg-card border-r border-border w-[450px]">
-      {/* Header */}
-      <div className="p-6 border-b border-border">
-        <h2 className="text-xl font-bold text-foreground">Filters</h2>
+    <div className="hidden lg:flex flex-col h-full bg-card border rounded-xl w-[280px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)]">
+      <div className="px-5 py-4 border-b flex items-center justify-between">
+        <h2 className="text-base font-bold">Filters</h2>
+        <button onClick={handleClearFilters} className="text-xs text-primary hover:underline flex items-center gap-1">
+          <RotateCcw className="w-3 h-3" /> Reset
+        </button>
       </div>
 
-      {/* Scrollable Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
-          {/* Search Input */}
-          <div className="space-y-2">
-            <Label htmlFor="search" className="text-sm font-medium">
-              Search
-            </Label>
+      <ScrollArea className="flex-1 px-5">
+        <div className="py-2">
+
+          <Section title="Search">
             <Input
-              id="search"
-              placeholder="Search properties..."
+              placeholder="Property name..."
               value={filters.search || ""}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full py-2 text-sm"
+              className="text-sm"
             />
-          </div>
+          </Section>
 
-          {/* Country */}
-          <div className="space-y-2">
-            <Label htmlFor="country" className="text-sm font-medium">
-              Country
-            </Label>
-            <Select
-              value={filters.country || ""}
-              onValueChange={(value) => handleFilterChange("country", value)}
-            >
-              <SelectTrigger id="country" className="w-full py-2 text-sm">
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ethiopia">Ethiopia</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Section title="Location">
+            <CitySubcityFilter filters={filters} handleFilterChange={handleFilterChange} />
+          </Section>
 
-          {/* City & Sub-city */}
-          <div className="space-y-3">
-            <CitySubcityFilter
-              filters={filters}
-              handleFilterChange={handleFilterChange}
-            />
-          </div>
-
-          {/* Property Type */}
-          <div className="space-y-2">
-            <Label htmlFor="type" className="text-sm font-medium">
-              Property Type
-            </Label>
-            <Select
-              value={filters.type || ""}
-              onValueChange={(value) => handleFilterChange("type", value)}
-            >
-              <SelectTrigger id="type" className="w-full py-2 text-sm">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="shared">Shared</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm font-medium">
-              Category
-            </Label>
-            <Select
-              value={filters.categoryId || ""}
-              onValueChange={(value) => handleFilterChange("categoryId", value)}
-            >
-              <SelectTrigger id="category" className="w-full py-2 text-sm">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="budget">Budget</SelectItem>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="luxury">Luxury</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Price Range */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Price Range</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label
-                  htmlFor="min-price"
-                  className="text-xs text-muted-foreground mb-1 block"
-                >
-                  Min
-                </Label>
-                <Input
-                  id="min-price"
-                  type="number"
-                  placeholder="0"
-                  value={filters.minPrice || ""}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "minPrice",
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full py-2 text-sm"
-                />
-              </div>
-              <div className="flex-1">
-                <Label
-                  htmlFor="max-price"
-                  className="text-xs text-muted-foreground mb-1 block"
-                >
-                  Max
-                </Label>
-                <Input
-                  id="max-price"
-                  type="number"
-                  placeholder="10000"
-                  value={filters.maxPrice || ""}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "maxPrice",
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full py-2 text-sm"
-                />
-              </div>
+          <Section title="Price per night (ETB)">
+            <div className="flex gap-2 items-center">
+              <Input
+                type="number"
+                placeholder="Min"
+                value={filters.minPrice || ""}
+                onChange={(e) => handleFilterChange("minPrice", e.target.value ? Number(e.target.value) : undefined)}
+                className="text-sm"
+              />
+              <span className="text-muted-foreground text-sm">–</span>
+              <Input
+                type="number"
+                placeholder="Max"
+                value={filters.maxPrice || ""}
+                onChange={(e) => handleFilterChange("maxPrice", e.target.value ? Number(e.target.value) : undefined)}
+                className="text-sm"
+              />
             </div>
-          </div>
+          </Section>
 
-          {/* Rating Range */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Rating Range</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label
-                  htmlFor="min-rating"
-                  className="text-xs text-muted-foreground mb-1 block"
-                >
-                  Min
-                </Label>
-                <Select
-                  value={
-                    filters.minRating !== undefined
-                      ? filters.minRating.toString()
-                      : ""
-                  }
-                  onValueChange={(value) =>
-                    handleFilterChange(
-                      "minRating",
-                      value ? Number(value) : undefined
-                    )
-                  }
-                >
-                  <SelectTrigger
-                    id="min-rating"
-                    className="w-full py-2 text-sm"
-                  >
-                    <SelectValue placeholder="0" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">{renderStars(1)}</SelectItem>
-                    <SelectItem value="2">{renderStars(2)}</SelectItem>
-                    <SelectItem value="3">{renderStars(3)}</SelectItem>
-                    <SelectItem value="4">{renderStars(4)}</SelectItem>
-                    <SelectItem value="5">{renderStars(5)}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <Label
-                  htmlFor="max-rating"
-                  className="text-xs text-muted-foreground mb-1 block"
-                >
-                  Max
-                </Label>
-                <Select
-                  value={
-                    filters.maxRating !== undefined
-                      ? filters.maxRating.toString()
-                      : ""
-                  }
-                  onValueChange={(value) =>
-                    handleFilterChange(
-                      "maxRating",
-                      value ? Number(value) : undefined
-                    )
-                  }
-                >
-                  <SelectTrigger
-                    id="max-rating"
-                    className="w-full py-2 text-sm"
-                  >
-                    <SelectValue placeholder="5" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">{renderStars(1)}</SelectItem>
-                    <SelectItem value="2">{renderStars(2)}</SelectItem>
-                    <SelectItem value="3">{renderStars(3)}</SelectItem>
-                    <SelectItem value="4">{renderStars(4)}</SelectItem>
-                    <SelectItem value="5">{renderStars(5)}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Facilities */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Facilities</Label>
-            <div className="space-y-2 grid grid-cols-3">
-              {FACILITIES.map((facility) => (
-                <div key={facility} className="flex items-center space-x-2">
+          <Section title="Guest rating">
+            <div className="space-y-2">
+              {RATINGS.map((r) => (
+                <label key={r} className="flex items-center gap-2 cursor-pointer group">
                   <Checkbox
-                    id={facility}
-                    checked={(filters.facilityNames || []).includes(facility)}
-                    onCheckedChange={(checked) => {
-                      const current = filters.facilityNames || [];
-                      const updated = checked
-                        ? [...current, facility]
-                        : current.filter((f) => f !== facility);
-                      handleFilterChange(
-                        "facilityNames",
-                        updated.length > 0 ? updated : undefined
-                      );
-                    }}
+                    checked={filters.minRating === r}
+                    onCheckedChange={(checked) => handleFilterChange("minRating", checked ? r : undefined)}
                   />
-                  <Label
-                    htmlFor={facility}
-                    className="font-normal cursor-pointer text-sm"
-                  >
-                    {facility}
-                  </Label>
-                </div>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: r }).map((_, i) => (
+                      <FaStar key={i} className="w-3 h-3 text-yellow-400" />
+                    ))}
+                    {r < 5 && <span className="text-xs text-muted-foreground ml-1">& up</span>}
+                  </div>
+                </label>
               ))}
             </div>
-          </div>
+          </Section>
 
-          {/* Availability Toggle */}
-          <div className="flex items-center justify-between py-2 border-t border-border">
-            <Label htmlFor="available" className="text-sm font-medium">
-              Available Only
-            </Label>
-            <Switch
-              id="available"
-              checked={filters.hasRoomsAvailable || false}
-              onCheckedChange={(checked) =>
-                handleFilterChange("hasRoomsAvailable", checked || undefined)
-              }
-            />
-          </div>
+          <Section title="Property type">
+            <div className="space-y-2">
+              {PROPERTY_TYPES.map((t) => (
+                <label key={t} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filters.type === t.toLowerCase()}
+                    onCheckedChange={(checked) => handleFilterChange("type", checked ? t.toLowerCase() : undefined)}
+                  />
+                  <span className="text-sm capitalize">{t.toLowerCase()}</span>
+                </label>
+              ))}
+            </div>
+          </Section>
+
+          <Section title="Facilities">
+            <div className="space-y-2">
+              {FACILITIES.map((f) => (
+                <label key={f} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={(filters.facilityNames || []).includes(f)}
+                    onCheckedChange={(checked) => {
+                      const current = filters.facilityNames || [];
+                      const updated = checked ? [...current, f] : current.filter((x) => x !== f);
+                      handleFilterChange("facilityNames", updated.length > 0 ? updated : undefined);
+                    }}
+                  />
+                  <span className="text-sm">{f}</span>
+                </label>
+              ))}
+            </div>
+          </Section>
+
+          <Section title="Availability" defaultOpen={false}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Available rooms only</span>
+              <Switch
+                checked={filters.hasRoomsAvailable || false}
+                onCheckedChange={(checked) => handleFilterChange("hasRoomsAvailable", checked || undefined)}
+              />
+            </div>
+          </Section>
+
         </div>
       </ScrollArea>
 
-      {/* Fixed Bottom Actions */}
-      <div className="border-t border-border p-6 bg-background space-y-2">
-        <Button onClick={handleSearch} className="w-full" size="lg">
-          Search
-        </Button>
-        <Button
-          onClick={handleClearFilters}
-          variant="outline"
-          className="w-full bg-transparent"
-          size="lg"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Clear Filters
-        </Button>
+      <div className="border-t p-4">
+        <Button onClick={handleSearch} className="w-full">Show results</Button>
       </div>
     </div>
   );
