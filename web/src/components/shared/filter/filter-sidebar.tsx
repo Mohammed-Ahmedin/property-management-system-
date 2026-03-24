@@ -62,7 +62,7 @@ export function FilterSidebar() {
   };
 
   return (
-    <div className="hidden lg:flex flex-col h-full bg-background border rounded-xl w-[280px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)] z-10 overflow-hidden">
+    <div className="hidden lg:flex flex-col bg-background border rounded-xl w-[280px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)] z-10 overflow-hidden">
       <div className="px-5 py-4 border-b flex items-center justify-between">
         <h2 className="text-base font-bold">Filters</h2>
         <button onClick={handleClearFilters} className="text-xs text-primary hover:underline flex items-center gap-1">

@@ -30,7 +30,7 @@ const DataContainer = ({ data, pagination }: Props) => {
   };
 
   return (
-    <div className="flex gap-10">
+    <div className="flex gap-10 isolate">
       <FilterSidebar />
 
       <div className="flex-1">
