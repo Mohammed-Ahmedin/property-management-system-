@@ -21,8 +21,6 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
 
-  const lowestPrice = null; // price not available in listing response
-
   const ratingLabel =
     !averageRating ? null
     : averageRating >= 4.5 ? "Exceptional"
@@ -82,12 +80,6 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
           {distance && (
             <p className="text-xs text-muted-foreground mb-2">{distance} km from you</p>
           )}
-          {lowestPrice && (
-            <p className="text-sm font-semibold mt-2">
-              From <span className="text-primary">ETB {lowestPrice.toLocaleString()}</span>
-              <span className="text-xs text-muted-foreground font-normal"> /night</span>
-            </p>
-          )}
         </div>
       </div>
     );
@@ -104,13 +96,6 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
         <div>
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-bold text-lg line-clamp-1">{name}</h3>
-            {lowestPrice && (
-              <div className="text-right shrink-0">
-                <p className="text-xs text-muted-foreground">From</p>
-                <p className="font-bold text-primary text-base">ETB {lowestPrice.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">/night</p>
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
