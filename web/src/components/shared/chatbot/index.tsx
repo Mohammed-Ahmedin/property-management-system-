@@ -31,15 +31,14 @@ export function ChatBotContainer() {
         role: m.sender === "bot" ? "ASSISTANT" : "USER",
         content: m.text,
       }));
-      
-      const ADMIN_URL = import.meta.env.VITE_ADMIN_BASE_URL ?? "https://property-management-system-s61h.vercel.app";
-      return (
-        await api.post<{ reply: string; success: boolean }>(`${ADMIN_URL}/api/chatbot`, {
-          messages: chatMessages,
-          message: input,
-          lang: selectedLanguage,
-        }, { baseURL: "" })
-      ).data;
+
+      const ADMIN_URL = "https://property-management-system-s61h.vercel.app";
+      const res = await fetch(`${ADMIN_URL}/api/chatbot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: chatMessages, message: input, lang: selectedLanguage }),
+      });
+      return res.json() as Promise<{ reply: string; success: boolean }>;
     },
     onError: (error) => handleTanstackError({ error }),
     onSuccess: (res) => {
