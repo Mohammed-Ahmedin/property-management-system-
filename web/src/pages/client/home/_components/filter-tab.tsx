@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { MapPin, Search, Building2, Home, Clock, Plane, PlaneTakeoff, ArrowLeftRight, CalendarDays, Clock3, Users } from "lucide-react";
+import { MapPin, Search, Building2, Home, Clock, Plane, PlaneTakeoff, ArrowLeftRight, CalendarDays, Clock3, Users, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LocationFilter } from "./location-filter";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,12 @@ const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
   { id: "longstay", label: "Long stays", icon: <Clock className="w-4 h-4" /> },
   { id: "transport", label: "Airport transfer", icon: <Plane className="w-4 h-4" /> },
 ];
+
+// Shared styles
+const BOX = "bg-white border-2 border-gray-300 rounded-lg hover:border-primary transition-colors duration-200";
+const LABEL = "text-xs font-semibold text-gray-500 mb-1";
+const VALUE = "text-sm font-semibold text-gray-900";
+const PLACEHOLDER = "text-sm text-gray-400";
 
 const FilterTab = () => {
   const [activeTab, setActiveTab] = useState<TabType>("hotels");
@@ -44,20 +50,20 @@ const FilterTab = () => {
 
   return (
     <>
-      {/* White card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-border">
+      {/* Card */}
+      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-200">
 
         {/* Tab bar */}
-        <div className="flex border-b border-border overflow-x-auto">
+        <div className="flex border-b-2 border-gray-200 overflow-x-auto bg-white">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors shrink-0",
+                "flex items-center gap-2 px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors shrink-0",
                 activeTab === tab.id
                   ? "border-b-2 border-primary text-primary bg-primary/5"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               )}
             >
               {tab.icon}
@@ -67,20 +73,31 @@ const FilterTab = () => {
         </div>
 
         {/* Fields */}
-        <div className="p-4">
+        <div className="p-4 bg-white">
           {activeTab === "hotels" ? (
             <>
-              {/* Row 1: Destination + Check-in + Check-out */}
+              {/* Row 1 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                <div className="border border-border rounded-lg px-4 py-3 hover:border-primary/50 transition-colors">
-                  <p className="text-xs text-muted-foreground mb-1">Destination</p>
+                {/* Destination — animated glow */}
+                <div className={cn(BOX, "px-4 py-3 relative animate-pulse-border")}>
+                  <style>{`
+                    @keyframes borderGlow {
+                      0%, 100% { border-color: #d1d5db; box-shadow: none; }
+                      50% { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+                    }
+                    .location-glow { animation: borderGlow 2s ease-in-out infinite; }
+                  `}</style>
+                  <div className="location-glow absolute inset-0 rounded-lg pointer-events-none border-2 border-transparent" />
+                  <p className={LABEL}>Destination</p>
                   <LocationFilter location={location} setLocation={setLocation} />
                 </div>
+
+                {/* Check-in */}
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors w-full">
-                      <p className="text-xs text-muted-foreground mb-1">Check in</p>
-                      <p className={cn("text-sm font-medium", !checkIn && "text-muted-foreground")}>
+                    <button className={cn(BOX, "px-4 py-3 text-left w-full")}>
+                      <p className={LABEL}>Check in</p>
+                      <p className={checkIn ? VALUE : PLACEHOLDER}>
                         {checkIn ? format(checkIn, "EEE, MMM d") : "Add date"}
                       </p>
                     </button>
@@ -89,11 +106,13 @@ const FilterTab = () => {
                     <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus />
                   </PopoverContent>
                 </Popover>
+
+                {/* Check-out */}
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors w-full">
-                      <p className="text-xs text-muted-foreground mb-1">Check out</p>
-                      <p className={cn("text-sm font-medium", !checkOut && "text-muted-foreground")}>
+                    <button className={cn(BOX, "px-4 py-3 text-left w-full")}>
+                      <p className={LABEL}>Check out</p>
+                      <p className={checkOut ? VALUE : PLACEHOLDER}>
                         {checkOut ? format(checkOut, "EEE, MMM d") : "Add date"}
                       </p>
                     </button>
@@ -103,13 +122,14 @@ const FilterTab = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-              {/* Row 2: Guests + Filters + Search */}
+
+              {/* Row 2 */}
               <div className="flex gap-3 items-center">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="border border-border rounded-lg px-4 py-3 text-left hover:border-primary/50 transition-colors flex-1 md:flex-none md:w-48">
-                      <p className="text-xs text-muted-foreground mb-1">Guests</p>
-                      <p className="text-sm font-medium">{guests} Guest{guests > 1 ? "s" : ""}</p>
+                    <button className={cn(BOX, "px-4 py-3 text-left flex-1 md:flex-none md:w-48")}>
+                      <p className={LABEL}>Guests</p>
+                      <p className={VALUE}>{guests} Guest{guests > 1 ? "s" : ""}</p>
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-52 p-4" align="start">
@@ -123,16 +143,18 @@ const FilterTab = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+
                 <button
                   onClick={() => setFilterOpen(true)}
-                  className="border border-border rounded-lg px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                  className={cn(BOX, "px-4 py-3 flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900")}
                 >
-                  <Search className="w-4 h-4" />
+                  <Filter className="w-4 h-4" />
                   <span className="hidden md:inline">More filters</span>
                 </button>
+
                 <button
                   onClick={handleSearch}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-lg py-3 px-6 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-lg py-3 px-6 text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
                   Search
@@ -141,22 +163,30 @@ const FilterTab = () => {
             </>
           ) : activeTab === "homes" || activeTab === "longstay" ? (
             <>
-              {/* Full-width destination */}
-              <div className="border border-border rounded-lg px-4 py-3 flex items-center gap-3 mb-3 hover:border-primary/50 transition-colors">
-                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+              {/* Full-width destination — animated */}
+              <div className={cn(BOX, "px-4 py-3 flex items-center gap-3 mb-3 location-glow relative")}>
+                <style>{`
+                  @keyframes borderGlow {
+                    0%, 100% { border-color: #d1d5db; box-shadow: none; }
+                    50% { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+                  }
+                  .location-glow { animation: borderGlow 2s ease-in-out infinite; }
+                `}</style>
+                <Search className="w-4 h-4 text-gray-400 shrink-0" />
                 <LocationFilter location={location} setLocation={setLocation} />
               </div>
-              {/* Check-in + Check-out + Guests in one bordered row */}
-              <div className="border border-border rounded-lg flex divide-x divide-border mb-4 overflow-hidden">
+
+              {/* Inline row */}
+              <div className="border-2 border-gray-300 rounded-lg flex divide-x-2 divide-gray-300 mb-4 overflow-hidden bg-white">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
-                      <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors">
+                      <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
                       <div>
-                        <p className={cn("text-sm font-medium", !checkIn && "text-muted-foreground")}>
+                        <p className={checkIn ? VALUE : PLACEHOLDER}>
                           {checkIn ? format(checkIn, "d MMM yyyy") : "Check-in date"}
                         </p>
-                        {checkIn && <p className="text-xs text-muted-foreground">{format(checkIn, "EEEE")}</p>}
+                        {checkIn && <p className="text-xs text-gray-400">{format(checkIn, "EEEE")}</p>}
                       </div>
                     </button>
                   </PopoverTrigger>
@@ -166,13 +196,13 @@ const FilterTab = () => {
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
-                      <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors">
+                      <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
                       <div>
-                        <p className={cn("text-sm font-medium", !checkOut && "text-muted-foreground")}>
+                        <p className={checkOut ? VALUE : PLACEHOLDER}>
                           {checkOut ? format(checkOut, "d MMM yyyy") : "Check-out date"}
                         </p>
-                        {checkOut && <p className="text-xs text-muted-foreground">{format(checkOut, "EEEE")}</p>}
+                        {checkOut && <p className="text-xs text-gray-400">{format(checkOut, "EEEE")}</p>}
                       </div>
                     </button>
                   </PopoverTrigger>
@@ -182,13 +212,11 @@ const FilterTab = () => {
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex-1 px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-muted/40 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Users className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium">{guests} adult{guests > 1 ? "s" : ""}</p>
-                          <p className="text-xs text-muted-foreground">1 room</p>
-                        </div>
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors">
+                      <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                      <div>
+                        <p className={VALUE}>{guests} adult{guests > 1 ? "s" : ""}</p>
+                        <p className="text-xs text-gray-400">1 room</p>
                       </div>
                     </button>
                   </PopoverTrigger>
@@ -207,7 +235,7 @@ const FilterTab = () => {
               <div className="flex justify-center">
                 <button
                   onClick={handleSearch}
-                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-semibold uppercase tracking-wide flex items-center gap-2 transition-colors"
+                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-bold uppercase tracking-wide flex items-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
                   Search
@@ -216,38 +244,30 @@ const FilterTab = () => {
             </>
           ) : (
             <>
-              {/* From / To airport toggle */}
+              {/* From / To toggle */}
               <div className="flex gap-2 mb-4">
-                <button
-                  onClick={() => setTransferDirection("from")}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
-                    transferDirection === "from"
-                      ? "bg-white border-primary text-primary shadow-sm"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  From airport
-                </button>
-                <button
-                  onClick={() => setTransferDirection("to")}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
-                    transferDirection === "to"
-                      ? "bg-white border-primary text-primary shadow-sm"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  To airport
-                </button>
+                {["from", "to"].map((dir) => (
+                  <button
+                    key={dir}
+                    onClick={() => setTransferDirection(dir as "from" | "to")}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-colors",
+                      transferDirection === dir
+                        ? "bg-white border-primary text-primary shadow-sm"
+                        : "border-gray-300 text-gray-500 hover:border-primary/50"
+                    )}
+                  >
+                    {dir === "from" ? "From airport" : "To airport"}
+                  </button>
+                ))}
               </div>
 
-              {/* Row 1: Pick-up + swap icon + Destination */}
+              {/* Pick-up + swap + Destination */}
               <div className="flex items-center gap-2 mb-3">
-                <div className="flex-1 border border-border rounded-lg px-4 py-3 flex items-center gap-3 hover:border-primary/50 transition-colors">
-                  <PlaneTakeoff className="w-4 h-4 text-muted-foreground shrink-0" />
+                <div className={cn(BOX, "flex-1 px-4 py-3 flex items-center gap-3")}>
+                  <PlaneTakeoff className="w-4 h-4 text-gray-400 shrink-0" />
                   <input
-                    className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                    className="w-full text-sm font-semibold text-gray-900 bg-transparent outline-none placeholder:text-gray-400 placeholder:font-normal"
                     placeholder="Pick-up airport"
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
@@ -255,15 +275,14 @@ const FilterTab = () => {
                 </div>
                 <button
                   onClick={() => { const tmp = pickupLocation; setPickupLocation(dropoffLocation); setDropoffLocation(tmp); }}
-                  className="p-2 rounded-full border border-border hover:bg-muted transition-colors shrink-0"
-                  aria-label="Swap locations"
+                  className="p-2 rounded-full border-2 border-gray-300 hover:border-primary hover:bg-gray-50 transition-colors shrink-0"
                 >
-                  <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
+                  <ArrowLeftRight className="w-4 h-4 text-gray-500" />
                 </button>
-                <div className="flex-1 border border-border rounded-lg px-4 py-3 flex items-center gap-3 hover:border-primary/50 transition-colors">
-                  <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                <div className={cn(BOX, "flex-1 px-4 py-3 flex items-center gap-3")}>
+                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
                   <input
-                    className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                    className="w-full text-sm font-semibold text-gray-900 bg-transparent outline-none placeholder:text-gray-400 placeholder:font-normal"
                     placeholder="Destination location"
                     value={dropoffLocation}
                     onChange={(e) => setDropoffLocation(e.target.value)}
@@ -271,13 +290,13 @@ const FilterTab = () => {
                 </div>
               </div>
 
-              {/* Row 2: Date + Time + Passengers */}
-              <div className="border border-border rounded-lg flex divide-x divide-border mb-4 overflow-hidden">
+              {/* Date + Time + Passengers */}
+              <div className="border-2 border-gray-300 rounded-lg flex divide-x-2 divide-gray-300 mb-4 overflow-hidden bg-white">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
-                      <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span className={cn("text-sm", !pickupDate && "text-muted-foreground")}>
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors">
+                      <CalendarDays className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className={pickupDate ? VALUE : PLACEHOLDER}>
                         {pickupDate ? format(pickupDate, "EEE, MMM d") : "Pick-up date"}
                       </span>
                     </button>
@@ -286,17 +305,15 @@ const FilterTab = () => {
                     <Calendar mode="single" selected={pickupDate} onSelect={setPickupDate} initialFocus />
                   </PopoverContent>
                 </Popover>
-
                 <div className="flex-1 px-4 py-3 flex items-center gap-3">
-                  <Clock3 className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm text-muted-foreground">12:00 PM</span>
+                  <Clock3 className="w-4 h-4 text-gray-400 shrink-0" />
+                  <span className={PLACEHOLDER}>12:00 PM</span>
                 </div>
-
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/40 transition-colors">
-                      <Users className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm">{passengers} passenger{passengers > 1 ? "s" : ""}</span>
+                    <button className="flex-1 px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors">
+                      <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className={VALUE}>{passengers} passenger{passengers > 1 ? "s" : ""}</span>
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-52 p-4" align="start">
@@ -312,11 +329,10 @@ const FilterTab = () => {
                 </Popover>
               </div>
 
-              {/* Search button — centered, rounded-full */}
               <div className="flex justify-center">
                 <button
                   onClick={() => navigate(`/properties?transport=true&direction=${transferDirection}&pickup=${pickupLocation}&dropoff=${dropoffLocation}`)}
-                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-semibold flex items-center gap-2 transition-colors"
+                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
                   Search
