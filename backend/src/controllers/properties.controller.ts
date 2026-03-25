@@ -578,56 +578,30 @@ export default {
       });
     }
 
-    // Delete in dependency order to avoid FK violations
-    // Use executeRaw for tables without cascade to bypass FK checks
-    await prisma.$transaction(async (tx) => {
-      // 1. Get all room IDs for this property
-      const rooms = await tx.room.findMany({ where: { propertyId }, select: { id: true } });
-      const roomIds = rooms.map((r) => r.id);
-
-      // 2. Get all booking IDs for this property
-      const bookings = await tx.booking.findMany({ where: { propertyId }, select: { id: true } });
-      const bookingIds = bookings.map((b) => b.id);
-
-      // 3. Delete booking dependents
-      if (bookingIds.length) {
-        await tx.commission.deleteMany({ where: { bookingId: { in: bookingIds } } });
-        await tx.payment.deleteMany({ where: { bookingId: { in: bookingIds } } });
-        await tx.activity.deleteMany({ where: { bookingId: { in: bookingIds } } });
-      }
-
-      // 4. Delete bookings
-      await tx.booking.deleteMany({ where: { propertyId } });
-
-      // 5. Delete room-level dependents
-      if (roomIds.length) {
-        await tx.additionalService.deleteMany({ where: { roomId: { in: roomIds } } });
-        await tx.roomFeature.deleteMany({ where: { roomId: { in: roomIds } } });
-        await tx.roomImage.deleteMany({ where: { roomId: { in: roomIds } } });
-        await tx.favorite.deleteMany({ where: { roomId: { in: roomIds } } });
-        await tx.activity.deleteMany({ where: { roomId: { in: roomIds } } });
-        await tx.room.deleteMany({ where: { propertyId } });
-      }
-
-      // 6. Delete property-level dependents (ManagedProperty first — no cascade on FK)
-      await tx.$executeRaw`DELETE FROM "ManagedProperty" WHERE "propertyId" = ${propertyId}`;
-      await tx.review.deleteMany({ where: { propertyId } });
-      await tx.favorite.deleteMany({ where: { propertyId } });
-      await tx.propertyImage.deleteMany({ where: { propertyId } });
-      await tx.facility.deleteMany({ where: { propertyId } });
-      await tx.propertyService.deleteMany({ where: { propertyId } });
-      await tx.carService.deleteMany({ where: { propertyId } });
-      await tx.activity.deleteMany({ where: { propertyId } });
-
-      // 7. Delete single-relation dependents
-      await tx.about.deleteMany({ where: { propertyId } });
-      await tx.location.deleteMany({ where: { propertyId } });
-      await tx.contact.deleteMany({ where: { propertyId } });
-      await tx.license.deleteMany({ where: { propertyId } });
-
-      // 8. Finally delete the property
-      await tx.property.delete({ where: { id: propertyId } });
-    });
+    // Use raw SQL to delete everything — bypasses Prisma FK enforcement
+    await prisma.$executeRaw`DELETE FROM "Commission" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "Payment" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "Activity" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "Booking" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "AdditionalService" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "RoomFeature" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "RoomImage" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "Favorite" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "Activity" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+    await prisma.$executeRaw`DELETE FROM "Room" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "ManagedProperty" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Review" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Favorite" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "PropertyImage" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Facility" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "PropertyService" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "CarService" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Activity" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "About" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Location" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Contact" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "License" WHERE "propertyId" = ${propertyId}`;
+    await prisma.$executeRaw`DELETE FROM "Property" WHERE "id" = ${propertyId}`;
 
     return res.json({ message: "Property deleted successfully.", success: true });
   }),
