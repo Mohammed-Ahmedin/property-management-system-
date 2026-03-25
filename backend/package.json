@@ -6,7 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "start": "prisma migrate deploy && node dist/app.js",
     "vercel-start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
