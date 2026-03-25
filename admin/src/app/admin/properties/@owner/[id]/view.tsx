@@ -482,7 +482,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           </Card>
         </TabsContent>
 
-        <ImagesTab images={data.images} />
+        <ImagesTab images={data.images} propertyId={data.id} />
       </Tabs>
     </div>
   );
