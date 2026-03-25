@@ -280,41 +280,49 @@ export default {
     const role = user?.role;
     const roomId = req.params.id;
 
-    // Find the room and its property
     const room = await prisma.room.findUnique({
       where: { id: roomId },
-      include: {
-        property: { include: { managers: true } },
-      },
+      include: { property: { include: { managers: true } } },
     });
 
     if (!room) {
       return res.status(404).json({ message: "Room not found" });
     }
 
-    const property = room.property;
-
-    // Check access via ManagedProperty
     const managed = await prisma.managedProperty.findFirst({
-      where: {
-        userId,
-        propertyId: property.id,
-        role: { in: ["OWNER", "ADMIN"] }, // only owner or property-level admin
-      },
+      where: { userId, propertyId: room.property.id, role: { in: ["OWNER", "ADMIN"] } },
     });
 
     if (!managed && role !== "ADMIN") {
-      return res.status(403).json({
-        message: "You are not authorized to delete rooms in this property",
-      });
+      return res.status(403).json({ message: "You are not authorized to delete rooms in this property" });
     }
 
-    // Delete the room
-    await prisma.room.delete({ where: { id: roomId } });
+    // Delete dependents first to avoid FK violations
+    await prisma.$transaction(async (tx) => {
+      // Get booking IDs for this room
+      const bookings = await tx.booking.findMany({
+        where: { roomId },
+        select: { id: true },
+      });
+      const bookingIds = bookings.map((b) => b.id);
 
-    res.status(200).json({
-      message: "Room deleted successfully",
+      // Delete booking dependents
+      if (bookingIds.length) {
+        await tx.commission.deleteMany({ where: { bookingId: { in: bookingIds } } });
+        await tx.payment.deleteMany({ where: { bookingId: { in: bookingIds } } });
+        await tx.activity.deleteMany({ where: { bookingId: { in: bookingIds } } });
+      }
+
+      await tx.booking.deleteMany({ where: { roomId } });
+      await tx.additionalService.deleteMany({ where: { roomId } });
+      await tx.roomFeature.deleteMany({ where: { roomId } });
+      await tx.roomImage.deleteMany({ where: { roomId } });
+      await tx.favorite.deleteMany({ where: { roomId } });
+      await tx.activity.deleteMany({ where: { roomId } });
+      await tx.room.delete({ where: { id: roomId } });
     });
+
+    res.status(200).json({ message: "Room deleted successfully", success: true });
   }),
 
   getRoomDetailForManagement: tryCatch(async (req, res) => {

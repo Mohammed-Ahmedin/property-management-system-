@@ -559,7 +559,6 @@ export default {
     const user = req.user as { id: string; role: string };
     const { id: propertyId } = req.params;
 
-    // 1️⃣ Fetch the property with managers
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
       include: { managers: true },
@@ -569,7 +568,6 @@ export default {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    // 2️⃣ Check permissions
     const isOwner = property.managers.some(
       (m) => m.userId === user.id && m.role === "OWNER"
     );
@@ -580,12 +578,63 @@ export default {
       });
     }
 
-    // 3️⃣ Delete the property
-    await prisma.property.delete({
-      where: { id: propertyId },
+    // Delete in dependency order to avoid FK violations
+    await prisma.$transaction(async (tx) => {
+      // 1. Get all room IDs for this property
+      const rooms = await tx.room.findMany({
+        where: { propertyId },
+        select: { id: true },
+      });
+      const roomIds = rooms.map((r) => r.id);
+
+      // 2. Get all booking IDs for this property
+      const bookings = await tx.booking.findMany({
+        where: { propertyId },
+        select: { id: true },
+      });
+      const bookingIds = bookings.map((b) => b.id);
+
+      // 3. Delete booking dependents
+      if (bookingIds.length) {
+        await tx.commission.deleteMany({ where: { bookingId: { in: bookingIds } } });
+        await tx.payment.deleteMany({ where: { bookingId: { in: bookingIds } } });
+        await tx.activity.deleteMany({ where: { bookingId: { in: bookingIds } } });
+      }
+
+      // 4. Delete bookings
+      await tx.booking.deleteMany({ where: { propertyId } });
+
+      // 5. Delete room-level dependents
+      if (roomIds.length) {
+        await tx.additionalService.deleteMany({ where: { roomId: { in: roomIds } } });
+        await tx.roomFeature.deleteMany({ where: { roomId: { in: roomIds } } });
+        await tx.roomImage.deleteMany({ where: { roomId: { in: roomIds } } });
+        await tx.favorite.deleteMany({ where: { roomId: { in: roomIds } } });
+        await tx.activity.deleteMany({ where: { roomId: { in: roomIds } } });
+        await tx.room.deleteMany({ where: { propertyId } });
+      }
+
+      // 6. Delete property-level dependents
+      await tx.review.deleteMany({ where: { propertyId } });
+      await tx.favorite.deleteMany({ where: { propertyId } });
+      await tx.managedProperty.deleteMany({ where: { propertyId } });
+      await tx.propertyImage.deleteMany({ where: { propertyId } });
+      await tx.facility.deleteMany({ where: { propertyId } });
+      await tx.propertyService.deleteMany({ where: { propertyId } });
+      await tx.carService.deleteMany({ where: { propertyId } });
+      await tx.activity.deleteMany({ where: { propertyId } });
+
+      // 7. Delete single-relation dependents (cascade already handles these but be explicit)
+      await tx.about.deleteMany({ where: { propertyId } });
+      await tx.location.deleteMany({ where: { propertyId } });
+      await tx.contact.deleteMany({ where: { propertyId } });
+      await tx.license.deleteMany({ where: { propertyId } });
+
+      // 8. Finally delete the property
+      await tx.property.delete({ where: { id: propertyId } });
     });
 
-    return res.json({ message: "Property deleted successfully." });
+    return res.json({ message: "Property deleted successfully.", success: true });
   }),
 
   getPropertiesForList: tryCatch(async (req, res) => {
