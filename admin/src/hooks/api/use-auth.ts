@@ -1,5 +1,5 @@
 import { authClient } from "@/lib/auth-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const useSignInWithEmailMutation = () => {
@@ -19,9 +19,6 @@ export const useSignInWithEmailMutation = () => {
 };
 
 export const useSignUpWithEmailMutation = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
   return useMutation({
     mutationFn: (data: {
       email: string;
@@ -31,8 +28,8 @@ export const useSignUpWithEmailMutation = () => {
     }) => {
       return authClient.signUp.email(data, {
         onSuccess: () => {
-          router.push("/admin/dashboard");
-          toast.message("Account created successfull");
+          toast.message("Account created successfully");
+          window.location.href = "/admin/dashboard";
         },
         onError: ({ error }) => {
           toast.error(error.message);
