@@ -56,10 +56,10 @@ model Document {
 model ManagedProperty {
     id String @id @default(cuid())
 
-    user   User   @relation(fields: [userId], references: [id])
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
 
-    property   Property @relation(fields: [propertyId], references: [id])
+    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
     propertyId String
 
     // OWNER / STAFF / BROKER / ADMIN
