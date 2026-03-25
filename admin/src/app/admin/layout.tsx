@@ -6,15 +6,22 @@ import LoaderState from "@/components/shared/loader-state";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { data, isPending } = authClient.useSession();
   const router = useRouter();
   const userData = data?.user;
+  // Give the session a grace period before redirecting
+  const [grace, setGrace] = useState(true);
 
   useEffect(() => {
-    if (isPending) return;
+    const t = setTimeout(() => setGrace(false), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (isPending || grace) return;
     if (!userData) {
       router.replace("/auth");
       return;
@@ -22,10 +29,10 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
     if ((userData as any).role === "GUEST") {
       router.replace("/auth");
     }
-  }, [isPending, userData]);
+  }, [isPending, userData, grace]);
 
-  // Show loader while session is being fetched or while unauthenticated (before redirect fires)
-  if (isPending || (!isPending && !userData)) {
+  // Show loader while pending or during grace period
+  if (isPending || grace || (!isPending && !userData)) {
     return <LoaderState />;
   }
 
