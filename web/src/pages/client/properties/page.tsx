@@ -13,24 +13,26 @@ import { PropertyFilter } from "@/components/shared/filter";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Same images as locations-section.tsx
 const CITY_IMAGES: Record<string, string> = {
-  "Addis Ababa": "https://images.unsplash.com/photo-1580746738099-b2d4b5d4b9b7?w=1600&q=80",
-  "Bahir Dar":   "https://images.unsplash.com/photo-1504432842672-1a79f78e4084?w=1600&q=80",
-  "Hawassa":     "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1600&q=80",
-  "Gondar":      "https://images.unsplash.com/photo-1489493887464-892be6d1daae?w=1600&q=80",
+  "Addis Ababa": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/2b/7d/7c/caption.jpg?w=1200&h=-1&s=1",
+  "Bahir Dar":   "https://tuckmagazine.com/wp-content/uploads/2018/12/addis.jpg",
+  "Hawassa":     "https://imgix.brilliant-ethiopia.com/lake-awasa-2.jpg?auto=format,enhance,compress&fit=crop&w=1600&h=600&q=60",
+  "Gondar":      "https://imgix.brilliant-ethiopia.com/fasil-ghebbi-royal-enclosure-gondar.jpg?auto=format,enhance,compress&fit=crop&crop=entropy,faces,focalpoint&w=1880&h=740&q=30",
 };
-const DEFAULT_HERO = "https://images.unsplash.com/photo-1561501900-3701fa6a0864?w=1600&q=80";
+const DEFAULT_HERO = "https://images.unsplash.com/photo-1561501900-3701fa6a0864?ixlib=rb-4.1.0&fm=jpg&q=60&w=3000";
 
-// Agoda-style dark navy search bar used in hero + sticky
 function SearchBar({ location, onSearch }: { location: string; onSearch: (q: string) => void }) {
   const [q, setQ] = useState(location);
+  useEffect(() => setQ(location), [location]);
+
   return (
-    <div className="flex w-full max-w-4xl bg-white rounded-lg overflow-hidden shadow-xl">
+    <div className="flex w-full bg-white rounded-lg overflow-hidden shadow-2xl border border-gray-100">
       {/* Destination */}
-      <div className="flex-1 flex items-center gap-2 px-4 py-3 border-r border-gray-200 min-w-0">
-        <Search className="w-4 h-4 text-gray-400 shrink-0" />
+      <div className="flex-1 flex items-center gap-3 px-5 py-4 border-r border-gray-200 min-w-0">
+        <Search className="w-5 h-5 text-gray-400 shrink-0" />
         <input
-          className="flex-1 text-sm text-gray-900 bg-transparent outline-none placeholder:text-gray-400 min-w-0"
+          className="flex-1 text-base text-gray-900 bg-transparent outline-none placeholder:text-gray-400 min-w-0"
           placeholder="Enter a destination or property"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -38,27 +40,27 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
         />
       </div>
       {/* Check-in */}
-      <button className="flex items-center gap-2 px-4 py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
-        <CalendarDays className="w-4 h-4 text-gray-400" />
-        <span className="text-sm text-gray-400">Check-in</span>
+      <button className="flex items-center gap-2 px-5 py-4 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
+        <CalendarDays className="w-5 h-5 text-gray-400" />
+        <span className="text-base text-gray-500">Check-in</span>
       </button>
       {/* Check-out */}
-      <button className="flex items-center gap-2 px-4 py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
-        <CalendarDays className="w-4 h-4 text-gray-400" />
-        <span className="text-sm text-gray-400">Check-out</span>
+      <button className="flex items-center gap-2 px-5 py-4 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
+        <CalendarDays className="w-5 h-5 text-gray-400" />
+        <span className="text-base text-gray-500">Check-out</span>
       </button>
       {/* Guests */}
-      <button className="flex items-center gap-2 px-4 py-3 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
-        <Users className="w-4 h-4 text-gray-400" />
+      <button className="flex items-center gap-3 px-5 py-4 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
+        <Users className="w-5 h-5 text-gray-400" />
         <div className="text-left">
-          <p className="text-sm text-gray-700 font-medium leading-none">2 adults</p>
+          <p className="text-base text-gray-700 font-semibold leading-tight">2 adults</p>
           <p className="text-xs text-gray-400">1 room</p>
         </div>
       </button>
-      {/* Search button */}
+      {/* Search */}
       <button
         onClick={() => onSearch(q)}
-        className="bg-primary hover:bg-primary/90 text-white px-8 text-sm font-bold transition-colors shrink-0"
+        className="bg-primary hover:bg-primary/90 text-white px-10 text-base font-bold transition-colors shrink-0"
       >
         SEARCH
       </button>
@@ -79,7 +81,7 @@ export default function PropertiesPage() {
 
   searchParams.forEach((value, key) => {
     if (key === "facilityNames") {
-      filters[key as keyof PropertyFilters] = JSON.parse(value);
+      try { filters[key as keyof PropertyFilters] = JSON.parse(value); } catch { filters[key as any] = value; }
     } else if (["minRating","maxRating","minPrice","maxPrice"].includes(key)) {
       filters[key] = Number(value);
     } else if (key === "hasRoomsAvailable") {
@@ -100,7 +102,8 @@ export default function PropertiesPage() {
     limit: Number(limitSearchParam) || 10,
     page: Number(pageSearchParam) || 1,
     sortDirection: sort === "latest" ? "desc" : "asc",
-  });
+    retry: false,
+  } as any);
 
   useEffect(() => { dataQuery.refetch(); }, [searchParams]);
 
@@ -126,7 +129,7 @@ export default function PropertiesPage() {
         <div className="flex gap-6 mt-6">
           <Skeleton className="w-[260px] h-[80vh] max-lg:hidden rounded-xl shrink-0" />
           <div className="flex flex-col gap-4 flex-1">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[220px] w-full rounded-xl" />)}
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[240px] w-full rounded-xl" />)}
           </div>
         </div>
       );
@@ -134,16 +137,15 @@ export default function PropertiesPage() {
     if (dataQuery.isError || !dataQuery.data?.data) {
       return <ErrorState title="Something went wrong, please try again" refetch={dataQuery.refetch} />;
     }
-    if (dataQuery.data.data.length === 0 && hasActiveFilters) {
-      return (
-        <div className="mt-20 flex flex-col items-center gap-4">
-          <EmptyState title="No Properties Found" description="Try adjusting your filters." />
-          <Button onClick={() => navigate("/properties")} variant="outline">Clear Filters</Button>
-        </div>
-      );
-    }
     if (dataQuery.data.data.length === 0) {
-      return <EmptyState title="No properties available yet" description="" />;
+      return (
+        <DataContainer
+          data={[]}
+          pagination={dataQuery.data.pagination}
+          locationParam={locationParam}
+          totalItems={0}
+        />
+      );
     }
     return (
       <DataContainer
@@ -164,24 +166,34 @@ export default function PropertiesPage() {
       )}
 
       {/* Sticky dark navy search bar */}
-      <div className={`fixed top-16 left-0 right-0 z-40 bg-[#1a2340] py-3 px-4 shadow-lg transition-all duration-300 ${stickyVisible ? "translate-y-0 opacity-100 pointer-events-auto" : "-translate-y-full opacity-0 pointer-events-none"}`}>
-        <div className="max-w-5xl mx-auto">
+      <div
+        className={`fixed top-16 left-0 right-0 z-40 bg-[#1a2340] py-3 px-6 shadow-lg transition-all duration-300 ${
+          stickyVisible ? "translate-y-0 opacity-100 pointer-events-auto" : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="max-w-6xl mx-auto">
           <SearchBar location={locationParam} onSearch={handleSearch} />
         </div>
       </div>
 
       {/* Hero */}
-      <div ref={heroRef} className="relative w-full h-[340px] md:h-[420px] overflow-hidden">
-        <img src={heroImage} alt={locationParam} className="w-full h-full object-cover" />
+      <div ref={heroRef} className="relative w-full h-[380px] md:h-[460px]">
+        {/* Background image — inline style to guarantee it loads */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('${heroImage}')` }}
+        />
         <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 gap-4">
-          <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-5">
+          <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight">
             {locationParam ? `${locationParam} hotels & places to stay` : "Find your perfect stay"}
           </h1>
           <p className="text-white/80 text-sm md:text-base">
             Search to compare prices and discover great deals with free cancellation
           </p>
-          <SearchBar location={locationParam} onSearch={handleSearch} />
+          <div className="w-full max-w-5xl">
+            <SearchBar location={locationParam} onSearch={handleSearch} />
+          </div>
         </div>
       </div>
 

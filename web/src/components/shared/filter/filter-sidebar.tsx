@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
@@ -10,7 +10,7 @@ import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import type { PropertyFilters } from "@/types/property.types";
 import CitySubcityFilter from "./city-filter";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const FACILITIES = ["WiFi", "Kitchen", "Air Conditioning", "Heating", "Parking", "Washer", "Dryer", "TV", "Pool", "Gym", "Breakfast", "Airport Transfer"];
 const PROPERTY_TYPES = ["Shared", "Private", "Entire"];
@@ -39,24 +39,40 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
 }
 
 export function FilterSidebar() {
-  const [filters, setFilters] = useState<PropertyFilters>({});
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const set = useCallback((key: keyof PropertyFilters, value: any) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === "") return;
-      if (Array.isArray(value)) params.append(key, JSON.stringify(value));
-      else if (typeof value === "number") params.append(key, value.toString());
-      else if (typeof value === "boolean") params.append(key, value.toString());
-      else params.append(key, value);
+  // Read current filters from URL
+  const getFilters = (): PropertyFilters => {
+    const f: any = {};
+    searchParams.forEach((value, key) => {
+      if (key === "facilityNames") { try { f[key] = JSON.parse(value); } catch { f[key] = []; } }
+      else if (["minRating","maxRating","minPrice","maxPrice"].includes(key)) f[key] = Number(value);
+      else if (key === "hasRoomsAvailable") f[key] = value === "true";
+      else f[key] = value;
     });
-    navigate(`/properties?${params.toString()}`);
+    return f;
   };
+
+  // Apply a filter change immediately to URL
+  const applyFilter = (key: keyof PropertyFilters, value: any) => {
+    const p = new URLSearchParams(searchParams);
+    // preserve location param
+    if (value === undefined || value === null || value === "") {
+      p.delete(key);
+    } else if (Array.isArray(value)) {
+      if (value.length === 0) p.delete(key);
+      else p.set(key, JSON.stringify(value));
+    } else {
+      p.set(key, String(value));
+    }
+    navigate(`/properties?${p.toString()}`);
+  };
+
+  const filters = getFilters();
+
+  const [minPrice, setMinPrice] = useState(filters.minPrice?.toString() || "");
+  const [maxPrice, setMaxPrice] = useState(filters.maxPrice?.toString() || "");
 
   return (
     <div className="hidden lg:flex flex-col bg-background border border-border rounded-xl w-[260px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)] z-10 overflow-hidden">
@@ -64,7 +80,11 @@ export function FilterSidebar() {
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         <span className="text-sm font-bold">Filters</span>
         <button
-          onClick={() => { setFilters({}); navigate("/properties"); }}
+          onClick={() => {
+            const p = new URLSearchParams();
+            if (searchParams.get("location")) p.set("location", searchParams.get("location")!);
+            navigate(`/properties?${p.toString()}`);
+          }}
           className="text-xs text-primary hover:underline flex items-center gap-1"
         >
           <RotateCcw className="w-3 h-3" /> Reset
@@ -74,14 +94,14 @@ export function FilterSidebar() {
       <ScrollArea className="flex-1 px-4">
         <div className="py-1">
 
-          {/* Star rating — matches Agoda screenshot */}
+          {/* Star rating */}
           <Section title="Star rating">
             <div className="space-y-2">
               {STAR_RATINGS.map((r) => (
                 <label key={r} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={filters.minRating === r}
-                    onCheckedChange={(checked) => set("minRating", checked ? r : undefined)}
+                    onCheckedChange={(checked) => applyFilter("minRating", checked ? r : undefined)}
                   />
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: r }).map((_, i) => (
@@ -94,14 +114,14 @@ export function FilterSidebar() {
             </div>
           </Section>
 
-          {/* Review score — matches Agoda screenshot */}
+          {/* Review score */}
           <Section title="Review score">
             <div className="space-y-2">
               {REVIEW_SCORES.map((s) => (
                 <label key={s.min} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
-                    checked={filters.minRating === s.min}
-                    onCheckedChange={(checked) => set("minRating", checked ? s.min : undefined)}
+                    checked={Number(searchParams.get("minRating")) === s.min}
+                    onCheckedChange={(checked) => applyFilter("minRating", checked ? s.min : undefined)}
                   />
                   <span className="text-sm">{s.label}</span>
                 </label>
@@ -115,8 +135,8 @@ export function FilterSidebar() {
               {PROPERTY_TYPES.map((t) => (
                 <label key={t} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
-                    checked={filters.type === t.toLowerCase()}
-                    onCheckedChange={(checked) => set("type", checked ? t.toLowerCase() : undefined)}
+                    checked={searchParams.get("type") === t.toLowerCase()}
+                    onCheckedChange={(checked) => applyFilter("type", checked ? t.toLowerCase() : undefined)}
                   />
                   <span className="text-sm">{t}</span>
                 </label>
@@ -127,50 +147,66 @@ export function FilterSidebar() {
           {/* Facilities */}
           <Section title="Facilities">
             <div className="space-y-2">
-              {FACILITIES.map((f) => (
-                <label key={f} className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox
-                    checked={(filters.facilityNames || []).includes(f)}
-                    onCheckedChange={(checked) => {
-                      const cur = filters.facilityNames || [];
-                      const upd = checked ? [...cur, f] : cur.filter((x) => x !== f);
-                      set("facilityNames", upd.length > 0 ? upd : undefined);
-                    }}
-                  />
-                  <span className="text-sm">{f}</span>
-                </label>
-              ))}
+              {FACILITIES.map((f) => {
+                const current: string[] = filters.facilityNames || [];
+                return (
+                  <label key={f} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={current.includes(f)}
+                      onCheckedChange={(checked) => {
+                        const upd = checked ? [...current, f] : current.filter((x) => x !== f);
+                        applyFilter("facilityNames", upd.length > 0 ? upd : undefined);
+                      }}
+                    />
+                    <span className="text-sm">{f}</span>
+                  </label>
+                );
+              })}
             </div>
           </Section>
 
           {/* Price */}
           <Section title="Price per night (ETB)" defaultOpen={false}>
             <div className="flex gap-2 items-center">
-              <Input type="number" placeholder="Min" value={filters.minPrice || ""} onChange={(e) => set("minPrice", e.target.value ? Number(e.target.value) : undefined)} className="text-sm" />
+              <Input
+                type="number" placeholder="Min"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                onBlur={() => applyFilter("minPrice", minPrice ? Number(minPrice) : undefined)}
+                className="text-sm"
+              />
               <span className="text-muted-foreground">–</span>
-              <Input type="number" placeholder="Max" value={filters.maxPrice || ""} onChange={(e) => set("maxPrice", e.target.value ? Number(e.target.value) : undefined)} className="text-sm" />
+              <Input
+                type="number" placeholder="Max"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                onBlur={() => applyFilter("maxPrice", maxPrice ? Number(maxPrice) : undefined)}
+                className="text-sm"
+              />
             </div>
           </Section>
 
           {/* Location */}
           <Section title="Location" defaultOpen={false}>
-            <CitySubcityFilter filters={filters} handleFilterChange={set} />
+            <CitySubcityFilter
+              filters={filters}
+              handleFilterChange={(key, value) => applyFilter(key, value)}
+            />
           </Section>
 
           {/* Availability */}
           <Section title="Availability" defaultOpen={false}>
             <div className="flex items-center justify-between">
               <span className="text-sm">Available rooms only</span>
-              <Switch checked={filters.hasRoomsAvailable || false} onCheckedChange={(v) => set("hasRoomsAvailable", v || undefined)} />
+              <Switch
+                checked={searchParams.get("hasRoomsAvailable") === "true"}
+                onCheckedChange={(v) => applyFilter("hasRoomsAvailable", v || undefined)}
+              />
             </div>
           </Section>
 
         </div>
       </ScrollArea>
-
-      <div className="border-t border-border p-3">
-        <Button onClick={handleSearch} className="w-full text-sm">Show results</Button>
-      </div>
     </div>
   );
 }
