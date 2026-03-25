@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "start": "prisma migrate resolve --rolled-back 20260325124738_cascade_managed_property; prisma migrate deploy && node dist/app.js",
+    "start": "node fix-migration.js",
     "vercel-start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "postinstall": "prisma generate",
