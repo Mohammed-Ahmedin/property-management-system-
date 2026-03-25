@@ -10,19 +10,12 @@ export const useSignInWithEmailMutation = () => {
   return useMutation({
     mutationFn: (data: { email: string; password: string }) => {
       return authClient.signIn.email(data, {
-        onSuccess: ({ data, response }) => {
-          console.log("-----------------", {
-            data,
-            response,
-          });
-
+        onSuccess: () => {
+          toast.message("Login successful");
+          router.refresh();
           router.push("/admin/dashboard");
-          toast.message("Login successfull");
         },
         onError: ({ error }) => {
-          console.log("-----------------", {
-            error,
-          });
           toast.error(error.message);
         },
       });

@@ -6,8 +6,6 @@ import { Label } from "@/components/ui/label";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
 import { useSignInWithEmailMutation } from "@/hooks/api/use-auth";
 
 const validationSchema = yup.object({
@@ -18,7 +16,6 @@ const validationSchema = yup.object({
 type FormType = yup.InferType<typeof validationSchema>;
 
 const LoginView = () => {
-  const router = useRouter();
   const {
     register,
     formState: { errors },
@@ -30,14 +27,11 @@ const LoginView = () => {
     },
     resolver: yupResolver(validationSchema),
   });
-  const { data, refetch } = authClient.useSession();
 
-  // Mock mutation for demo
   const signInWithEmailMutation = useSignInWithEmailMutation();
 
   const onSubmit = async (data: FormType) => {
-    const response = await signInWithEmailMutation.mutateAsync(data);
-    response.data && router.push("/admin/dashboard");
+    await signInWithEmailMutation.mutateAsync(data);
   };
 
   return (
