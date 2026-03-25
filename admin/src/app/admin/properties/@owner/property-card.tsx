@@ -123,7 +123,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
               View Details
               <ExternalLink className="ml-2 h-3.5 w-3.5" />
             </Button>
-            {role === "ADMIN" && (
+            {(role === "ADMIN" || role === "OWNER") && (
               <Button
                 variant="destructive"
                 size="sm"
