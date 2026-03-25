@@ -24,7 +24,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
     }
   }, [isPending, userData]);
 
-  // Show loader while session is being fetched
+  // Show loader while session is being fetched or while unauthenticated (before redirect fires)
   if (isPending || (!isPending && !userData)) {
     return <LoaderState />;
   }
