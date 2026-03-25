@@ -578,7 +578,7 @@ export default {
       });
     }
 
-    // Use raw SQL to delete everything — bypasses Prisma FK enforcement
+    // Use raw SQL to delete everything — bypasses all FK constraints (v2)
     await prisma.$executeRaw`DELETE FROM "Commission" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
     await prisma.$executeRaw`DELETE FROM "Payment" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
     await prisma.$executeRaw`DELETE FROM "Activity" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
