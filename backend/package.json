@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "prisma migrate deploy && node dist/app.js",
     "vercel-start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "postinstall": "prisma generate",
@@ -37,6 +37,7 @@
     "chapa-nodejs": "^2.0.1",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
     "express-oas-generator": "^1.0.45",
