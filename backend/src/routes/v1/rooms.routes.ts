@@ -40,6 +40,10 @@ router.get("/:id", roomsController.getRoomById);
 router.post("/", roomsController.createRoom);
 router.put("/:id", roomsController.updateRoom);
 router.delete("/:id", roomsController.deleteRoom);
+
+// room images
+router.post("/:id/images", roomsController.addRoomImage);
+router.delete("/:id/images/:imageId", roomsController.deleteRoomImage);
 // router.post("/dummy", roomsController.createDummyRoom);
 
 export { router as RoomsRouter };

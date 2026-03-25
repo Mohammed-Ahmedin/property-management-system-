@@ -486,6 +486,20 @@ export default {
 
     res.json({ success: true, message: "Room updated successfully", data: updated });
   }),
+  addRoomImage: tryCatch(async (req, res) => {
+    const roomId = req.params.id;
+    const { url, name } = req.body;
+    if (!url) return res.status(400).json({ message: "url is required" });
+    const image = await prisma.roomImage.create({ data: { url, name: name || "", roomId } });
+    res.status(201).json({ success: true, message: "Image added", data: image });
+  }),
+
+  deleteRoomImage: tryCatch(async (req, res) => {
+    const { imageId } = req.params;
+    await prisma.roomImage.delete({ where: { id: imageId } });
+    res.json({ success: true, message: "Image deleted" });
+  }),
+
   addServices: tryCatch(async (req, res) => {
     const { roomId } = req.params;
 
