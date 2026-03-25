@@ -27,11 +27,11 @@ model Booking {
   approvedById String?
 
   // The room being booked
-  room   Room   @relation(fields: [roomId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomId String
 
   // Optional: reference to the property (can be inferred from room)
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String
 
   // Activities related to this booking (logs, events, etc.)
@@ -62,7 +62,7 @@ model Booking {
 
 model Commission {
   id        String  @id @default(uuid())
-  booking   Booking @relation(fields: [bookingId], references: [id])
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId String  @unique
 
   platformPercent Float
@@ -80,7 +80,7 @@ model Commission {
 
 model Payment {
   id        String  @id @default(uuid())
-  booking   Booking @relation(fields: [bookingId], references: [id])
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId String  @unique
 
   status         PaymentStatus @default(PENDING)
