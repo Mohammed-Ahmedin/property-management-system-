@@ -236,3 +236,20 @@ export const useDeleteRoomMutation = () => {
     },
   });
 };
+
+export const useUpdateRoomMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { id: string; data: any }>({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/rooms/${id}`, data);
+      return response.data;
+    },
+    onSuccess: ({ message }, { id }) => {
+      toast.message(message || "Room updated");
+      queryClient.invalidateQueries({ queryKey: ["rooms", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update room");
+    },
+  });
+};

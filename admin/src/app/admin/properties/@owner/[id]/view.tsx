@@ -2,32 +2,20 @@
 
 import { useState } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
-  Building2,
-  MapPin,
-  Phone,
-  Mail,
-  Edit,
-  Trash2,
-  Users,
-  Bed,
-  Calendar,
-  Wifi,
-  FileText,
-  CheckCircle2,
-  Clock,
-  Plus,
-  FileMinus,
-  ArrowLeft,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Building2, MapPin, Phone, Mail, Edit, Trash2, Users,
+  Bed, Calendar, Wifi, FileText, CheckCircle2, Clock, Plus, FileMinus, ArrowLeft,
 } from "lucide-react";
 import StaffsTab from "./staffs-tab";
 import RoomsTab from "./rooms-tab";
@@ -35,6 +23,7 @@ import ImagesTab from "./images-tab";
 import { DashboardCard } from "@/components/shared/dashboard-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import Link from "next/link";
+import { useUpdatePropertyMutation } from "@/hooks/api/use-property";
 
 interface PropertyData {
   id: string;
@@ -76,26 +65,106 @@ interface PropertyData {
 
 export default function PropertyView({ data }: { data: PropertyData }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: data.name,
+    address: data.address,
+    description: data.about?.description || "",
+    phone: data.contact?.phone || "",
+    email: data.contact?.email || "",
+    city: data.location?.city || "",
+    subcity: data.location?.subcity || "",
+    country: data.location?.country || "",
+    nearby: data.location?.nearby || "",
+  });
+  const updateMutation = useUpdatePropertyMutation();
 
-  const handleEdit = () => {
-    console.log("Edit property");
-  };
-
-  const handleDelete = () => {
-    console.log("Delete property");
+  const handleSave = () => {
+    updateMutation.mutate({
+      id: data.id,
+      data: {
+        name: form.name,
+        address: form.address,
+        about: { description: form.description },
+        contact: { phone: form.phone, email: form.email },
+        location: {
+          city: form.city,
+          subcity: form.subcity,
+          country: form.country,
+          nearby: form.nearby,
+          continent: data.location?.continent || "",
+        },
+      },
+    }, { onSuccess: () => setEditOpen(false) });
   };
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Link href={"/admin/properties"}>
-          <Button variant="ghost" size="sm" className="mb-4">
+          <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Properties
           </Button>
         </Link>
+        <Button size="sm" onClick={() => setEditOpen(true)}>
+          <Edit className="mr-2 h-4 w-4" /> Edit Property
+        </Button>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Property</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+            <div className="space-y-1">
+              <Label>Name</Label>
+              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Address</Label>
+              <Input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+            </div>
+            <div className="space-y-1 md:col-span-2">
+              <Label>Description</Label>
+              <Textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Phone</Label>
+              <Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Email</Label>
+              <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>City</Label>
+              <Input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Subcity</Label>
+              <Input value={form.subcity} onChange={e => setForm(f => ({ ...f, subcity: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Country</Label>
+              <Input value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Nearby</Label>
+              <Input value={form.nearby} onChange={e => setForm(f => ({ ...f, nearby: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Saving..." : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Header Section */}
       <div className="mb-8">

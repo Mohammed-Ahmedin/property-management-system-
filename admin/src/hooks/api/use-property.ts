@@ -105,3 +105,21 @@ export const useDeletePropertyMutation = () => {
     },
   });
 };
+
+export const useUpdatePropertyMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { id: string; data: any }>({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/properties/${id}`, data);
+      return response.data;
+    },
+    onSuccess: ({ message }, { id }) => {
+      toast.message(message || "Property updated");
+      queryClient.invalidateQueries({ queryKey: ["guest_houses", id] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update property");
+    },
+  });
+};
