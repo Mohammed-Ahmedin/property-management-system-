@@ -253,14 +253,14 @@ export default function PropertiesPage() {
       </div>
 
       {/* Hero */}
-      <div ref={heroRef} className="relative w-full h-[380px] md:h-[460px]">
+      <div ref={heroRef} className="relative w-full h-[380px] md:h-[460px]" style={{ overflow: 'visible' }}>
         {/* Background image — inline style to guarantee it loads */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('${heroImage}')` }}
         />
         <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-5">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-5" style={{ overflow: 'visible' }}>
           <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight">
             {locationParam ? `${locationParam} hotels & places to stay` : "Find your perfect stay"}
           </h1>
