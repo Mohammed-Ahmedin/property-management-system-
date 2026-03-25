@@ -1,19 +1,14 @@
 import { authClient } from "@/lib/auth-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export const useSignInWithEmailMutation = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
   return useMutation({
     mutationFn: (data: { email: string; password: string }) => {
       return authClient.signIn.email(data, {
         onSuccess: () => {
           toast.message("Login successful");
-          router.refresh();
-          router.push("/admin/dashboard");
+          window.location.href = "/admin/dashboard";
         },
         onError: ({ error }) => {
           toast.error(error.message);
