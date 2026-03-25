@@ -7,7 +7,7 @@ import { useGetProperties } from "@/hooks/api/use-properties";
 import { ErrorState } from "@/components/shared/error-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import DataContainer from "./data-container";
-import { Search, Users, CalendarDays } from "lucide-react";
+import { Search, Users, CalendarDays, MapPin } from "lucide-react";
 import type { PropertyFilters } from "@/types/property.types";
 import { PropertyFilter } from "@/components/shared/filter";
 import { Spinner } from "@/components/ui/spinner";
@@ -22,22 +22,91 @@ const CITY_IMAGES: Record<string, string> = {
 };
 const DEFAULT_HERO = "https://images.unsplash.com/photo-1561501900-3701fa6a0864?ixlib=rb-4.1.0&fm=jpg&q=60&w=3000";
 
+// Ethiopian city/area suggestions
+const SUGGESTIONS = [
+  { label: "Addis Ababa", sub: "Ethiopia", type: "City", popular: true },
+  { label: "Bole", sub: "Addis Ababa, Ethiopia", type: "Area" },
+  { label: "Yeka", sub: "Addis Ababa, Ethiopia", type: "Area" },
+  { label: "Kirkos", sub: "Addis Ababa, Ethiopia", type: "Area" },
+  { label: "Bahir Dar", sub: "Ethiopia", type: "City", popular: true },
+  { label: "Hawassa", sub: "Ethiopia", type: "City", popular: true },
+  { label: "Gondar", sub: "Ethiopia", type: "City", popular: true },
+  { label: "Adama", sub: "Ethiopia", type: "City" },
+  { label: "Dire Dawa", sub: "Ethiopia", type: "City" },
+  { label: "Mekelle", sub: "Ethiopia", type: "City" },
+];
+
 function SearchBar({ location, onSearch }: { location: string; onSearch: (q: string) => void }) {
   const [q, setQ] = useState(location);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => setQ(location), [location]);
 
+  const filtered = q.trim()
+    ? SUGGESTIONS.filter(s => s.label.toLowerCase().includes(q.toLowerCase()) || s.sub.toLowerCase().includes(q.toLowerCase()))
+    : SUGGESTIONS.slice(0, 6);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
-    <div className="flex w-full bg-white rounded-lg overflow-hidden shadow-2xl border border-gray-100">
+    <div className="flex w-full bg-white rounded-lg overflow-hidden shadow-2xl border border-gray-100 relative" ref={ref}>
       {/* Destination */}
-      <div className="flex-1 flex items-center gap-3 px-5 py-4 border-r border-gray-200 min-w-0">
+      <div className="flex-1 flex items-center gap-3 px-5 py-4 border-r border-gray-200 min-w-0 relative">
         <Search className="w-5 h-5 text-gray-400 shrink-0" />
         <input
           className="flex-1 text-base text-gray-900 bg-transparent outline-none placeholder:text-gray-400 min-w-0"
           placeholder="Enter a destination or property"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onSearch(q)}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => { if (e.key === "Enter") { onSearch(q); setOpen(false); } }}
         />
+        {/* Suggestions dropdown */}
+        {open && filtered.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden" style={{ minWidth: "380px" }}>
+            {/* Current search highlight */}
+            {q.trim() && (
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3 bg-primary text-white hover:bg-primary/90 transition-colors text-left"
+                onClick={() => { onSearch(q); setOpen(false); }}
+              >
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <Search className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{q}</p>
+                  <p className="text-xs text-white/70">Search for this</p>
+                </div>
+              </button>
+            )}
+            {filtered.map((s, i) => (
+              <button
+                key={i}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-t border-gray-100 first:border-0"
+                onClick={() => { setQ(s.label); onSearch(s.label); setOpen(false); }}
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-gray-500">
+                  {s.popular ? <span className="text-yellow-500">★</span> : <MapPin className="w-4 h-4" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    {q.trim() ? (
+                      <span dangerouslySetInnerHTML={{ __html: s.label.replace(new RegExp(`(${q})`, "gi"), "<strong>$1</strong>") }} />
+                    ) : s.label}
+                  </p>
+                  <p className="text-xs text-gray-400">{s.sub}</p>
+                </div>
+                <span className="text-xs text-gray-400 shrink-0">{s.type}</span>
+                {s.popular && <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-medium shrink-0">Popular</span>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       {/* Check-in */}
       <button className="flex items-center gap-2 px-5 py-4 border-r border-gray-200 hover:bg-gray-50 transition-colors shrink-0">
