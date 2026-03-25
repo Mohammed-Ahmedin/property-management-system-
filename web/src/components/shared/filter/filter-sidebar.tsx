@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -75,9 +74,9 @@ export function FilterSidebar() {
   const [maxPrice, setMaxPrice] = useState(filters.maxPrice?.toString() || "");
 
   return (
-    <div className="hidden lg:flex flex-col bg-background border border-border rounded-xl w-[260px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)] z-10 overflow-hidden">
+    <div className="hidden lg:flex flex-col bg-background border border-border rounded-xl w-[260px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-5rem)] z-10">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
         <span className="text-sm font-bold">Filters</span>
         <button
           onClick={() => {
@@ -91,7 +90,7 @@ export function FilterSidebar() {
         </button>
       </div>
 
-      <ScrollArea className="flex-1 px-4">
+      <div className="flex-1 overflow-y-auto px-4">
         <div className="py-1">
 
           {/* Star rating */}
@@ -206,7 +205,7 @@ export function FilterSidebar() {
           </Section>
 
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
