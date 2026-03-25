@@ -190,7 +190,7 @@ export function FilterSidebar() {
           <Section title="Location" defaultOpen={false}>
             <CitySubcityFilter
               filters={filters}
-              handleFilterChange={(key, value) => applyFilter(key, value)}
+              handleFilterChange={(key: keyof PropertyFilters, value: any) => applyFilter(key, value)}
             />
           </Section>
 
