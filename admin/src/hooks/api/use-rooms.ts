@@ -253,3 +253,32 @@ export const useUpdateRoomMutation = () => {
     },
   });
 };
+
+export const useAddRoomImageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { roomId: string; url: string; name: string }>({
+    mutationFn: async ({ roomId, url, name }) => {
+      const res = await api.post(`/rooms/${roomId}/images`, { url, name });
+      return res.data;
+    },
+    onSuccess: (_, { roomId }) => {
+      queryClient.invalidateQueries({ queryKey: ["rooms", roomId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to add image"),
+  });
+};
+
+export const useDeleteRoomImageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { roomId: string; imageId: string }>({
+    mutationFn: async ({ roomId, imageId }) => {
+      const res = await api.delete(`/rooms/${roomId}/images/${imageId}`);
+      return res.data;
+    },
+    onSuccess: (_, { roomId }) => {
+      toast.success("Image deleted");
+      queryClient.invalidateQueries({ queryKey: ["rooms", roomId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to delete image"),
+  });
+};
