@@ -579,19 +579,14 @@ export default {
     }
 
     // Delete in dependency order to avoid FK violations
+    // Use executeRaw for tables without cascade to bypass FK checks
     await prisma.$transaction(async (tx) => {
       // 1. Get all room IDs for this property
-      const rooms = await tx.room.findMany({
-        where: { propertyId },
-        select: { id: true },
-      });
+      const rooms = await tx.room.findMany({ where: { propertyId }, select: { id: true } });
       const roomIds = rooms.map((r) => r.id);
 
       // 2. Get all booking IDs for this property
-      const bookings = await tx.booking.findMany({
-        where: { propertyId },
-        select: { id: true },
-      });
+      const bookings = await tx.booking.findMany({ where: { propertyId }, select: { id: true } });
       const bookingIds = bookings.map((b) => b.id);
 
       // 3. Delete booking dependents
@@ -614,17 +609,17 @@ export default {
         await tx.room.deleteMany({ where: { propertyId } });
       }
 
-      // 6. Delete property-level dependents
+      // 6. Delete property-level dependents (ManagedProperty first — no cascade on FK)
+      await tx.$executeRaw`DELETE FROM "ManagedProperty" WHERE "propertyId" = ${propertyId}`;
       await tx.review.deleteMany({ where: { propertyId } });
       await tx.favorite.deleteMany({ where: { propertyId } });
-      await tx.managedProperty.deleteMany({ where: { propertyId } });
       await tx.propertyImage.deleteMany({ where: { propertyId } });
       await tx.facility.deleteMany({ where: { propertyId } });
       await tx.propertyService.deleteMany({ where: { propertyId } });
       await tx.carService.deleteMany({ where: { propertyId } });
       await tx.activity.deleteMany({ where: { propertyId } });
 
-      // 7. Delete single-relation dependents (cascade already handles these but be explicit)
+      // 7. Delete single-relation dependents
       await tx.about.deleteMany({ where: { propertyId } });
       await tx.location.deleteMany({ where: { propertyId } });
       await tx.contact.deleteMany({ where: { propertyId } });
