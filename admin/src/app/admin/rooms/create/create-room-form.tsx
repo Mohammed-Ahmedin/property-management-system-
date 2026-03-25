@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Plus, Trash2, Building2, HomeIcon } from "lucide-react";
+import { Plus, Trash2, Building2, HomeIcon, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,6 +30,7 @@ import { useGetProtectedPropertyForListQuery } from "@/hooks/api/use-property";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RoomFeatures } from "./feeatures-selector";
+import ImageUploader from "@/app/admin/properties/@owner/create/image-upload-form";
 
 export function CreateRoomForm() {
   const form = useForm<CreateRoomFormData>({
@@ -352,70 +353,18 @@ export function CreateRoomForm() {
         {/* Images */}
         <Card className="border-2">
           <CardHeader>
-            <CardTitle className="text-xl">Room Images</CardTitle>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Room Images
+            </CardTitle>
             <CardDescription>
-              Add image URLs to showcase the room
+              Upload images from your device to showcase the room
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {imageFields.map((field, index) => (
-              <div
-                key={field.id}
-                className="p-4 border rounded-lg bg-card space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-sm">Image #{index + 1}</h4>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeImage(index)}
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`images.${index}.url`} className="text-sm">
-                      Image URL <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id={`images.${index}.url`}
-                      placeholder="https://example.com/image.jpg"
-                      {...register(`images.${index}.url`)}
-                      className={
-                        errors.images?.[index]?.url ? "border-destructive" : ""
-                      }
-                    />
-                    {errors.images?.[index]?.url && (
-                      <p className="text-sm text-destructive">
-                        {errors.images[index]?.url?.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`images.${index}.name`} className="text-sm">
-                      Image Name
-                    </Label>
-                    <Input
-                      id={`images.${index}.name`}
-                      placeholder="e.g., Main bedroom view"
-                      {...register(`images.${index}.name`)}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => appendImage({ url: "", name: "" })}
-              className="w-full border-dashed"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Image
-            </Button>
+          <CardContent>
+            <ImageUploader
+              onChange={(imgs) => setValue("images", imgs)}
+            />
           </CardContent>
         </Card>
 
