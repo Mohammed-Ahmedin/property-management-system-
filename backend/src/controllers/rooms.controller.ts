@@ -456,7 +456,28 @@ export default {
     });
   }),
 
-  updateRoom: tryCatch(async () => {}),
+  updateRoom: tryCatch(async (req, res) => {
+    const roomId = req.params.id;
+    const { name, type, price, description, maxOccupancy, squareMeters, availability } = req.body;
+
+    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    const updated = await prisma.room.update({
+      where: { id: roomId },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(type !== undefined && { type }),
+        ...(price !== undefined && { price: Number(price) }),
+        ...(description !== undefined && { description }),
+        ...(maxOccupancy !== undefined && { maxOccupancy: Number(maxOccupancy) }),
+        ...(squareMeters !== undefined && { squareMeters: Number(squareMeters) }),
+        ...(availability !== undefined && { availability: Boolean(availability) }),
+      },
+    });
+
+    res.json({ success: true, message: "Room updated successfully", data: updated });
+  }),
   addServices: tryCatch(async (req, res) => {
     const { roomId } = req.params;
 

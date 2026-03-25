@@ -38,6 +38,7 @@ router.get("/:id", roomsController.getRoomById);
 
 // mutations
 router.post("/", roomsController.createRoom);
+router.put("/:id", roomsController.updateRoom);
 router.delete("/:id", roomsController.deleteRoom);
 // router.post("/dummy", roomsController.createDummyRoom);
 
