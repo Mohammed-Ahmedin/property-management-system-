@@ -9,6 +9,7 @@ import type { PropertyDataResponse } from "@/hooks/api/use-properties";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { FaStar } from "react-icons/fa";
 
 interface PropertyCardProps {
   data: PropertyDataResponse;
@@ -28,6 +29,9 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
     : averageRating >= 3.5 ? "Very Good"
     : "Good";
 
+  // Star count derived from rating (1-5)
+  const starCount = averageRating ? Math.round(averageRating) : 0;
+
   const ImageCarousel = ({ height }: { height: string }) => (
     <div className={cn("relative w-full overflow-hidden", height)}>
       <Carousel className="w-full h-full">
@@ -41,7 +45,6 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
         <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 bg-white/80 hover:bg-white border-0 shadow" />
         <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 bg-white/80 hover:bg-white border-0 shadow" />
       </Carousel>
-      {/* Save button */}
       <button
         onClick={(e) => { e.stopPropagation(); setSaved((s) => !s); }}
         className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow transition-colors"
@@ -77,24 +80,33 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
               <span className="text-xs text-muted-foreground">({reviewCount})</span>
             </div>
           )}
-          {distance && (
-            <p className="text-xs text-muted-foreground mb-2">{distance} km from you</p>
-          )}
+          {distance && <p className="text-xs text-muted-foreground mb-2">{distance} km from you</p>}
         </div>
       </div>
     );
   }
 
-  // Horizontal layout — Agoda style
+  // ── Agoda-style horizontal card ──
+  const allImages = images?.length ? images : [{ url: "/placeholder.svg" }];
+  const mainImage = allImages[0];
+  const thumbs = allImages.slice(1, 5); // up to 4 thumbnails
+
   return (
-    <div className="rounded-xl overflow-hidden border bg-card hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row cursor-pointer group">
-      {/* Left: main image + thumbnail strip */}
-      <div className="sm:w-[260px] w-full shrink-0 flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="relative h-[180px] sm:h-[160px] overflow-hidden">
+    <div
+      className="rounded-xl overflow-hidden border border-border bg-card hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row cursor-pointer"
+      onClick={() => navigate(`/properties/${data.id}`)}
+    >
+      {/* ── Left: image block ── */}
+      <div
+        className="sm:w-[260px] w-full shrink-0 flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Main image */}
+        <div className="relative h-[180px] overflow-hidden">
           <img
-            src={images?.[0]?.url || "/placeholder.svg"}
+            src={mainImage.url || "/placeholder.svg"}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
           <button
             onClick={(e) => { e.stopPropagation(); setSaved((s) => !s); }}
@@ -103,45 +115,70 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
           >
             <Heart className={cn("w-4 h-4", saved ? "fill-red-500 text-red-500" : "text-gray-600")} />
           </button>
-          <div className="absolute top-2 left-2">
-            <Badge className="text-xs">{type || "Property"}</Badge>
-          </div>
         </div>
+
         {/* Thumbnail strip */}
-        {images && images.length > 1 && (
-          <div className="flex gap-1 p-1 bg-black/5">
-            {images.slice(1, 4).map((img, i) => (
-              <div key={i} className="relative flex-1 h-14 overflow-hidden rounded">
-                <img src={img.url} alt="" className="w-full h-full object-cover" />
-              </div>
-            ))}
-            {images.length > 4 && (
-              <div className="relative flex-1 h-14 overflow-hidden rounded">
-                <img src={images[4].url} alt="" className="w-full h-full object-cover opacity-60" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+        <div className="flex gap-0.5 bg-black">
+          {thumbs.slice(0, 3).map((img, i) => (
+            <div key={i} className="relative flex-1 h-[56px] overflow-hidden">
+              <img src={img.url} alt="" className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity" />
+            </div>
+          ))}
+          {/* "See all" tile */}
+          <div className="relative flex-1 h-[56px] overflow-hidden">
+            {thumbs[3] ? (
+              <>
+                <img src={thumbs[3].url} alt="" className="w-full h-full object-cover opacity-50" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                   <span className="text-white text-xs font-bold">See all</span>
                 </div>
+              </>
+            ) : (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">See all</span>
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Middle: details */}
-      <div className="flex-1 p-4 flex flex-col justify-between min-w-0" onClick={() => navigate(`/properties/${data.id}`)}>
+      {/* ── Middle: details ── */}
+      <div className="flex-1 p-4 flex flex-col justify-between min-w-0 border-r border-border">
+        {/* Name + stars */}
         <div>
-          <h3 className="font-bold text-lg line-clamp-1 mb-1 hover:text-primary transition-colors">{name}</h3>
-          <div className="flex items-center gap-1 text-sm text-primary mb-2">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
-            <span className="line-clamp-1 text-xs">{address}</span>
+          <div className="flex items-start gap-2 mb-1">
+            <h3 className="font-bold text-base md:text-lg line-clamp-1 text-primary hover:underline">
+              {name}
+            </h3>
           </div>
+
+          {/* Star rating row */}
+          <div className="flex items-center gap-1 mb-1">
+            {Array.from({ length: Math.min(starCount, 5) }).map((_, i) => (
+              <FaStar key={i} className="w-3 h-3 text-yellow-400" />
+            ))}
+          </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-1 text-xs text-primary mb-3">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <span className="line-clamp-1">{address}</span>
+            <span className="text-muted-foreground ml-1 hover:underline cursor-pointer">· View on map</span>
+          </div>
+
+          {/* Facility tags */}
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {facilities?.slice(0, 4).map((f) => (
-              <span key={f.id} className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800">
+            {facilities?.slice(0, 5).map((f) => (
+              <span
+                key={f.id}
+                className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border"
+              >
                 {f.name}
               </span>
             ))}
           </div>
+
+          {/* Review quote */}
           {about?.description && (
             <p className="text-xs text-muted-foreground line-clamp-2 italic">
               "{about.description}"
@@ -150,24 +187,42 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
         </div>
       </div>
 
-      {/* Right: rating + price + CTA */}
-      <div className="sm:w-[180px] shrink-0 p-4 flex flex-col items-end justify-between border-t sm:border-t-0 sm:border-l border-border" onClick={() => navigate(`/properties/${data.id}`)}>
+      {/* ── Right: rating + price + CTA ── */}
+      <div
+        className="sm:w-[200px] shrink-0 p-4 flex flex-col items-end justify-between"
+        onClick={() => navigate(`/properties/${data.id}`)}
+      >
+        {/* Rating */}
         <div className="text-right">
           {averageRating > 0 ? (
-            <>
-              <p className="text-sm font-semibold text-right">{ratingLabel}</p>
-              <p className="text-xs text-muted-foreground mb-1">{reviewCount} reviews</p>
-              <span className="inline-block bg-primary text-primary-foreground text-sm font-bold px-2 py-1 rounded">
+            <div className="flex items-center gap-2 justify-end">
+              <div className="text-right">
+                <p className="text-sm font-semibold">{ratingLabel}</p>
+                <p className="text-xs text-muted-foreground">{reviewCount} reviews</p>
+              </div>
+              <div className="bg-primary text-white text-sm font-bold w-9 h-9 flex items-center justify-center rounded-lg shrink-0">
                 {averageRating.toFixed(1)}
-              </span>
-            </>
+              </div>
+            </div>
           ) : (
-            <span className="text-xs text-muted-foreground">No reviews yet</span>
+            <div className="flex items-center gap-1 text-muted-foreground text-xs">
+              <Star className="w-3 h-3" />
+              <span>No reviews</span>
+            </div>
           )}
         </div>
-        <div className="text-right mt-3">
-          <p className="text-xs text-muted-foreground mb-1">Avg price per night</p>
-          <Button size="sm" className="w-full mt-2 text-xs font-bold">Check availability</Button>
+
+        {/* Price + CTA */}
+        <div className="text-right mt-4">
+          <p className="text-xs text-muted-foreground mb-0.5">Avg price per night</p>
+          <p className="text-lg font-bold text-red-500">ETB —</p>
+          <Button
+            size="sm"
+            className="mt-2 w-full text-xs font-bold bg-primary hover:bg-primary/90"
+            onClick={(e) => { e.stopPropagation(); navigate(`/properties/${data.id}`); }}
+          >
+            Check availability
+          </Button>
         </div>
       </div>
     </div>

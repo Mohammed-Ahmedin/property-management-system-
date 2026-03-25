@@ -1,23 +1,26 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import type { PropertyFilters } from "@/types/property.types";
 import CitySubcityFilter from "./city-filter";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 const FACILITIES = ["WiFi", "Kitchen", "Air Conditioning", "Heating", "Parking", "Washer", "Dryer", "TV", "Pool", "Gym", "Breakfast", "Airport Transfer"];
-const PROPERTY_TYPES = ["SHARED", "PRIVATE", "ENTIRE"];
-const RATINGS = [5, 4, 3, 2, 1];
+const PROPERTY_TYPES = ["Shared", "Private", "Entire"];
+const STAR_RATINGS = [5, 4, 3, 2, 1];
+const REVIEW_SCORES = [
+  { label: "Exceptional 9+", min: 9 },
+  { label: "Very good 8+", min: 8 },
+  { label: "Good 7+", min: 7 },
+  { label: "Pleasant 6+", min: 6 },
+];
 
 function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -25,7 +28,7 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
     <div className="py-4 border-b border-border last:border-0">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-between w-full text-sm font-semibold text-foreground mb-0"
+        className="flex items-center justify-between w-full text-sm font-semibold text-foreground"
       >
         {title}
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
@@ -39,84 +42,50 @@ export function FilterSidebar() {
   const [filters, setFilters] = useState<PropertyFilters>({});
   const navigate = useNavigate();
 
-  const handleFilterChange = useCallback((key: keyof PropertyFilters, value: any) => {
+  const set = useCallback((key: keyof PropertyFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
-
-  const handleClearFilters = () => {
-    setFilters({});
-    navigate("/properties");
-  };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        if (Array.isArray(value)) params.append(key, JSON.stringify(value));
-        else if (typeof value === "number") params.append(key, value.toString());
-        else if (typeof value === "boolean") params.append(key, value.toString());
-        else params.append(key, value);
-      }
+      if (value === undefined || value === null || value === "") return;
+      if (Array.isArray(value)) params.append(key, JSON.stringify(value));
+      else if (typeof value === "number") params.append(key, value.toString());
+      else if (typeof value === "boolean") params.append(key, value.toString());
+      else params.append(key, value);
     });
     navigate(`/properties?${params.toString()}`);
   };
 
   return (
-    <div className="hidden lg:flex flex-col bg-background border rounded-xl w-[280px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)] z-10 overflow-hidden">
-      <div className="px-5 py-4 border-b flex items-center justify-between">
-        <h2 className="text-base font-bold">Filters</h2>
-        <button onClick={handleClearFilters} className="text-xs text-primary hover:underline flex items-center gap-1">
+    <div className="hidden lg:flex flex-col bg-background border border-border rounded-xl w-[260px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-6rem)] z-10 overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+        <span className="text-sm font-bold">Filters</span>
+        <button
+          onClick={() => { setFilters({}); navigate("/properties"); }}
+          className="text-xs text-primary hover:underline flex items-center gap-1"
+        >
           <RotateCcw className="w-3 h-3" /> Reset
         </button>
       </div>
 
-      <ScrollArea className="flex-1 px-5">
-        <div className="py-2">
+      <ScrollArea className="flex-1 px-4">
+        <div className="py-1">
 
-          <Section title="Search">
-            <Input
-              placeholder="Property name..."
-              value={filters.search || ""}
-              onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="text-sm"
-            />
-          </Section>
-
-          <Section title="Location">
-            <CitySubcityFilter filters={filters} handleFilterChange={handleFilterChange} />
-          </Section>
-
-          <Section title="Price per night (ETB)">
-            <div className="flex gap-2 items-center">
-              <Input
-                type="number"
-                placeholder="Min"
-                value={filters.minPrice || ""}
-                onChange={(e) => handleFilterChange("minPrice", e.target.value ? Number(e.target.value) : undefined)}
-                className="text-sm"
-              />
-              <span className="text-muted-foreground text-sm">–</span>
-              <Input
-                type="number"
-                placeholder="Max"
-                value={filters.maxPrice || ""}
-                onChange={(e) => handleFilterChange("maxPrice", e.target.value ? Number(e.target.value) : undefined)}
-                className="text-sm"
-              />
-            </div>
-          </Section>
-
-          <Section title="Guest rating">
+          {/* Star rating — matches Agoda screenshot */}
+          <Section title="Star rating">
             <div className="space-y-2">
-              {RATINGS.map((r) => (
-                <label key={r} className="flex items-center gap-2 cursor-pointer group">
+              {STAR_RATINGS.map((r) => (
+                <label key={r} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={filters.minRating === r}
-                    onCheckedChange={(checked) => handleFilterChange("minRating", checked ? r : undefined)}
+                    onCheckedChange={(checked) => set("minRating", checked ? r : undefined)}
                   />
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
                     {Array.from({ length: r }).map((_, i) => (
-                      <FaStar key={i} className="w-3 h-3 text-yellow-400" />
+                      <FaStar key={i} className="w-3.5 h-3.5 text-yellow-400" />
                     ))}
                     {r < 5 && <span className="text-xs text-muted-foreground ml-1">& up</span>}
                   </div>
@@ -125,20 +94,37 @@ export function FilterSidebar() {
             </div>
           </Section>
 
+          {/* Review score — matches Agoda screenshot */}
+          <Section title="Review score">
+            <div className="space-y-2">
+              {REVIEW_SCORES.map((s) => (
+                <label key={s.min} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filters.minRating === s.min}
+                    onCheckedChange={(checked) => set("minRating", checked ? s.min : undefined)}
+                  />
+                  <span className="text-sm">{s.label}</span>
+                </label>
+              ))}
+            </div>
+          </Section>
+
+          {/* Property type */}
           <Section title="Property type">
             <div className="space-y-2">
               {PROPERTY_TYPES.map((t) => (
                 <label key={t} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={filters.type === t.toLowerCase()}
-                    onCheckedChange={(checked) => handleFilterChange("type", checked ? t.toLowerCase() : undefined)}
+                    onCheckedChange={(checked) => set("type", checked ? t.toLowerCase() : undefined)}
                   />
-                  <span className="text-sm capitalize">{t.toLowerCase()}</span>
+                  <span className="text-sm">{t}</span>
                 </label>
               ))}
             </div>
           </Section>
 
+          {/* Facilities */}
           <Section title="Facilities">
             <div className="space-y-2">
               {FACILITIES.map((f) => (
@@ -146,9 +132,9 @@ export function FilterSidebar() {
                   <Checkbox
                     checked={(filters.facilityNames || []).includes(f)}
                     onCheckedChange={(checked) => {
-                      const current = filters.facilityNames || [];
-                      const updated = checked ? [...current, f] : current.filter((x) => x !== f);
-                      handleFilterChange("facilityNames", updated.length > 0 ? updated : undefined);
+                      const cur = filters.facilityNames || [];
+                      const upd = checked ? [...cur, f] : cur.filter((x) => x !== f);
+                      set("facilityNames", upd.length > 0 ? upd : undefined);
                     }}
                   />
                   <span className="text-sm">{f}</span>
@@ -157,21 +143,33 @@ export function FilterSidebar() {
             </div>
           </Section>
 
+          {/* Price */}
+          <Section title="Price per night (ETB)" defaultOpen={false}>
+            <div className="flex gap-2 items-center">
+              <Input type="number" placeholder="Min" value={filters.minPrice || ""} onChange={(e) => set("minPrice", e.target.value ? Number(e.target.value) : undefined)} className="text-sm" />
+              <span className="text-muted-foreground">–</span>
+              <Input type="number" placeholder="Max" value={filters.maxPrice || ""} onChange={(e) => set("maxPrice", e.target.value ? Number(e.target.value) : undefined)} className="text-sm" />
+            </div>
+          </Section>
+
+          {/* Location */}
+          <Section title="Location" defaultOpen={false}>
+            <CitySubcityFilter filters={filters} handleFilterChange={set} />
+          </Section>
+
+          {/* Availability */}
           <Section title="Availability" defaultOpen={false}>
             <div className="flex items-center justify-between">
               <span className="text-sm">Available rooms only</span>
-              <Switch
-                checked={filters.hasRoomsAvailable || false}
-                onCheckedChange={(checked) => handleFilterChange("hasRoomsAvailable", checked || undefined)}
-              />
+              <Switch checked={filters.hasRoomsAvailable || false} onCheckedChange={(v) => set("hasRoomsAvailable", v || undefined)} />
             </div>
           </Section>
 
         </div>
       </ScrollArea>
 
-      <div className="border-t p-4">
-        <Button onClick={handleSearch} className="w-full">Show results</Button>
+      <div className="border-t border-border p-3">
+        <Button onClick={handleSearch} className="w-full text-sm">Show results</Button>
       </div>
     </div>
   );
