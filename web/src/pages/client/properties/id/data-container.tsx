@@ -362,11 +362,13 @@ const DataContainer = ({ data }: Props) => {
             {/* Price */}
             <div className="mb-4">
               <p className="text-xs text-muted-foreground mb-1">Avg price per night</p>
-              {property.rooms?.[0]?.price ? (
-                <FormatedAmount amount={property.rooms[0].price} className="text-2xl font-bold text-red-500" />
-              ) : (
-                <p className="text-lg font-bold text-muted-foreground">Contact for price</p>
-              )}
+              {(() => {
+                const prices = (property.rooms || []).map((r: any) => r.price).filter((p: number) => p > 0);
+                const avg = prices.length ? Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length) : null;
+                return avg
+                  ? <p className="text-2xl font-bold text-red-500">ETB {avg.toLocaleString()}</p>
+                  : <p className="text-lg font-bold text-muted-foreground">Contact for price</p>;
+              })()}
             </div>
 
             <Button className="w-full mb-3 font-bold" onClick={() => scrollTo("rooms")}>

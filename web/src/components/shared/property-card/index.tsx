@@ -86,7 +86,11 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
     );
   }
 
-  // ── Agoda-style horizontal card ──
+  // Calculate avg price from rooms
+  const roomPrices = (data.rooms || []).map(r => r.price).filter(p => p > 0);
+  const avgPrice = roomPrices.length
+    ? Math.round(roomPrices.reduce((a, b) => a + b, 0) / roomPrices.length)
+    : null;
   const allImages = images?.length ? images : [];
   const mainImage = allImages[0];
 
@@ -225,7 +229,11 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
         </div>
         <div className="text-right mt-4">
           <p className="text-xs text-muted-foreground mb-0.5">Avg price per night</p>
-          <p className="text-lg font-bold text-red-500">ETB —</p>
+          {avgPrice ? (
+            <p className="text-lg font-bold text-red-500">ETB {avgPrice.toLocaleString()}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">Contact for price</p>
+          )}
           <Button
             size="sm"
             className="mt-2 w-full text-xs font-bold"
