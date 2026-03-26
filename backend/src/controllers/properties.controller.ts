@@ -55,6 +55,15 @@ export default {
               },
               location: true,
               facilities: true,
+              rooms: {
+                select: {
+                  id: true,
+                  name: true,
+                  price: true,
+                  availability: true,
+                  images: { select: { url: true, name: true }, take: 4 },
+                },
+              },
             },
           },
         },
@@ -344,15 +353,14 @@ export default {
             name: true,
             price: true,
             availability: true,
+            images: { select: { url: true, name: true }, take: 4 },
           },
         },
         _count: {
           select: { rooms: true, facilities: true, bookings: true },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
       take: 3,
       where: {},
     });
