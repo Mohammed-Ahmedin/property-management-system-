@@ -46,7 +46,11 @@ const DataContainer = ({ data }: Props) => {
 
   const allImages = property.images || [];
   const mainImg = allImages[0]?.url;
-  const thumbs = allImages.slice(1, 5);
+
+  // Collect room images for the 2x2 grid — fall back to more property images
+  const roomImgs = (property.rooms || []).flatMap((r: any) => r.images || []);
+  const gridSources = [...roomImgs, ...allImages.slice(1)];
+  const thumbs = Array.from({ length: 4 }, (_, i) => gridSources[i] || null);
 
   useEffect(() => {
     const hero = heroRef.current;
@@ -90,23 +94,23 @@ const DataContainer = ({ data }: Props) => {
           </div>
           {/* 2x2 thumbnail grid */}
           <div className="flex-1 grid grid-cols-2 gap-1">
-            {Array.from({ length: 4 }).map((_, i) => {
-              const img = thumbs[i];
+            {thumbs.map((img, i) => {
               const isLast = i === 3;
+              const totalExtra = gridSources.length - 4;
               return (
                 <div key={i} className="relative bg-muted overflow-hidden">
                   {img ? (
                     <>
-                      <img src={img.url} alt="" className="w-full h-full object-cover" />
-                      {isLast && allImages.length > 5 && (
+                      <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                      {isLast && totalExtra > 0 && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center cursor-pointer">
-                          <span className="text-white text-sm font-bold">+{allImages.length - 5} photos</span>
+                          <span className="text-white text-sm font-bold">+{totalExtra} photos</span>
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-muted-foreground opacity-30" />
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground opacity-20" />
                     </div>
                   )}
                 </div>
