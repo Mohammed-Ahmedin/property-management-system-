@@ -89,8 +89,18 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
   // ── Agoda-style horizontal card ──
   const allImages = images?.length ? images : [];
   const mainImage = allImages[0];
-  // Always show 4 thumbnail slots
-  const thumbSlots = Array.from({ length: 4 }, (_, i) => allImages[i + 1] || null);
+
+  // Collect room images for thumbnails
+  const roomImages = (data.rooms || [])
+    .flatMap(r => r.images || [])
+    .slice(0, 4);
+
+  // Fill 4 thumbnail slots: prefer room images, fall back to more property images
+  const thumbSources = [
+    ...roomImages,
+    ...allImages.slice(1),
+  ].slice(0, 4);
+  const thumbSlots = Array.from({ length: 4 }, (_, i) => thumbSources[i] || null);
 
   return (
     <div

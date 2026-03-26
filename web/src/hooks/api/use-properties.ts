@@ -55,6 +55,13 @@ export interface PropertyDataResponse {
     propertyId: string;
     url: string;
   }[];
+  rooms?: {
+    id: string;
+    name: string;
+    price: number;
+    availability: boolean;
+    images?: { url: string; name: string }[];
+  }[];
 }
 
 export type PaginatedPropertyDataResponse =
