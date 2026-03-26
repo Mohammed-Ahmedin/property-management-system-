@@ -285,6 +285,7 @@ export default {
               name: true,
               price: true,
               availability: true,
+              images: { select: { url: true, name: true }, take: 4 },
             },
           },
           _count: {
