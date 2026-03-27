@@ -178,7 +178,7 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
       </div>
 
       {/* Suggestions dropdown */}
-      {open && filtered.length > 0 && (
+      {open && (filtered.length > 0 || (q.length >= 2)) && (
         <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden" style={{ zIndex: 99999 }}>
           {q.trim() && (
             <button
