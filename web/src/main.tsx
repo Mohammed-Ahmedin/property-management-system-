@@ -13,7 +13,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <TanstackQueryProvider>
-        <ThemeProvider>
+        <ThemeProvider defaultTheme="light">
           <Provider store={store}>
             <App />
             <Toaster position={'top-center'}/>

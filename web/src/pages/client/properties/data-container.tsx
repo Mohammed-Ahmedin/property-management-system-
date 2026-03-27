@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FilterSidebar } from "@/components/shared/filter/filter-sidebar";
 import { PaginationControls } from "@/components/shared/pagination";
 import { PropertyCard } from "@/components/shared/property-card";
@@ -16,14 +15,35 @@ interface Props {
   totalItems?: number;
 }
 
-const SORT_TABS = ["Our top picks", "Lowest price first", "Nearest to", "Best reviewed"];
+const SORT_TABS = [
+  { label: "Our top picks", sortField: "createdAt", sortDirection: "desc" },
+  { label: "Lowest price first", sortField: "price", sortDirection: "asc" },
+  { label: "Nearest to", sortField: "createdAt", sortDirection: "asc" },
+  { label: "Best reviewed", sortField: "rating", sortDirection: "desc" },
+];
 
 const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }: Props) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeSort, setActiveSort] = useState("Our top picks");
+  const activeSort = searchParams.get("sortField") || "createdAt";
 
-  const handlePageChange = (newPage: number) => setSearchParams({ page: newPage.toString() });
-  const handleRowsPerPageChange = (value: number) => setSearchParams({ limit: value.toString() });
+  const handlePageChange = (newPage: number) => {
+    const p = new URLSearchParams(searchParams);
+    p.set("page", newPage.toString());
+    setSearchParams(p);
+  };
+  const handleRowsPerPageChange = (value: number) => {
+    const p = new URLSearchParams(searchParams);
+    p.set("limit", value.toString());
+    setSearchParams(p);
+  };
+
+  const handleSort = (sortField: string, sortDirection: string) => {
+    const p = new URLSearchParams(searchParams);
+    p.set("sortField", sortField);
+    p.set("sortDirection", sortDirection);
+    p.delete("page");
+    setSearchParams(p);
+  };
 
   return (
     <div className="flex gap-6 isolate">
@@ -62,16 +82,16 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
         <div className="flex border-b border-border mb-4 overflow-x-auto">
           {SORT_TABS.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveSort(tab)}
+              key={tab.label}
+              onClick={() => handleSort(tab.sortField, tab.sortDirection)}
               className={cn(
                 "px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors shrink-0",
-                activeSort === tab
+                activeSort === tab.sortField
                   ? "bg-primary text-white"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const distances = [1, 3, 5, 10, 20, 50]; // kms
+const distances = [1, 3, 5, 10, 20, 50, 100]; // kms
 
 export function DistanceSelect() {
   const [searchParams] = useSearchParams();
@@ -41,7 +41,7 @@ export function DistanceSelect() {
         <SelectGroup>
           {distances.map((km) => (
             <SelectItem key={km} value={km.toString()}>
-              {km} km
+              {km >= 100 ? "100+ km" : km >= 20 ? `${km}+ km` : `${km} km`}
             </SelectItem>
           ))}
         </SelectGroup>
