@@ -26,6 +26,16 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSort = searchParams.get("sortField") || "createdAt";
 
+  // Client-side price sort (backend can't sort by min room price easily)
+  const sortedData = [...data].sort((a, b) => {
+    if (activeSort === "price") {
+      const aPrice = Math.min(...(a.rooms?.map(r => r.price) || [Infinity]));
+      const bPrice = Math.min(...(b.rooms?.map(r => r.price) || [Infinity]));
+      return aPrice - bPrice; // lowest first
+    }
+    return 0; // backend handles other sorts
+  });
+
   const handlePageChange = (newPage: number) => {
     const p = new URLSearchParams(searchParams);
     p.set("page", newPage.toString());
@@ -103,7 +113,7 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
 
         {/* Cards */}
         <div className="flex flex-col gap-4">
-          {data.length === 0 ? (
+          {sortedData.length === 0 ? (
             <div className="py-16 text-center text-muted-foreground">
               <svg className="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9.75L12 3l9 6.75V21H3V9.75z" />
@@ -112,7 +122,7 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
               <p className="text-sm mt-1">Try adjusting your filters or check back later.</p>
             </div>
           ) : (
-            data.map((d, idx) => <PropertyCard data={d} key={d.id + idx} />)
+            sortedData.map((d, idx) => <PropertyCard data={d} key={d.id + idx} />)
           )}
         </div>
 
