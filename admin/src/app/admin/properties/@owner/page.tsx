@@ -13,12 +13,8 @@ export default function PropertiesPage() {
     useGetPropertiesForManagmentQuery();
   const { role: userRole, isPending: userDataIsPending } = useAuthSession();
 
-  // Show button logic:
-  // ADMIN: always true
-  // OWNER: only if they have no properties
-  const showAddButton =
-    userRole === "ADMIN" ||
-    (userRole === "OWNER" && (!data || data.length === 0));
+  // Show button logic: ADMIN always, OWNER always (can have multiple properties)
+  const showAddButton = userRole === "ADMIN" || userRole === "OWNER";
 
   return (
     <div className="min-h-screen bg-background">
