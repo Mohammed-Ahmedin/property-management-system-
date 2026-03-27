@@ -45,7 +45,7 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
   const [adults, setAdults] = useState(2);
   const [rooms, setRooms] = useState(1);
   const [guestOpen, setGuestOpen] = useState(false);
-  const [propSuggestions, setPropSuggestions] = useState<{ label: string; sub: string; type: string }[]>([]);
+  const [propSuggestions, setPropSuggestions] = useState<{ label: string; sub: string; type: string; popular?: boolean }[]>([]);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setQ(location), [location]);
