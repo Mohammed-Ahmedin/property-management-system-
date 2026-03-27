@@ -4,13 +4,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
-import { Image, Square, Trash, Upload } from "lucide-react";
+import { Square, Trash, Loader2 } from "lucide-react";
 import { api } from "@/hooks/api";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { uploadToCloudinaryDirect } from "@/server/config/cloudinary";
 
 const ImagesTab = ({ images, propertyId }: { images: { url: string; name: string }[]; propertyId?: string }) => {
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const handleDelete = async (imageUrl: string) => {
@@ -21,11 +23,26 @@ const ImagesTab = ({ images, propertyId }: { images: { url: string; name: string
       toast.success("Image deleted");
       queryClient.invalidateQueries({ queryKey: ["guest_houses", propertyId] });
     } catch {
-      // fallback: just show success since image display will refresh
-      toast.success("Image removed");
-      queryClient.invalidateQueries({ queryKey: ["guest_houses", propertyId] });
+      toast.error("Failed to delete image");
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !propertyId) return;
+    setUploading(true);
+    try {
+      const res = await uploadToCloudinaryDirect(file);
+      await api.post(`/properties/${propertyId}/images`, { url: res.secure_url, name: file.name });
+      toast.success("Image uploaded");
+      queryClient.invalidateQueries({ queryKey: ["guest_houses", propertyId] });
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -38,10 +55,14 @@ const ImagesTab = ({ images, propertyId }: { images: { url: string; name: string
               <CardTitle>Images</CardTitle>
               <CardDescription>Property images</CardDescription>
             </div>
-            <Button size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Add Image
-            </Button>
+            <label className="cursor-pointer">
+              <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+              <Button size="sm" asChild disabled={uploading}>
+                <span>
+                  {uploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</> : "Add Image"}
+                </span>
+              </Button>
+            </label>
           </div>
         </CardHeader>
 
@@ -51,7 +72,6 @@ const ImagesTab = ({ images, propertyId }: { images: { url: string; name: string
               <Square className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No images available</h3>
               <p className="text-muted-foreground mb-4">No images added yet</p>
-              <Button>Add Images</Button>
             </div>
           </div>
         ) : (
