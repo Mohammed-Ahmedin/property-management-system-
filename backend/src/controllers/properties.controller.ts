@@ -278,11 +278,8 @@ export default {
 
       // ⚙️ Sorting
       const orderBy: any = {};
-      if (sortField === "price") {
-        // sort by lowest room price
-        orderBy["rooms"] = { _min: { price: sortDirection === "asc" ? "asc" : "desc" } };
-      } else if (sortField === "rating") {
-        orderBy["averageRating"] = sortDirection === "asc" ? "asc" : "desc";
+      if (sortField === "rating") {
+        orderBy["averageRating"] = "desc"; // always highest first for best reviewed
       } else {
         orderBy["createdAt"] = sortDirection === "asc" ? "asc" : "desc";
       }
