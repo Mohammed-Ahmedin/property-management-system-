@@ -67,7 +67,7 @@ const ethiopianLocations = {
       "Mehal Ketema": ["Piazza", "Kebele 03", "Kebele 04"],
       "Hayek Dare": ["Hayek Dare Sefer", "Kebele 05"],
       Misrak: ["Misrak Sefer", "Kebele 06"],
-      Addis Ketema: ["Addis Ketema Sefer", "Kebele 07"],
+      "Addis Ketema": ["Addis Ketema Sefer", "Kebele 07"],
     },
   },
   Adama: {
