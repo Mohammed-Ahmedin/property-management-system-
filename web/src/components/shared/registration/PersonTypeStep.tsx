@@ -51,8 +51,8 @@ export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
               className={cn(
                 'relative p-6 rounded-xl border-2 text-left transition-all duration-300 group',
                 isSelected
-                  ? 'border-primary bg-accent shadow-glow'
-                  : 'border-border bg-card hover:border-primary/40 hover:shadow-md'
+                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/30'
+                  : 'border-border bg-card hover:border-blue-300 hover:shadow-md'
               )}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -61,7 +61,7 @@ export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
               <motion.div
                 className={cn(
                   'absolute top-4 right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
-                  isSelected ? 'border-primary bg-primary' : 'border-muted-foreground/30'
+                  isSelected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white dark:bg-transparent'
                 )}
                 initial={false}
                 animate={{ scale: isSelected ? 1 : 0.9 }}

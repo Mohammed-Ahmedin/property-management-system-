@@ -31,6 +31,7 @@ export default function DateRangePicker({
 //   const [checkIn, setCheckIn] = useState<Date | null>(initialCheckIn);
 //   const [checkOut, setCheckOut] = useState<Date | null>(initialCheckOut);
   const [open, setOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -118,7 +119,7 @@ export default function DateRangePicker({
         </label>
         <div className="flex items-center gap-2 rounded-lg border border-input bg-card px-3 py-2">
           <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          <Popover>
+          <Popover open={checkoutOpen} onOpenChange={setCheckoutOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
@@ -136,21 +137,10 @@ export default function DateRangePicker({
                 onSelect={(date) => setCheckOut(date as Date)}
               />
               <div className="mt-2 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Button size="sm" onClick={() => {}}>
-                    Done
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={clearDates}
-                    title="Clear dates"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button size="sm" onClick={() => setCheckoutOpen(false)}>Done</Button>
+                <Button size="sm" variant="secondary" onClick={clearDates} title="Clear dates">
+                  <Trash className="h-4 w-4" />
+                </Button>
               </div>
             </PopoverContent>
           </Popover>

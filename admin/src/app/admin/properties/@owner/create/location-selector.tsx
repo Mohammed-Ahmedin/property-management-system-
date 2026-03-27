@@ -61,6 +61,29 @@ const ethiopianLocations = {
       Arada: ["Fasil Gibi", "Posta Bet"],
     },
   },
+  Hawassa: {
+    subcities: {
+      Tabor: ["Tabor Hill", "Kebele 01", "Kebele 02"],
+      "Mehal Ketema": ["Piazza", "Kebele 03", "Kebele 04"],
+      "Hayek Dare": ["Hayek Dare Sefer", "Kebele 05"],
+      Misrak: ["Misrak Sefer", "Kebele 06"],
+      Addis Ketema: ["Addis Ketema Sefer", "Kebele 07"],
+    },
+  },
+  Adama: {
+    subcities: {
+      Geda: ["Geda Sefer", "Kebele 01"],
+      Denkaka: ["Denkaka Sefer", "Kebele 02"],
+      Boku: ["Boku Sefer", "Kebele 03"],
+    },
+  },
+  "Dire Dawa": {
+    subcities: {
+      Sabian: ["Sabian Sefer", "Kebele 01"],
+      Legehare: ["Legehare Sefer", "Kebele 02"],
+      Dechatu: ["Dechatu Sefer", "Kebele 03"],
+    },
+  },
 };
 
 // Reusable searchable select (Command-based)
