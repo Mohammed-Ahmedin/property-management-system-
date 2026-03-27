@@ -34,9 +34,29 @@ export default {
     });
 
     if (existing) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already in use" });
+      // If there's already an approved request, check if user actually exists
+      if (existing.status === "APPROVED") {
+        const userExists = await prisma.user.findFirst({ where: { email } });
+        if (userExists) {
+          return res.status(409).json({ success: false, message: "Email already in use" });
+        }
+        // User wasn't created despite approval — allow re-submission by deleting old request
+        await prisma.registrationRequest.delete({ where: { id: existing.id } });
+      } else if (existing.status === "PENDING") {
+        // Allow re-submission if the pending request is older than 5 minutes (likely abandoned)
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        if (existing.createdAt < fiveMinutesAgo) {
+          await prisma.registrationRequest.delete({ where: { id: existing.id } });
+        } else {
+          return res.status(409).json({ success: false, message: "A registration request with this email is already pending. Please wait a few minutes before trying again." });
+        }
+      }
+    }
+
+    // Also check if user already exists in the system
+    const userAlreadyExists = await prisma.user.findFirst({ where: { email } });
+    if (userAlreadyExists) {
+      return res.status(409).json({ success: false, message: "Email already in use" });
     }
 
     // Hashing Password👇🏼
@@ -151,7 +171,8 @@ export default {
     const decryptPassword = decryptData(jsonData.password);
 
     if (updated.status === "APPROVED") {
-      await auth.api.signUpEmail({
+      // Create the user account
+      const signUpResult = await auth.api.signUpEmail({
         body: {
           email: updated.email,
           name: updated.contactName,
@@ -161,6 +182,20 @@ export default {
           image: "",
         },
       });
+
+      // Ensure role is set correctly (better-auth may not persist custom fields)
+      try {
+        await prisma.user.update({
+          where: { email: updated.email },
+          data: {
+            role: updated.registrationType,
+            phone: updated.phone,
+            status: "APPROVED",
+          },
+        });
+      } catch {
+        // user update failed but account was created — non-fatal
+      }
     }
     // const encryptId = encryptData(updated.id);
     let redirectUrl = `${process.env.FRONTEND_URL}/registrations/status/${updated.id}`;

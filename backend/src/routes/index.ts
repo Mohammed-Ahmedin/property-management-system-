@@ -14,9 +14,11 @@ import { AiRouter } from "./v1/ai.routes";
 const rootRouter = Router();
 
 rootRouter.get("/", (req, res) => {
-  res.json({
-    message: "Server is running successfully",
-  });
+  res.json({ message: "Server is running successfully" });
+});
+
+rootRouter.get("/api/v1/health", (req, res) => {
+  res.json({ ok: true });
 });
 
 rootRouter.use("/api/v1/properties", PropertyRouter);
