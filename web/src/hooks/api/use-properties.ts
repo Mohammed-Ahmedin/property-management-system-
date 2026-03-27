@@ -142,7 +142,7 @@ export const useGetNearbyProperties = ({
   distance,
 }: NearbyParams) => {
   return useQuery<PaginatedNearbyPropertyDataResponse>({
-    queryKey: ["nearby_properties", lat, lon, radius, page, limit],
+    queryKey: ["nearby_properties", lat, lon, radius, page, limit, distance],
     queryFn: async () => {
       const res = await api.get<PaginatedNearbyPropertyDataResponse>(
         `/properties/nearby`,
@@ -150,7 +150,8 @@ export const useGetNearbyProperties = ({
       );
       return res.data;
     },
-    enabled: !!lat && !!lon, // only run when coordinates are available
+    enabled: !!lat && !!lon,
+    retry: false,
   });
 };
 

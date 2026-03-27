@@ -182,7 +182,7 @@ export const PropertyRegistrationForm = () => {
       )}
 
       {/* Form Card */}
-      <div className="card-elevated p-6 sm:p-8">
+      <div className="border border-border rounded-2xl bg-card shadow-lg p-6 sm:p-8">
         <form onSubmit={(e) => e.preventDefault()}>
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div

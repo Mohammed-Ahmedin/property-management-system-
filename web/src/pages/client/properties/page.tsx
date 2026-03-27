@@ -45,13 +45,30 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
   const [adults, setAdults] = useState(2);
   const [rooms, setRooms] = useState(1);
   const [guestOpen, setGuestOpen] = useState(false);
+  const [propSuggestions, setPropSuggestions] = useState<{ label: string; sub: string; type: string }[]>([]);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setQ(location), [location]);
 
-  const filtered = q.trim()
+  // Fetch property name suggestions when user types
+  useEffect(() => {
+    if (!q.trim() || q.length < 2) { setPropSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const { api } = await import("@/hooks/api");
+        const res = await api.get("/properties", { params: { search: q, limit: 5 } });
+        const props = res.data?.data || [];
+        setPropSuggestions(props.map((p: any) => ({ label: p.name, sub: p.address || p.location?.city || "", type: "Property" })));
+      } catch { setPropSuggestions([]); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  const staticFiltered = q.trim()
     ? SUGGESTIONS.filter(s => s.label.toLowerCase().includes(q.toLowerCase()) || s.sub.toLowerCase().includes(q.toLowerCase()))
-    : SUGGESTIONS.slice(0, 6);
+    : SUGGESTIONS.slice(0, 4);
+
+  const filtered = [...propSuggestions, ...staticFiltered].slice(0, 8);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

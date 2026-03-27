@@ -9,7 +9,7 @@ import ReviewsContainer from "./reviews-container";
 import {
   ArrowLeft, Bath, BedDouble, MapPin, Phone, Mail,
   Wifi, Car, UtensilsCrossed, Star, Users, Heart,
-  ChevronRight, CheckCircle2, Image as ImageIcon
+  ChevronRight, CheckCircle2, Image as ImageIcon, X, ChevronLeft
 } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ const DataContainer = ({ data }: Props) => {
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("Overview");
   const [stickyNav, setStickyNav] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const avgRating = property.reviews?.length
@@ -52,6 +53,9 @@ const DataContainer = ({ data }: Props) => {
   const gridSources = [...roomImgs, ...allImages.slice(1)];
   const thumbs = Array.from({ length: 4 }, (_, i) => gridSources[i] || null);
 
+  // All images for lightbox
+  const lightboxImages = [...allImages, ...roomImgs];
+
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
@@ -66,6 +70,33 @@ const DataContainer = ({ data }: Props) => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Lightbox */}
+      {lightboxIdx !== null && lightboxImages.length > 0 && (
+        <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center" onClick={() => setLightboxIdx(null)}>
+          <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full" onClick={() => setLightboxIdx(null)}>
+            <X className="w-6 h-6" />
+          </button>
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-full"
+            onClick={(e) => { e.stopPropagation(); setLightboxIdx(i => i !== null ? Math.max(0, i - 1) : 0); }}
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+          <img
+            src={(lightboxImages[lightboxIdx] as any)?.url}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-full"
+            onClick={(e) => { e.stopPropagation(); setLightboxIdx(i => i !== null ? Math.min(lightboxImages.length - 1, i + 1) : 0); }}
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+          <div className="absolute bottom-4 text-white/60 text-sm">{lightboxIdx + 1} / {lightboxImages.length}</div>
+        </div>
+      )}
       {/* Back */}
       <div className="py-3 px-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-primary hover:underline">
@@ -77,7 +108,7 @@ const DataContainer = ({ data }: Props) => {
       <div ref={heroRef} className="px-4 mb-6">
         <div className="flex gap-1 rounded-xl overflow-hidden h-[340px] md:h-[420px]">
           {/* Main large image */}
-          <div className="flex-[2] relative bg-muted">
+          <div className="flex-[2] relative bg-muted cursor-pointer" onClick={() => setLightboxIdx(0)}>
             {mainImg ? (
               <img src={mainImg} alt={property.name} className="w-full h-full object-cover" />
             ) : (
@@ -98,7 +129,7 @@ const DataContainer = ({ data }: Props) => {
               const isLast = i === 3;
               const totalExtra = gridSources.length - 4;
               return (
-                <div key={i} className="relative bg-muted overflow-hidden">
+                <div key={i} className="relative bg-muted overflow-hidden cursor-pointer" onClick={() => img && setLightboxIdx(i + 1)}>
                   {img ? (
                     <>
                       <img src={(img as any).url} alt="" className="w-full h-full object-cover" />

@@ -40,7 +40,7 @@ const NearbyContainer: React.FC<NearbyContainerProps> = ({
 
   useEffect(() => {
     dataQuery.refetch();
-  }, [searchParams]);
+  }, [currentDistance]);
 
   const navigate = useNavigate();
 

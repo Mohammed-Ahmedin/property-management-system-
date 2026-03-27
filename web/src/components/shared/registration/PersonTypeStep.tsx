@@ -81,7 +81,7 @@ export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
                 className={cn(
                   'w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300',
                   isSelected
-                    ? 'gradient-primary text-primary-foreground shadow-lg'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
                     : 'bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-accent-foreground'
                 )}
               >
