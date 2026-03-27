@@ -1,7 +1,5 @@
-import { motion } from 'framer-motion';
 import { type UseFormReturn } from 'react-hook-form';
-import { User, Briefcase, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { User, Briefcase } from 'lucide-react';
 import { type FormData } from './validationSchemas';
 
 interface PersonTypeStepProps {
@@ -9,97 +7,96 @@ interface PersonTypeStepProps {
 }
 
 const personTypes = [
-  {
-    value: 'owner',
-    label: 'Property Owner',
-    description: 'I own a property and want to list it',
-    icon: User,
-  },
-  {
-    value: 'broker',
-    label: 'Broker / Agent',
-    description: 'I help property owners with listings',
-    icon: Briefcase,
-  },
+  { value: 'owner', label: 'Property Owner', description: 'I own a property and want to list it', icon: User },
+  { value: 'broker', label: 'Broker / Agent', description: 'I help property owners with listings', icon: Briefcase },
 ] as const;
 
 export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
-  const selectedType = form.watch('personType');
+  // Use controller value directly — watch can be stale
+  const selectedType = form.getValues('personType');
+  // Force re-render on change by subscribing
+  form.watch('personType');
   const error = form.formState.errors.personType;
 
+  const select = (val: 'owner' | 'broker') => {
+    form.setValue('personType', val, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+    // Force re-render
+    form.trigger('personType');
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-foreground">
-          How would you describe yourself?
-        </h2>
-        <p className="text-muted-foreground mt-2">
-          Select the option that best describes your role
-        </p>
+    <div style={{ padding: '8px 0' }}>
+      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>How would you describe yourself?</h2>
+        <p style={{ color: '#6b7280' }}>Select the option that best describes your role</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {personTypes.map((type) => {
-          const isSelected = selectedType === type.value;
+          const isSelected = form.watch('personType') === type.value;
           const Icon = type.icon;
 
           return (
             <button
               key={type.value}
               type="button"
-              onClick={() => form.setValue('personType', type.value, { shouldValidate: true })}
-              style={isSelected ? {
-                borderColor: '#2563eb',
-                backgroundColor: '#eff6ff',
-                boxShadow: '0 0 0 2px #2563eb33',
-              } : {}}
-              className={cn(
-                'relative p-6 rounded-xl border-2 text-left transition-all duration-200',
-                isSelected
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
-              )}
+              onClick={() => select(type.value)}
+              style={{
+                position: 'relative',
+                padding: '24px',
+                borderRadius: '12px',
+                border: isSelected ? '2px solid #2563eb' : '2px solid #e5e7eb',
+                backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.2)' : 'none',
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
             >
-              {/* Top-right circle indicator */}
-              <div
-                className="absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                style={isSelected
-                  ? { borderColor: '#2563eb', backgroundColor: '#2563eb' }
-                  : { borderColor: '#d1d5db', backgroundColor: 'white' }
-                }
-              >
+              {/* Circle indicator top-right */}
+              <div style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                width: '22px',
+                height: '22px',
+                borderRadius: '50%',
+                border: isSelected ? '2px solid #2563eb' : '2px solid #d1d5db',
+                backgroundColor: isSelected ? '#2563eb' : '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
                 {isSelected && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffffff' }} />
                 )}
               </div>
 
               {/* Icon */}
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-                style={isSelected
-                  ? { backgroundColor: '#2563eb', color: 'white' }
-                  : { backgroundColor: '#f3f4f6', color: '#6b7280' }
-                }
-              >
-                <Icon className="w-7 h-7" />
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                backgroundColor: isSelected ? '#2563eb' : '#f3f4f6',
+                color: isSelected ? '#ffffff' : '#6b7280',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
+              }}>
+                <Icon size={28} />
               </div>
 
-              {/* Text */}
-              <h3
-                className="font-semibold text-lg"
-                style={{ color: isSelected ? '#2563eb' : '#111827' }}
-              >
+              <h3 style={{ fontWeight: 600, fontSize: '18px', color: isSelected ? '#2563eb' : '#111827', marginBottom: '4px' }}>
                 {type.label}
               </h3>
-              <p className="text-sm text-gray-500 mt-1">{type.description}</p>
+              <p style={{ fontSize: '14px', color: '#6b7280' }}>{type.description}</p>
             </button>
           );
         })}
       </div>
 
-      {error && (
-        <p className="text-red-500 text-sm text-center mt-2">{error.message}</p>
-      )}
+      {error && <p style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>{error.message as string}</p>}
     </div>
   );
 };

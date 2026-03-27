@@ -96,24 +96,20 @@ export function FilterSidebar() {
           {/* Star rating */}
           <Section title="Star rating">
             <div className="space-y-2">
-              {STAR_RATINGS.map((r) => {
-                // Convert star count to rating score (5 stars = 9+, 4 stars = 7+, etc.)
-                const ratingScore = r * 2 - 1; // 5→9, 4→7, 3→5, 2→3, 1→1
-                return (
-                  <label key={r} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={Number(searchParams.get("minRating")) === ratingScore}
-                      onCheckedChange={(checked) => applyFilter("minRating", checked ? ratingScore : undefined)}
-                    />
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: r }).map((_, i) => (
-                        <FaStar key={i} className="w-3.5 h-3.5 text-yellow-400" />
-                      ))}
-                      {r < 5 && <span className="text-xs text-muted-foreground ml-1">& up</span>}
-                    </div>
-                  </label>
-                );
-              })}
+              {STAR_RATINGS.map((r) => (
+                <label key={r} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={Number(searchParams.get("minRating")) === r}
+                    onCheckedChange={(checked) => applyFilter("minRating", checked ? r : undefined)}
+                  />
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: r }).map((_, i) => (
+                      <FaStar key={i} className="w-3.5 h-3.5 text-yellow-400" />
+                    ))}
+                    {r < 5 && <span className="text-xs text-muted-foreground ml-1">& up</span>}
+                  </div>
+                </label>
+              ))}
             </div>
           </Section>
 
