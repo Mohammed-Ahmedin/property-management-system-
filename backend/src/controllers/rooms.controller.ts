@@ -203,7 +203,7 @@ export default {
 
     if (roomByRoomId) {
       return res.status(409).json({
-        message: "This room id already registerd in this property",
+        message: "This room ID is already used in this property. Please use a different room ID.",
       });
     }
 

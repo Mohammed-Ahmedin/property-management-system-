@@ -1,7 +1,7 @@
 // ✅ ROOM MODEL
 model Room {
   id     String   @id @default(uuid())
-  roomId String   @unique
+  roomId String
   name   String
   type   RoomType @default(SINGLE)
 
@@ -27,9 +27,9 @@ model Room {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-// ✅ ROOM IMAGES
+  @@unique([roomId, propertyId])
+}
 model RoomImage {
   id        String   @id @default(uuid())
   url       String
