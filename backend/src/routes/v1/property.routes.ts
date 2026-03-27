@@ -59,7 +59,8 @@ router.get(
 );
 
 router.get("/:id", propertiesController.getPropertyById);
-router.put("/:id", propertiesController.updateProperty);
+router.put("/:id", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.updateProperty);
+router.post("/:id/images", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.addPropertyImage);
 router.delete("/:id/images", propertiesController.deletePropertyImage);
 router.delete(
   "/:id",

@@ -578,6 +578,14 @@ export default {
     });
   }),
 
+  addPropertyImage: tryCatch(async (req, res) => {
+    const { id: propertyId } = req.params;
+    const { url, name } = req.body;
+    if (!url) return res.status(400).json({ message: "url is required" });
+    const image = await prisma.propertyImage.create({ data: { url, name: name || "", propertyId } });
+    res.status(201).json({ success: true, message: "Image added", data: image });
+  }),
+
   deletePropertyImage: tryCatch(async (req, res) => {
     const { id: propertyId } = req.params;
     const { url } = req.body;

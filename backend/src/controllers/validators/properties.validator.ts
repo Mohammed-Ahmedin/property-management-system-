@@ -43,20 +43,20 @@ export const createPropertySchema = z.object({
 });
 
 export const updatePropertySchema = z.object({
-  name: z.string().min(3).optional(),
-  address: z.string().min(5).optional(),
+  name: z.string().min(1).optional(),
+  address: z.string().min(1).optional(),
   type: z.nativeEnum(PropertyType).optional(),
   about: z
     .object({
-      description: z.string().min(10),
+      description: z.string().min(1),
     })
     .optional(),
   location: z
     .object({
-      continent: z.string(),
-      country: z.string(),
-      city: z.string(),
-      subcity: z.string(),
+      continent: z.string().optional().default("Africa"),
+      country: z.string().optional().default("Ethiopia"),
+      city: z.string().optional().default(""),
+      subcity: z.string().optional().default(""),
       nearby: z.string().optional(),
     })
     .optional(),
