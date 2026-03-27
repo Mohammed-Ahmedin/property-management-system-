@@ -6,6 +6,7 @@ import "./global.css";
 import { Toaster } from "sonner";
 import TanstackQueryProvider from "../providers/tanstack-query.provider";
 import { ThemeProvider } from "../providers/theme.provider";
+import { KeepAlive } from "../components/keep-alive";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <KeepAlive />
           </ThemeProvider>
         </TanstackQueryProvider>
         <Toaster />
