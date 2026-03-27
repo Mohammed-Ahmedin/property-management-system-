@@ -68,7 +68,7 @@ export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
               >
                 {isSelected && (
                   <motion.div
-                    className="w-2 h-2 rounded-full bg-primary-foreground"
+                    className="w-2 h-2 rounded-full bg-white"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.2 }}

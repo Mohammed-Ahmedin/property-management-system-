@@ -88,15 +88,16 @@ export interface PropertyFilters {
   subcity?: string;
   country?: string;
   categoryId?: string;
-  type?: string; // SHARED or PRIVATE
+  type?: string;
   minRating?: number;
   maxRating?: number;
   minPrice?: number;
   maxPrice?: number;
-  facilityNames?: string[]; // e.g. ["Free Wi-Fi", "Breakfast included"]
+  facilityNames?: string[];
   hasRoomsAvailable?: boolean;
-  search?: string; // keyword search by name or address
+  search?: string;
   location?: string;
+  sortField?: string;
 }
 
 export const FACILITY_OPTIONS = [

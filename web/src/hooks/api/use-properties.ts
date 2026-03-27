@@ -159,7 +159,8 @@ export const useGetProperties = (
   input: FilterParamsInput<PropertyFilters>
 ) => {
   return useQuery<PaginatedPropertyDataResponse>({
-    queryKey: ["properties"],
+    queryKey: ["properties", input.filters, input.page, input.limit, input.sortDirection],
+    retry: false,
     queryFn: async () => {
       const res = await api.get<PaginatedPropertyDataResponse>(
         "/properties",
@@ -172,15 +173,18 @@ export const useGetProperties = (
             type: input.filters?.type || undefined,
             search: input.filters?.search || undefined,
             page: input.page,
-            limit: input.limit, // optional: set default limit
+            limit: input.limit,
             facilityNames: input.filters?.facilityNames,
             categoryId: input.filters?.categoryId,
             location: input.filters?.location,
             sortDirection: input.sortDirection,
+            sortField: input.filters?.sortField,
+            minRating: input.filters?.minRating || undefined,
+            maxRating: input.filters?.maxRating || undefined,
+            hasRoomsAvailable: input.filters?.hasRoomsAvailable || undefined,
           },
         }
       );
-
       return res.data;
     },
   });
