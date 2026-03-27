@@ -160,6 +160,7 @@ export default {
         categoryId,
         hasRoomsAvailable,
         location,
+        minRating,
       } = req.query;
 
       // Pagination setup
@@ -268,10 +269,23 @@ export default {
         });
       }
 
+      // ⭐ Rating filter
+      if (minRating) {
+        filters.AND.push({
+          averageRating: { gte: Number(minRating) },
+        });
+      }
+
       // ⚙️ Sorting
-      const validSortFields = ["id", "name", "createdAt", "price"];
       const orderBy: any = {};
-      orderBy["createdAt"] = sortDirection === "asc" ? "asc" : "desc";
+      if (sortField === "price") {
+        // sort by lowest room price
+        orderBy["rooms"] = { _min: { price: sortDirection === "asc" ? "asc" : "desc" } };
+      } else if (sortField === "rating") {
+        orderBy["averageRating"] = sortDirection === "asc" ? "asc" : "desc";
+      } else {
+        orderBy["createdAt"] = sortDirection === "asc" ? "asc" : "desc";
+      }
 
       // 📄 Total count for pagination
       const totalItems = await prisma.property.count({
@@ -562,6 +576,14 @@ export default {
       message: "Property updated successfully",
       data: updatedProperty,
     });
+  }),
+
+  deletePropertyImage: tryCatch(async (req, res) => {
+    const { id: propertyId } = req.params;
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ message: "url is required" });
+    await prisma.propertyImage.deleteMany({ where: { propertyId, url } });
+    res.json({ success: true, message: "Image deleted" });
   }),
 
   deleteProperty: tryCatch(async (req, res) => {
