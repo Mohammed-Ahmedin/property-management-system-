@@ -40,6 +40,8 @@ const FilterTab = () => {
   const navigate = useNavigate();
 
   const [filterOpen, setFilterOpen] = useState(false);
+
+  useEffect(() => {
     const id = setInterval(() => setLocDark((d) => !d), 2000);
     return () => clearInterval(id);
   }, []);
