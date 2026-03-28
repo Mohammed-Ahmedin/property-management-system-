@@ -123,10 +123,10 @@ export function FilterSidebar() {
           <Section title="Review score">
             <div className="space-y-2">
               {REVIEW_SCORES.map((s) => {
-                const currentMin = searchParams.get("minRating");
-                const currentMax = searchParams.get("maxRating");
+                const currentMin = searchParams.get("minReviewScore");
+                const currentMax = searchParams.get("maxReviewScore");
                 const isChecked = currentMin !== null && Number(currentMin) === s.min &&
-                  (s.max !== undefined ? currentMax !== null && Number(currentMax) === s.max : true);
+                  (s.max !== undefined ? currentMax !== null && Number(currentMax) === s.max : currentMax === null);
                 return (
                   <label key={s.min} className="flex items-center gap-2 cursor-pointer">
                     <Checkbox
@@ -134,12 +134,12 @@ export function FilterSidebar() {
                       onCheckedChange={(checked) => {
                         const p = new URLSearchParams(searchParams);
                         if (checked) {
-                          p.set("minRating", String(s.min));
-                          if (s.max !== undefined) p.set("maxRating", String(s.max));
-                          else p.delete("maxRating");
+                          p.set("minReviewScore", String(s.min));
+                          if (s.max !== undefined) p.set("maxReviewScore", String(s.max));
+                          else p.delete("maxReviewScore");
                         } else {
-                          p.delete("minRating");
-                          p.delete("maxRating");
+                          p.delete("minReviewScore");
+                          p.delete("maxReviewScore");
                         }
                         navigate(`/properties?${p.toString()}`);
                       }}

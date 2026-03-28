@@ -160,7 +160,8 @@ export const useGetProperties = (
 ) => {
   return useQuery<PaginatedPropertyDataResponse>({
     queryKey: ["properties", input.filters, input.page, input.limit, input.sortDirection],
-    retry: false,
+    retry: 2,
+    retryDelay: 3000,
     queryFn: async () => {
       const res = await api.get<PaginatedPropertyDataResponse>(
         "/properties",
@@ -181,6 +182,8 @@ export const useGetProperties = (
             sortField: input.filters?.sortField,
             minRating: input.filters?.minRating || undefined,
             maxRating: input.filters?.maxRating || undefined,
+            minReviewScore: (input.filters as any)?.minReviewScore || undefined,
+            maxReviewScore: (input.filters as any)?.maxReviewScore || undefined,
             hasRoomsAvailable: input.filters?.hasRoomsAvailable || undefined,
           },
         }
