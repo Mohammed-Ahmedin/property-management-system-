@@ -34,12 +34,12 @@ const FilterTab = () => {
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [pickupDate, setPickupDate] = useState<Date>();
   const [passengers, setPassengers] = useState<number>(1);
+  const [pickupTime, setPickupTime] = useState("12:00");
   const [transferDirection, setTransferDirection] = useState<"from" | "to">("from");
   const [locDark, setLocDark] = useState(false);
   const navigate = useNavigate();
-  const [filterOpen, setFilterOpen] = useState(false);
 
-  useEffect(() => {
+  const [filterOpen, setFilterOpen] = useState(false);
     const id = setInterval(() => setLocDark((d) => !d), 2000);
     return () => clearInterval(id);
   }, []);
@@ -314,7 +314,12 @@ const FilterTab = () => {
                 </Popover>
                 <div className="flex-1 px-4 py-3 flex items-center gap-3">
                   <Clock3 className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className={PLACEHOLDER}>12:00 PM</span>
+                  <input
+                    type="time"
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="flex-1 text-sm font-semibold text-gray-900 bg-transparent outline-none cursor-pointer"
+                  />
                 </div>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -338,7 +343,7 @@ const FilterTab = () => {
 
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate(`/properties?transport=true&direction=${transferDirection}&pickup=${pickupLocation}&dropoff=${dropoffLocation}`)}
+                  onClick={() => navigate(`/properties?transport=true&direction=${transferDirection}&pickup=${pickupLocation}&dropoff=${dropoffLocation}&time=${pickupTime}`)}
                   className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
