@@ -15,10 +15,11 @@ const FACILITIES = ["WiFi", "Kitchen", "Air Conditioning", "Heating", "Parking",
 const PROPERTY_TYPES = ["Shared", "Private", "Entire"];
 const STAR_RATINGS = [5, 4, 3, 2, 1];
 const REVIEW_SCORES = [
-  { label: "Exceptional 9+", min: 9 },
-  { label: "Very good 8+", min: 8 },
-  { label: "Good 7+", min: 7 },
-  { label: "Pleasant 6+", min: 6 },
+  { label: "Excellent (5)", min: 5, max: 5 },
+  { label: "Very Good (4+)", min: 4, max: undefined },
+  { label: "Good (3+)", min: 3, max: undefined },
+  { label: "Fair (2+)", min: 2, max: undefined },
+  { label: "Poor (1+)", min: 1, max: undefined },
 ];
 
 function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -120,7 +121,14 @@ export function FilterSidebar() {
                 <label key={s.min} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={Number(searchParams.get("minRating")) === s.min}
-                    onCheckedChange={(checked) => applyFilter("minRating", checked ? s.min : undefined)}
+                    onCheckedChange={(checked) => {
+                      applyFilter("minRating", checked ? s.min : undefined);
+                      if (s.max !== undefined) {
+                        applyFilter("maxRating", checked ? s.max : undefined);
+                      } else {
+                        applyFilter("maxRating", undefined);
+                      }
+                    }}
                   />
                   <span className="text-sm">{s.label}</span>
                 </label>
