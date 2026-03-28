@@ -161,6 +161,7 @@ export default {
         hasRoomsAvailable,
         location,
         minRating,
+        maxRating,
       } = req.query;
 
       // Pagination setup
@@ -270,10 +271,11 @@ export default {
       }
 
       // ⭐ Rating filter
-      if (minRating) {
-        filters.AND.push({
-          averageRating: { gte: Number(minRating) },
-        });
+      if (minRating || maxRating) {
+        const ratingFilter: any = {};
+        if (minRating) ratingFilter.gte = Number(minRating);
+        if (maxRating) ratingFilter.lte = Number(maxRating);
+        filters.AND.push({ averageRating: ratingFilter });
       }
 
       // ⚙️ Sorting
