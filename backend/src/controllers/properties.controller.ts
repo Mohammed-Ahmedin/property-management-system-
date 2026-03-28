@@ -270,12 +270,22 @@ export default {
         });
       }
 
-      // ⭐ Rating filter
+      // ⭐ Star rating filter (from star rating sidebar)
       if (minRating || maxRating) {
         const ratingFilter: any = {};
         if (minRating) ratingFilter.gte = Number(minRating);
         if (maxRating) ratingFilter.lte = Number(maxRating);
         filters.AND.push({ averageRating: ratingFilter });
+      }
+
+      // 📝 Review score filter (separate param, independent of star rating)
+      const minReviewScore = req.query.minReviewScore;
+      const maxReviewScore = req.query.maxReviewScore;
+      if (minReviewScore || maxReviewScore) {
+        const reviewFilter: any = {};
+        if (minReviewScore) reviewFilter.gte = Number(minReviewScore);
+        if (maxReviewScore) reviewFilter.lte = Number(maxReviewScore);
+        filters.AND.push({ averageRating: reviewFilter });
       }
 
       // ⚙️ Sorting
