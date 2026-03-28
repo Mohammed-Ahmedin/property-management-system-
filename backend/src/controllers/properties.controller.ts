@@ -196,7 +196,7 @@ export default {
         filters.AND.push({ type: (type as string).toUpperCase() });
       }
 
-      // 💰 Price range (check for at least one condition)
+      // 💰 Price range — filter by average room price
       if (min > 0 || max < 100000) {
         filters.AND.push({
           rooms: {
