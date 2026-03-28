@@ -189,22 +189,50 @@ export function FilterSidebar() {
 
           {/* Price */}
           <Section title="Price per night (ETB)" defaultOpen={false}>
-            <div className="flex gap-2 items-center">
-              <Input
-                type="number" placeholder="Min"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                onBlur={() => applyFilter("minPrice", minPrice ? Number(minPrice) : undefined)}
-                className="text-sm"
-              />
-              <span className="text-muted-foreground">–</span>
-              <Input
-                type="number" placeholder="Max"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                onBlur={() => applyFilter("maxPrice", maxPrice ? Number(maxPrice) : undefined)}
-                className="text-sm"
-              />
+            <div className="space-y-3">
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number" placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      applyFilter("minPrice", minPrice ? Number(minPrice) : undefined);
+                      applyFilter("maxPrice", maxPrice ? Number(maxPrice) : undefined);
+                    }
+                  }}
+                  className="text-sm"
+                />
+                <span className="text-muted-foreground">–</span>
+                <Input
+                  type="number" placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      applyFilter("minPrice", minPrice ? Number(minPrice) : undefined);
+                      applyFilter("maxPrice", maxPrice ? Number(maxPrice) : undefined);
+                    }
+                  }}
+                  className="text-sm"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const p = new URLSearchParams(searchParams);
+                  if (minPrice) p.set("minPrice", minPrice); else p.delete("minPrice");
+                  if (maxPrice) p.set("maxPrice", maxPrice); else p.delete("maxPrice");
+                  navigate(`/properties?${p.toString()}`);
+                }}
+                className="w-full text-xs bg-primary text-white rounded-lg py-2 font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Apply price filter
+              </button>
+              {(searchParams.get("minPrice") || searchParams.get("maxPrice")) && (
+                <p className="text-xs text-primary">
+                  Active: ETB {searchParams.get("minPrice") || "0"} – {searchParams.get("maxPrice") || "∞"}
+                </p>
+              )}
             </div>
           </Section>
 
