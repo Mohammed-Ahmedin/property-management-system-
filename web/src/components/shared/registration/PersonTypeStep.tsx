@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 import { User, Briefcase } from 'lucide-react';
 import { type FormData } from './validationSchemas';
@@ -12,52 +13,52 @@ const personTypes = [
 ] as const;
 
 export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
-  // Use controller value directly — watch can be stale
-  const selectedType = form.getValues('personType');
-  // Force re-render on change by subscribing
-  form.watch('personType');
+  // Local state drives the UI — synced to form on click
+  const [selected, setSelected] = useState<'owner' | 'broker' | null>(
+    (form.getValues('personType') as 'owner' | 'broker') || null
+  );
   const error = form.formState.errors.personType;
 
-  const select = (val: 'owner' | 'broker') => {
-    form.setValue('personType', val, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-    // Force re-render
-    form.trigger('personType');
+  const handleSelect = (val: 'owner' | 'broker') => {
+    setSelected(val);
+    form.setValue('personType', val, { shouldValidate: true, shouldDirty: true });
   };
 
   return (
     <div style={{ padding: '8px 0' }}>
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>How would you describe yourself?</h2>
-        <p style={{ color: '#6b7280' }}>Select the option that best describes your role</p>
+        <p style={{ color: '#6b7280', fontSize: '15px' }}>Select the option that best describes your role</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {personTypes.map((type) => {
-          const isSelected = form.watch('personType') === type.value;
+          const isSelected = selected === type.value;
           const Icon = type.icon;
 
           return (
             <button
               key={type.value}
               type="button"
-              onClick={() => select(type.value)}
+              onClick={() => handleSelect(type.value)}
               style={{
                 position: 'relative',
                 padding: '24px',
                 borderRadius: '12px',
-                border: isSelected ? '2px solid #2563eb' : '2px solid #e5e7eb',
+                border: isSelected ? '2.5px solid #2563eb' : '2px solid #e5e7eb',
                 backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-                boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.2)' : 'none',
+                boxShadow: isSelected ? '0 0 0 3px rgba(37,99,235,0.15)' : '0 1px 3px rgba(0,0,0,0.06)',
                 textAlign: 'left',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
+                outline: 'none',
               }}
             >
               {/* Circle indicator top-right */}
               <div style={{
                 position: 'absolute',
-                top: '16px',
-                right: '16px',
+                top: '14px',
+                right: '14px',
                 width: '22px',
                 height: '22px',
                 borderRadius: '50%',
@@ -66,37 +67,43 @@ export const PersonTypeStep = ({ form }: PersonTypeStepProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                transition: 'all 0.15s ease',
               }}>
                 {isSelected && (
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffffff' }} />
                 )}
               </div>
 
-              {/* Icon */}
+              {/* Icon box */}
               <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
+                width: '52px',
+                height: '52px',
+                borderRadius: '10px',
                 backgroundColor: isSelected ? '#2563eb' : '#f3f4f6',
                 color: isSelected ? '#ffffff' : '#6b7280',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '16px',
+                marginBottom: '14px',
+                transition: 'all 0.15s ease',
               }}>
-                <Icon size={28} />
+                <Icon size={26} />
               </div>
 
-              <h3 style={{ fontWeight: 600, fontSize: '18px', color: isSelected ? '#2563eb' : '#111827', marginBottom: '4px' }}>
+              <h3 style={{ fontWeight: 600, fontSize: '17px', color: isSelected ? '#2563eb' : '#111827', marginBottom: '4px' }}>
                 {type.label}
               </h3>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>{type.description}</p>
+              <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>{type.description}</p>
             </button>
           );
         })}
       </div>
 
-      {error && <p style={{ color: '#ef4444', fontSize: '14px', textAlign: 'center', marginTop: '12px' }}>{error.message as string}</p>}
+      {error && (
+        <p style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center', marginTop: '12px' }}>
+          {error.message as string}
+        </p>
+      )}
     </div>
   );
 };
