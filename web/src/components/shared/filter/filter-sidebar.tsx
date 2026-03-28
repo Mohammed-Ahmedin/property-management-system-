@@ -23,13 +23,18 @@ const REVIEW_SCORES = [
 ];
 
 function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const key = `section-open-${title}`;
+  const [open, setOpen] = useState(() => {
+    try { return sessionStorage.getItem(key) !== "false"; } catch { return defaultOpen; }
+  });
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    try { sessionStorage.setItem(key, String(next)); } catch {}
+  };
   return (
     <div className="py-4 border-b border-border last:border-0">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-between w-full text-sm font-semibold text-foreground"
-      >
+      <button onClick={toggle} className="flex items-center justify-between w-full text-sm font-semibold text-foreground">
         {title}
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
       </button>
@@ -117,22 +122,32 @@ export function FilterSidebar() {
           {/* Review score */}
           <Section title="Review score">
             <div className="space-y-2">
-              {REVIEW_SCORES.map((s) => (
-                <label key={s.min} className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox
-                    checked={Number(searchParams.get("minRating")) === s.min}
-                    onCheckedChange={(checked) => {
-                      applyFilter("minRating", checked ? s.min : undefined);
-                      if (s.max !== undefined) {
-                        applyFilter("maxRating", checked ? s.max : undefined);
-                      } else {
-                        applyFilter("maxRating", undefined);
-                      }
-                    }}
-                  />
-                  <span className="text-sm">{s.label}</span>
-                </label>
-              ))}
+              {REVIEW_SCORES.map((s) => {
+                const currentMin = searchParams.get("minRating");
+                const currentMax = searchParams.get("maxRating");
+                const isChecked = currentMin !== null && Number(currentMin) === s.min &&
+                  (s.max !== undefined ? currentMax !== null && Number(currentMax) === s.max : true);
+                return (
+                  <label key={s.min} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={(checked) => {
+                        const p = new URLSearchParams(searchParams);
+                        if (checked) {
+                          p.set("minRating", String(s.min));
+                          if (s.max !== undefined) p.set("maxRating", String(s.max));
+                          else p.delete("maxRating");
+                        } else {
+                          p.delete("minRating");
+                          p.delete("maxRating");
+                        }
+                        navigate(`/properties?${p.toString()}`);
+                      }}
+                    />
+                    <span className="text-sm">{s.label}</span>
+                  </label>
+                );
+              })}
             </div>
           </Section>
 
