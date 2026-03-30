@@ -112,7 +112,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
       onClick={() => navigate(`/properties/${data.id}`)}
     >
       {/* ── Left: image block ── */}
-      <div className="sm:w-[260px] w-full shrink-0 flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="sm:w-[260px] w-full shrink-0 flex flex-col cursor-pointer" onClick={() => navigate(`/properties/${data.id}`)}>
         {/* Main image */}
         <div className="relative h-[180px] overflow-hidden bg-muted">
           {mainImage ? (

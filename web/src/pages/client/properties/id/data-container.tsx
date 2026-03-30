@@ -9,14 +9,16 @@ import ReviewsContainer from "./reviews-container";
 import {
   ArrowLeft, Bath, BedDouble, MapPin, Phone, Mail,
   Wifi, Car, UtensilsCrossed, Star, Users, Heart,
-  ChevronRight, CheckCircle2, Image as ImageIcon, X, ChevronLeft
+  ChevronRight, CheckCircle2, Image as ImageIcon, X, ChevronLeft,
+  Plane, CarFront
 } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 interface Props { data: GuestDetailHouseResponse; }
 
-const NAV_TABS = ["Overview", "Rooms", "Facilities", "Reviews", "Location", "Policies"];
+const NAV_TABS = ["Overview", "Rooms", "Trip recommendations", "Facilities", "Reviews", "Location", "Policies"];
+const PANEL_TABS = ["Facilities", "Reviews", "Location", "Policies"];
 
 const facilityIcons: Record<string, React.ReactNode> = {
   wifi: <Wifi className="w-4 h-4" />,
@@ -31,6 +33,7 @@ const DataContainer = ({ data }: Props) => {
   const [activeTab, setActiveTab] = useState("Overview");
   const [stickyNav, setStickyNav] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [panelTab, setPanelTab] = useState<string | null>(null); // slide-in panel
   const heroRef = useRef<HTMLDivElement>(null);
 
   const avgRating = property.reviews?.length
@@ -66,6 +69,15 @@ const DataContainer = ({ data }: Props) => {
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleTabClick = (tab: string) => {
+    setActiveTab(tab);
+    if (PANEL_TABS.includes(tab)) {
+      setPanelTab(tab);
+    } else {
+      scrollTo(tab.toLowerCase().replace(" ", "-"));
+    }
   };
 
   return (
@@ -165,7 +177,7 @@ const DataContainer = ({ data }: Props) => {
           {NAV_TABS.map((tab) => (
             <button
               key={tab}
-              onClick={() => { setActiveTab(tab); scrollTo(tab.toLowerCase()); }}
+              onClick={() => handleTabClick(tab)}
               className={cn(
                 "px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors shrink-0",
                 activeTab === tab
@@ -244,18 +256,70 @@ const DataContainer = ({ data }: Props) => {
             )}
           </section>
 
-          {/* ── Facilities ── */}
+          {/* ── Trip Recommendations ── */}
+          <section id="trip-recommendations" className="mb-8">
+            <h2 className="text-xl font-bold mb-4">Plan your journey to your hotel</h2>
+            <p className="text-sm text-muted-foreground mb-4">Book your ride in advance for a hassle-free trip</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="border border-border rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                    <Plane className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Book your airport transfer</p>
+                    <p className="text-xs text-muted-foreground mt-1">Get to your hotel easily and securely</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline" size="sm" className="w-full"
+                  onClick={() => navigate(`/properties?transport=true&direction=from&dropoff=${encodeURIComponent(property.address || property.name)}`)}
+                >
+                  Search
+                </Button>
+              </div>
+              <div className="border border-border rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                    <CarFront className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Rent a car</p>
+                    <p className="text-xs text-muted-foreground mt-1">Find an ideal ride for your trip</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline" size="sm" className="w-full"
+                  onClick={() => navigate(`/properties?transport=true`)}
+                >
+                  Search
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Facilities (inline, also in panel) ── */}
           {property.facilities?.length > 0 && (
             <section id="facilities" className="mb-8">
-              <h2 className="text-xl font-bold mb-4">Amenities and facilities</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Amenities and facilities</h2>
+                <button onClick={() => setPanelTab("Facilities")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                  See all <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {property.facilities.map((f: any) => (
+                {property.facilities.slice(0, 9).map((f: any) => (
                   <div key={f.id} className="flex items-center gap-2 text-sm py-1.5">
                     <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
                     <span>{f.name}</span>
                   </div>
                 ))}
               </div>
+              {property.facilities.length > 9 && (
+                <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
+                  +{property.facilities.length - 9} more facilities
+                </button>
+              )}
             </section>
           )}
 
@@ -325,51 +389,51 @@ const DataContainer = ({ data }: Props) => {
           {/* ── Reviews ── */}
           <section id="reviews" className="mb-8">
             {avgRating > 0 && (
-              <div className="flex items-center gap-4 mb-6 p-4 border border-border rounded-xl">
+              <div className="flex items-center gap-4 mb-4 p-4 border border-border rounded-xl cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setPanelTab("Reviews")}>
                 <div className="bg-primary text-white font-bold text-3xl w-16 h-16 flex items-center justify-center rounded-xl shrink-0">
                   {avgRating.toFixed(1)}
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-lg font-bold">{ratingLabel}</p>
                   <p className="text-sm text-muted-foreground">{property.reviews?.length ?? 0} verified reviews</p>
-                  <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                    <span>Location 8.9</span>
-                    <span>Cleanliness 8.8</span>
-                    <span>Value 8.6</span>
-                    <span>Facilities 8.5</span>
-                  </div>
                 </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </div>
             )}
-            <ReviewsContainer propertyId={property.id} />
+            <button onClick={() => setPanelTab("Reviews")} className="text-sm text-primary hover:underline flex items-center gap-1">
+              Read all reviews <ChevronRight className="w-4 h-4" />
+            </button>
           </section>
 
           {/* ── Location ── */}
           <section id="location" className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Location</h2>
-            <PropertyDetails
-              contact={property.contact}
-              facilities={property.facilities as any}
-              location={property.location}
-            />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Location</h2>
+              <button onClick={() => setPanelTab("Location")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                View map <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
+              <span>{property.address}</span>
+            </div>
+            <button onClick={() => setPanelTab("Location")} className="text-sm text-primary hover:underline">
+              See full location details
+            </button>
           </section>
 
           {/* ── Policies ── */}
           <section id="policies" className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Property policies</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Property policies</h2>
+              <button onClick={() => setPanelTab("Policies")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                See all <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
             <div className="border border-border rounded-xl p-4 text-sm space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Check-in</span>
-                <span className="font-medium">From 15:00</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Check-out</span>
-                <span className="font-medium">Until 12:00</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Cancellation</span>
-                <span className="font-medium text-green-600">Free cancellation available</span>
-              </div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Check-in</span><span className="font-medium">From 15:00</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Check-out</span><span className="font-medium">Until 12:00</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Cancellation</span><span className="font-medium text-green-600">Free cancellation available</span></div>
             </div>
           </section>
         </div>
@@ -424,6 +488,113 @@ const DataContainer = ({ data }: Props) => {
           </div>
         </div>
       </div>
+      {/* ── Slide-in Panel ── */}
+      {panelTab && (
+        <div className="fixed inset-0 z-[9998]" onClick={() => setPanelTab(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute right-0 top-0 h-full w-full max-w-2xl bg-background shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Panel header with tabs */}
+            <div className="border-b border-border">
+              <div className="flex items-center justify-between px-6 pt-4 pb-0">
+                <h2 className="text-lg font-bold">Property Information</h2>
+                <button onClick={() => setPanelTab(null)} className="p-2 hover:bg-muted rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex overflow-x-auto">
+                {PANEL_TABS.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setPanelTab(tab)}
+                    className={cn(
+                      "px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors shrink-0",
+                      panelTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Panel content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {panelTab === "Facilities" && (
+                <div>
+                  <h3 className="text-lg font-bold mb-4">Amenities and facilities</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {property.facilities?.map((f: any) => (
+                      <div key={f.id} className="flex items-center gap-2 text-sm py-2 border-b border-border/50">
+                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                        <span>{f.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {panelTab === "Reviews" && (
+                <div>
+                  {avgRating > 0 && (
+                    <div className="flex items-center gap-4 mb-6 p-4 bg-muted/30 rounded-xl">
+                      <div className="bg-primary text-white font-bold text-2xl w-14 h-14 flex items-center justify-center rounded-xl shrink-0">
+                        {avgRating.toFixed(1)}
+                      </div>
+                      <div>
+                        <p className="font-bold">{ratingLabel}</p>
+                        <p className="text-sm text-muted-foreground">{property.reviews?.length ?? 0} verified reviews</p>
+                      </div>
+                    </div>
+                  )}
+                  <ReviewsContainer propertyId={property.id} />
+                </div>
+              )}
+
+              {panelTab === "Location" && (
+                <div>
+                  <h3 className="text-lg font-bold mb-4">Location</h3>
+                  <PropertyDetails
+                    contact={property.contact}
+                    facilities={property.facilities as any}
+                    location={property.location}
+                  />
+                </div>
+              )}
+
+              {panelTab === "Policies" && (
+                <div>
+                  <h3 className="text-lg font-bold mb-4">Property policies</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between py-3 border-b border-border">
+                      <span className="text-muted-foreground">Check-in</span>
+                      <span className="font-medium">From 15:00</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-border">
+                      <span className="text-muted-foreground">Check-out</span>
+                      <span className="font-medium">Until 12:00</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-border">
+                      <span className="text-muted-foreground">Cancellation</span>
+                      <span className="font-medium text-green-600">Free cancellation available</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-border">
+                      <span className="text-muted-foreground">Children</span>
+                      <span className="font-medium">All children welcome</span>
+                    </div>
+                    <div className="flex justify-between py-3 border-b border-border">
+                      <span className="text-muted-foreground">Pets</span>
+                      <span className="font-medium">Not allowed</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
