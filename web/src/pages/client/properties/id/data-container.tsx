@@ -456,36 +456,52 @@ const DataContainer = ({ data }: Props) => {
             </div>
           </section>
 
-          {/* ── Facilities (inline, also in panel) ── */}
+          {/* ── Services & Facilities ── */}
           {(() => {
             const propFacilities = property.facilities || [];
-            // Fallback: collect unique service names from all rooms
-            const roomServices = propFacilities.length === 0
-              ? Array.from(new Map(
-                  (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
-                ).values()).slice(0, 9)
-              : [];
-            const displayFacilities = propFacilities.length > 0 ? propFacilities : roomServices;
-            if (displayFacilities.length === 0) return null;
+            const allRoomServices = Array.from(new Map(
+              (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
+            ).values());
+            if (propFacilities.length === 0 && allRoomServices.length === 0) return null;
             return (
               <section id="facilities" className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">Amenities and facilities</h2>
+                  <h2 className="text-xl font-bold">Services & Facilities</h2>
                   <button onClick={() => setPanelTab("Facilities")} className="text-sm text-primary hover:underline flex items-center gap-1">
                     See all <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {displayFacilities.slice(0, 9).map((f: any) => (
-                    <div key={f.id} className="flex items-center gap-2 text-sm py-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                      <span>{f.name}</span>
+                {/* Facilities */}
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Facilities</p>
+                {propFacilities.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
+                    {propFacilities.slice(0, 6).map((f: any) => (
+                      <div key={f.id} className="flex items-center gap-2 bg-primary/5 border border-primary/10 rounded-lg px-3 py-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                        <span className="font-medium">{f.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic mb-5">No facilities available at the moment.</p>
+                )}
+                {/* Services */}
+                {allRoomServices.length > 0 && (
+                  <>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Room Services</p>
+                    <div className="flex flex-wrap gap-2">
+                      {allRoomServices.slice(0, 10).map((s: any) => (
+                        <span key={s.id} className="inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-full px-3 py-1 text-xs font-medium">
+                          <CheckCircle2 className="w-3 h-3 shrink-0" />
+                          {s.name}{s.price ? ` · ETB ${s.price}` : " · Free"}
+                        </span>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {displayFacilities.length > 9 && (
+                  </>
+                )}
+                {(propFacilities.length > 6 || allRoomServices.length > 10) && (
                   <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
-                    +{displayFacilities.length - 9} more facilities
+                    See all services & facilities
                   </button>
                 )}
               </section>
@@ -630,23 +646,48 @@ const DataContainer = ({ data }: Props) => {
             <div className="flex-1 overflow-y-auto p-6">
               {panelTab === "Facilities" && (
                 <div>
-                  <h3 className="text-lg font-bold mb-4">Amenities and facilities</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(() => {
-                      const propFacilities = property.facilities || [];
-                      const displayFacilities = propFacilities.length > 0
-                        ? propFacilities
-                        : Array.from(new Map(
-                            (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
-                          ).values());
-                      return displayFacilities.map((f: any) => (
-                        <div key={f.id} className="flex items-center gap-2 text-sm py-2 border-b border-border/50">
+                  <h3 className="text-lg font-bold mb-5">Services & Facilities</h3>
+
+                  {/* Facilities */}
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Facilities</p>
+                  {(property.facilities?.length > 0) ? (
+                    <div className="grid grid-cols-2 gap-2 mb-6">
+                      {property.facilities.map((f: any) => (
+                        <div key={f.id} className="flex items-center gap-2 bg-primary/5 border border-primary/10 rounded-lg px-3 py-2.5 text-sm">
                           <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                          <span>{f.name}</span>
+                          <span className="font-medium">{f.name}</span>
                         </div>
-                      ));
-                    })()}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic mb-6">No facilities available at the moment.</p>
+                  )}
+
+                  {/* Room Services */}
+                  {(() => {
+                    const allServices = Array.from(new Map(
+                      (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
+                    ).values());
+                    if (allServices.length === 0) return null;
+                    return (
+                      <>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Room Services</p>
+                        <div className="flex flex-col gap-2">
+                          {allServices.map((s: any) => (
+                            <div key={s.id} className="flex items-center justify-between py-2.5 px-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                                <span className="text-sm font-medium text-green-800 dark:text-green-300">{s.name}</span>
+                              </div>
+                              <span className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">
+                                {s.price ? `ETB ${s.price}` : "Free"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
 
