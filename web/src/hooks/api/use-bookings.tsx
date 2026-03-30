@@ -38,6 +38,8 @@ export const useBookNowMutation = () => {
 export const useGetUserBookings = () => {
   return useQuery<BookingsResponse>({
     queryKey: ["bookings"],
+    retry: 3,
+    retryDelay: 2000,
     queryFn: async () => {
       const res = await api.get<BookingsResponse>(`/bookings/user`);
       return res.data;
