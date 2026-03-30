@@ -33,7 +33,9 @@ const DataContainer = ({ data }: Props) => {
   const [activeTab, setActiveTab] = useState("Overview");
   const [stickyNav, setStickyNav] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
-  const [panelTab, setPanelTab] = useState<string | null>(null); // slide-in panel
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryStartIdx, setGalleryStartIdx] = useState(0);
+  const [panelTab, setPanelTab] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const avgRating = property.reviews?.length
@@ -82,33 +84,43 @@ const DataContainer = ({ data }: Props) => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Lightbox */}
-      {lightboxIdx !== null && lightboxImages.length > 0 && (
-        <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center" onClick={() => setLightboxIdx(null)}>
-          <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full" onClick={() => setLightboxIdx(null)}>
-            <X className="w-6 h-6" />
-          </button>
-          <button
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-full"
-            onClick={(e) => { e.stopPropagation(); setLightboxIdx(i => i !== null ? Math.max(0, i - 1) : 0); }}
-          >
-            <ChevronLeft className="w-8 h-8" />
-          </button>
-          <img
-            src={(lightboxImages[lightboxIdx] as any)?.url}
-            alt=""
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-2 hover:bg-white/10 rounded-full"
-            onClick={(e) => { e.stopPropagation(); setLightboxIdx(i => i !== null ? Math.min(lightboxImages.length - 1, i + 1) : 0); }}
-          >
-            <ChevronRight className="w-8 h-8" />
-          </button>
-          <div className="absolute bottom-4 text-white/60 text-sm">{lightboxIdx + 1} / {lightboxImages.length}</div>
+      {/* Gallery Modal — full screen with thumbnail strip */}
+      {galleryOpen && lightboxImages.length > 0 && (
+        <div className="fixed inset-0 bg-white z-[9998] flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setGalleryOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+              <h2 className="font-semibold">{property.name}</h2>
+            </div>
+            <span className="text-sm text-gray-500">{galleryStartIdx + 1} / {lightboxImages.length}</span>
+          </div>
+          <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 relative bg-black flex items-center justify-center">
+              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                onClick={() => setGalleryStartIdx(i => Math.max(0, i - 1))}>
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <img src={(lightboxImages[galleryStartIdx] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
+              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                onClick={() => setGalleryStartIdx(i => Math.min(lightboxImages.length - 1, i + 1))}>
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="w-[180px] shrink-0 overflow-y-auto bg-gray-50 border-l border-gray-200 p-2 flex flex-col gap-2">
+              {lightboxImages.map((img, i) => (
+                <button key={i} onClick={() => setGalleryStartIdx(i)}
+                  className={cn("relative rounded-lg overflow-hidden aspect-video shrink-0 border-2 transition-colors",
+                    galleryStartIdx === i ? "border-primary" : "border-transparent hover:border-gray-300")}>
+                  <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
+
       {/* Back */}
       <div className="py-3 px-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-primary hover:underline">
@@ -120,7 +132,7 @@ const DataContainer = ({ data }: Props) => {
       <div ref={heroRef} className="px-4 mb-6">
         <div className="flex gap-1 rounded-xl overflow-hidden h-[340px] md:h-[420px]">
           {/* Main large image */}
-          <div className="flex-[2] relative bg-muted cursor-pointer" onClick={() => setLightboxIdx(0)}>
+          <div className="flex-[2] relative bg-muted cursor-pointer" onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}>
             {mainImg ? (
               <img src={mainImg} alt={property.name} className="w-full h-full object-cover" />
             ) : (
@@ -141,7 +153,7 @@ const DataContainer = ({ data }: Props) => {
               const isLast = i === 3;
               const totalExtra = gridSources.length - 4;
               return (
-                <div key={i} className="relative bg-muted overflow-hidden cursor-pointer" onClick={() => img && setLightboxIdx(i + 1)}>
+                <div key={i} className="relative bg-muted overflow-hidden cursor-pointer" onClick={() => { if (img) { setGalleryStartIdx(i + 1); setGalleryOpen(true); } }}>
                   {img ? (
                     <>
                       <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
@@ -161,11 +173,9 @@ const DataContainer = ({ data }: Props) => {
             })}
           </div>
         </div>
-        {allImages.length > 0 && (
-          <button className="mt-2 text-xs text-primary hover:underline flex items-center gap-1">
-            See all photos <ChevronRight className="w-3 h-3" />
-          </button>
-        )}
+        <button onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }} className="mt-2 text-xs text-primary hover:underline flex items-center gap-1">
+          See all photos <ChevronRight className="w-3 h-3" />
+        </button>
       </div>
 
       {/* ── Sticky nav tabs ── */}

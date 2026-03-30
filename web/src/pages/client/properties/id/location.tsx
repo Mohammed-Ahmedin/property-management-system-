@@ -45,27 +45,7 @@ export default function PropertyDetails({
   contact,
 }: PropertyDetailsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-col-3 gap-4">
-      {/* Facilities Card */}
-      {facilities && (
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-          <CardHeader>
-            <CardTitle>Facilities</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {facilities.map((facility) => (
-              <Badge
-                key={facility.id}
-                className="capitalize bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-              >
-                {facility.icon && <span className="mr-1">{facility.icon}</span>}
-                {facility.name}
-              </Badge>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* Location Card */}
       <LocationCard location={location} />
       {/* <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
