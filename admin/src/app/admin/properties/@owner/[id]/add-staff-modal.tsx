@@ -270,12 +270,12 @@ Generated on: ${new Date().toLocaleString()}
 
             <div className="space-y-2">
               <Label htmlFor="password">
-                Password <span className="text-destructive">*</span>
+                Password <span className="text-muted-foreground text-xs">(only needed for new accounts)</span>
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Minimum 8 characters"
+                placeholder="Leave empty if assigning existing user"
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 disabled={addStaffMutation.isPending}
@@ -285,7 +285,7 @@ Generated on: ${new Date().toLocaleString()}
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
               <p className="text-xs text-muted-foreground">
-                Staff will use this to log in for the first time
+                Enter an existing user's email to assign them, or create a new staff account with a password
               </p>
             </div>
 
