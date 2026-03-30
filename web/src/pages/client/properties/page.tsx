@@ -271,7 +271,14 @@ export default function PropertiesPage() {
 
   const handleSearch = (q: string, checkIn?: Date, checkOut?: Date, adults?: number) => {
     const p = new URLSearchParams(searchParams);
-    if (q) p.set("search", q); else p.delete("search");
+    // Set both search and location so backend can find by name or city
+    if (q) {
+      p.set("search", q);
+      p.set("location", q);
+    } else {
+      p.delete("search");
+      p.delete("location");
+    }
     if (checkIn) p.set("checkIn", checkIn.toISOString()); else p.delete("checkIn");
     if (checkOut) p.set("checkOut", checkOut.toISOString()); else p.delete("checkOut");
     if (adults) p.set("guests", String(adults)); else p.delete("guests");
