@@ -84,112 +84,112 @@ const DataContainer = ({ data }: Props) => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Gallery Modal — Agoda style */}
+      {/* Gallery Modal — Agoda style, overlays the page (not full screen) */}
       {galleryOpen && lightboxImages.length > 0 && (
-        <div className="fixed inset-0 z-[9998] flex">
-          {/* Main area */}
-          <div className="flex-1 flex flex-col bg-white overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 shrink-0">
-              {galleryStartIdx !== null ? (
-                <button onClick={() => setGalleryStartIdx(null as any)} className="p-1.5 hover:bg-gray-100 rounded-full">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-              ) : (
-                <div className="w-8" />
-              )}
-              <div className="flex gap-2">
+        <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-8 px-4" onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); }}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div
+            className="relative bg-white rounded-xl shadow-2xl flex w-full max-w-5xl max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Main area */}
+            <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+              {/* Header */}
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 shrink-0">
+                {galleryStartIdx > 0 && (
+                  <button onClick={() => setGalleryStartIdx(0)} className="p-1.5 hover:bg-gray-100 rounded-full">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                )}
                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-primary text-primary text-sm font-medium">
                   <ImageIcon className="w-4 h-4" /> Property Images
                 </button>
-              </div>
-              <button onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); }} className="ml-auto p-1.5 hover:bg-gray-100 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Category tabs */}
-            <div className="flex gap-1 px-4 py-2 border-b border-gray-100 overflow-x-auto shrink-0">
-              {[
-                { label: `All (${lightboxImages.length})`, active: true },
-                { label: `Rooms (${(property.rooms || []).flatMap((r: any) => r.images || []).length})` },
-                { label: `Property views (${allImages.length})` },
-              ].filter(t => !t.label.includes("(0)")).map((tab, i) => (
-                <button key={i} className={`px-3 py-1.5 text-sm font-medium whitespace-nowrap rounded-full transition-colors ${i === 0 ? "text-primary border-b-2 border-primary" : "text-gray-600 hover:text-gray-900"}`}>
-                  {tab.label}
+                <button onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); }} className="ml-auto p-1.5 hover:bg-gray-100 rounded-full">
+                  <X className="w-5 h-5" />
                 </button>
-              ))}
-            </div>
+              </div>
 
-            {/* Content — single source of truth */}
-            {galleryStartIdx > 0 ? (
-              /* Single image view */
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="flex-1 relative bg-black flex items-center justify-center">
-                  <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                    onClick={() => setGalleryStartIdx((i: number) => Math.max(1, i - 1))}>
-                    <ChevronLeft className="w-6 h-6" />
+              {/* Category tabs */}
+              <div className="flex gap-0 px-4 border-b border-gray-100 shrink-0 overflow-x-auto">
+                {[
+                  { label: `All (${lightboxImages.length})`, key: "all" },
+                  ...(roomImgs.length > 0 ? [{ label: `Rooms (${roomImgs.length})`, key: "rooms" }] : []),
+                  ...(allImages.length > 0 ? [{ label: `Property views (${allImages.length})`, key: "property" }] : []),
+                ].map((tab, i) => (
+                  <button key={tab.key}
+                    className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${i === 0 ? "border-primary text-primary" : "border-transparent text-gray-600 hover:text-gray-900"}`}>
+                    {tab.label}
                   </button>
-                  <img src={(lightboxImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
-                  <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                    onClick={() => setGalleryStartIdx((i: number) => Math.min(lightboxImages.length, i + 1))}>
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                  <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                    {(lightboxImages[galleryStartIdx - 1] as any)?.name || "Photo"}
+                ))}
+              </div>
+
+              {/* Content */}
+              {galleryStartIdx > 0 ? (
+                /* Single image view */
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 relative bg-black flex items-center justify-center min-h-0">
+                    <button className="absolute left-3 top-1/2 -translate-y-1/2 text-white p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                      onClick={() => setGalleryStartIdx(i => Math.max(1, i - 1))}>
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <img src={(lightboxImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
+                    <button className="absolute right-3 top-1/2 -translate-y-1/2 text-white p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                      onClick={() => setGalleryStartIdx(i => Math.min(lightboxImages.length, i + 1))}>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                  {/* Thumbnail strip */}
+                  <div className="h-[72px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
+                    <button onClick={() => setGalleryStartIdx(0)} className="flex flex-col items-center gap-0.5 px-2 py-1 text-white text-xs shrink-0">
+                      <div className="w-7 h-7 bg-white/20 rounded flex items-center justify-center">
+                        <ImageIcon className="w-3.5 h-3.5" />
+                      </div>
+                      Gallery
+                    </button>
+                    {lightboxImages.map((img, i) => (
+                      <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
+                        className={`shrink-0 h-[56px] w-[72px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
+                        <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
                   </div>
                 </div>
-                {/* Thumbnail strip */}
-                <div className="h-[80px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
-                  <button onClick={() => setGalleryStartIdx(0)} className="flex flex-col items-center gap-1 px-3 py-1 text-white text-xs shrink-0">
-                    <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
-                      <ImageIcon className="w-4 h-4" />
-                    </div>
-                    Gallery
-                  </button>
-                  {lightboxImages.map((img, i) => (
-                    <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
-                      className={`shrink-0 h-[60px] w-[80px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent"}`}>
-                      <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
+              ) : (
+                /* Grid view */
+                <div className="flex-1 overflow-y-auto p-3">
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {lightboxImages.map((img, i) => (
+                      <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
+                        className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+                        <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              /* Grid view — galleryStartIdx === 0 */
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="grid grid-cols-3 gap-2">
-                  {lightboxImages.map((img, i) => (
-                    <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
-                      className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
-                      <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right sidebar */}
-          <div className="w-[280px] shrink-0 bg-white border-l border-gray-200 flex flex-col p-5 overflow-y-auto">
-            <h3 className="font-bold text-base mb-3">Things you'll love</h3>
-            <ul className="space-y-2 mb-6">
-              {property.facilities?.slice(0, 4).map((f: any) => (
-                <li key={f.id} className="flex items-center gap-2 text-sm text-gray-700">
-                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                  {f.name}
-                </li>
-              ))}
-              {property.location?.city && (
-                <li className="flex items-center gap-2 text-sm text-gray-700">
-                  <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  Located in {property.location.city}
-                </li>
               )}
-            </ul>
-            <Button className="w-full rounded-full" onClick={() => { setGalleryOpen(false); scrollTo("rooms"); }}>
-              Check availability
-            </Button>
+            </div>
+
+            {/* Right sidebar */}
+            <div className="w-[220px] shrink-0 border-l border-gray-200 flex flex-col p-4 overflow-y-auto">
+              <h3 className="font-bold text-sm mb-3">Things you'll love</h3>
+              <ul className="space-y-2 mb-6 flex-1">
+                {property.facilities?.slice(0, 4).map((f: any) => (
+                  <li key={f.id} className="flex items-center gap-2 text-xs text-gray-700">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                    {f.name}
+                  </li>
+                ))}
+                {property.location?.city && (
+                  <li className="flex items-center gap-2 text-xs text-gray-700">
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                    Located in {property.location.city}
+                  </li>
+                )}
+              </ul>
+              <Button className="w-full rounded-full text-sm" onClick={() => { setGalleryOpen(false); scrollTo("rooms"); }}>
+                Check availability
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -339,73 +339,6 @@ const DataContainer = ({ data }: Props) => {
             )}
           </section>
 
-          {/* ── Trip Recommendations ── */}
-          <section id="trip-recommendations" className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Plan your journey to your hotel</h2>
-            <p className="text-sm text-muted-foreground mb-4">Book your ride in advance for a hassle-free trip</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="border border-border rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                    <Plane className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">Book your airport transfer</p>
-                    <p className="text-xs text-muted-foreground mt-1">Get to your hotel easily and securely</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline" size="sm" className="w-full"
-                  onClick={() => navigate(`/properties?transport=true&direction=from&dropoff=${encodeURIComponent(property.address || property.name)}`)}
-                >
-                  Search
-                </Button>
-              </div>
-              <div className="border border-border rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                    <CarFront className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">Rent a car</p>
-                    <p className="text-xs text-muted-foreground mt-1">Find an ideal ride for your trip</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline" size="sm" className="w-full"
-                  onClick={() => navigate(`/properties?transport=true`)}
-                >
-                  Search
-                </Button>
-              </div>
-            </div>
-          </section>
-
-          {/* ── Facilities (inline, also in panel) ── */}
-          {property.facilities?.length > 0 && (
-            <section id="facilities" className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Amenities and facilities</h2>
-                <button onClick={() => setPanelTab("Facilities")} className="text-sm text-primary hover:underline flex items-center gap-1">
-                  See all <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {property.facilities.slice(0, 9).map((f: any) => (
-                  <div key={f.id} className="flex items-center gap-2 text-sm py-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                    <span>{f.name}</span>
-                  </div>
-                ))}
-              </div>
-              {property.facilities.length > 9 && (
-                <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
-                  +{property.facilities.length - 9} more facilities
-                </button>
-              )}
-            </section>
-          )}
-
           {/* ── Rooms ── */}
           <section id="rooms" className="mb-8">
             <h2 className="text-xl font-bold mb-4">Select your room</h2>
@@ -468,6 +401,68 @@ const DataContainer = ({ data }: Props) => {
               )}
             </div>
           </section>
+
+          {/* ── Trip Recommendations ── */}
+          <section id="trip-recommendations" className="mb-8">
+            <h2 className="text-xl font-bold mb-2">Plan your journey to your hotel</h2>
+            <p className="text-sm text-muted-foreground mb-4">Book your ride in advance for a hassle-free trip</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="border border-border rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                    <Plane className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Book your airport transfer</p>
+                    <p className="text-xs text-muted-foreground mt-1">Get to your hotel easily and securely</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="w-full"
+                  onClick={() => navigate(`/properties?transport=true&direction=from&dropoff=${encodeURIComponent(property.address || property.name)}`)}>
+                  Search
+                </Button>
+              </div>
+              <div className="border border-border rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                    <CarFront className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Rent a car</p>
+                    <p className="text-xs text-muted-foreground mt-1">Find an ideal ride for your trip</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/properties?transport=true`)}>
+                  Search
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Facilities (inline, also in panel) ── */}
+          {property.facilities?.length > 0 && (
+            <section id="facilities" className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Amenities and facilities</h2>
+                <button onClick={() => setPanelTab("Facilities")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                  See all <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {property.facilities.slice(0, 9).map((f: any) => (
+                  <div key={f.id} className="flex items-center gap-2 text-sm py-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                    <span>{f.name}</span>
+                  </div>
+                ))}
+              </div>
+              {property.facilities.length > 9 && (
+                <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
+                  +{property.facilities.length - 9} more facilities
+                </button>
+              )}
+            </section>
+          )}
 
           {/* ── Reviews ── */}
           <section id="reviews" className="mb-8">
