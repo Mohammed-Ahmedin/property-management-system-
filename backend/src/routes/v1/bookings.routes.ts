@@ -35,13 +35,13 @@ router.get(
 );
 router.post(
   "/management/:bookingId/status",
-  authGuard({ cantAccessBy: ["GUEST", "BROKER"] }),
+  authGuard({ cantAccessBy: ["GUEST"] }),
   BookingsController.changeBookingStatus
 );
 
 router.get(
   "/management/:bookingId",
-  authGuard({ cantAccessBy: ["GUEST", "BROKER"] }),
+  authGuard({ cantAccessBy: ["GUEST"] }),
   BookingsController.getBookingDetailForManagement
 );
 router.post(
