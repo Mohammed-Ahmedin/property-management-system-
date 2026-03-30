@@ -121,58 +121,42 @@ const DataContainer = ({ data }: Props) => {
               ))}
             </div>
 
-            {/* Content */}
-            {(galleryStartIdx as any) === null || galleryStartIdx === 0 && !galleryOpen ? null :
-              typeof galleryStartIdx === "number" && galleryStartIdx > 0 ? (
-                /* Single image view */
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 relative bg-black flex items-center justify-center">
-                    <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                      onClick={() => setGalleryStartIdx((i: number) => Math.max(1, i - 1))}>
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <img src={(lightboxImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
-                    <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                      onClick={() => setGalleryStartIdx((i: number) => Math.min(lightboxImages.length, i + 1))}>
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                    <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                      {(lightboxImages[galleryStartIdx - 1] as any)?.name || "Photo"}
+            {/* Content — single source of truth */}
+            {galleryStartIdx > 0 ? (
+              /* Single image view */
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 relative bg-black flex items-center justify-center">
+                  <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                    onClick={() => setGalleryStartIdx((i: number) => Math.max(1, i - 1))}>
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <img src={(lightboxImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
+                  <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                    onClick={() => setGalleryStartIdx((i: number) => Math.min(lightboxImages.length, i + 1))}>
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                  <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                    {(lightboxImages[galleryStartIdx - 1] as any)?.name || "Photo"}
+                  </div>
+                </div>
+                {/* Thumbnail strip */}
+                <div className="h-[80px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
+                  <button onClick={() => setGalleryStartIdx(0)} className="flex flex-col items-center gap-1 px-3 py-1 text-white text-xs shrink-0">
+                    <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+                      <ImageIcon className="w-4 h-4" />
                     </div>
-                  </div>
-                  {/* Thumbnail strip */}
-                  <div className="h-[80px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
-                    <button onClick={() => setGalleryStartIdx(0)} className="flex flex-col items-center gap-1 px-3 py-1 text-white text-xs shrink-0">
-                      <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
-                        <ImageIcon className="w-4 h-4" />
-                      </div>
-                      Gallery
+                    Gallery
+                  </button>
+                  {lightboxImages.map((img, i) => (
+                    <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
+                      className={`shrink-0 h-[60px] w-[80px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent"}`}>
+                      <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
                     </button>
-                    {lightboxImages.map((img, i) => (
-                      <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
-                        className={`shrink-0 h-[60px] w-[80px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent"}`}>
-                        <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              ) : (
-                /* Grid view */
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    {lightboxImages.map((img, i) => (
-                      <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
-                        className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
-                        <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-
-            {/* Default: grid view when galleryStartIdx === 0 */}
-            {galleryStartIdx === 0 && (
+              </div>
+            ) : (
+              /* Grid view — galleryStartIdx === 0 */
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="grid grid-cols-3 gap-2">
                   {lightboxImages.map((img, i) => (
