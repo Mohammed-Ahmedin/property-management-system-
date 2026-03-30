@@ -48,7 +48,18 @@ const FilterTab = () => {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (location) params.set("location", location);
+    if (location) {
+      // Parse "Subcity, City" format into separate params
+      if (location.includes(", ")) {
+        const parts = location.split(", ");
+        params.set("subcity", parts[0].trim());
+        params.set("city", parts[1].trim());
+      } else {
+        // Just a city
+        params.set("city", location.trim());
+      }
+      params.set("location", location); // also keep for display
+    }
     if (checkIn) params.set("checkIn", checkIn.toISOString());
     if (checkOut) params.set("checkOut", checkOut.toISOString());
     if (guests) params.set("guests", String(guests));
