@@ -14,10 +14,11 @@ export default function BookingsPage() {
   const dataQuery = useGetUserBookings();
 
   const renderData = () => {
-    if (dataQuery.isLoading || dataQuery.isFetching) {
+    if (dataQuery.isLoading || dataQuery.isFetching || dataQuery.isRefetching) {
       return (
-        <div className="">
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
           <LoaderState />
+          <p className="text-sm text-muted-foreground">Loading your bookings, please wait...</p>
         </div>
       );
     }
@@ -26,8 +27,8 @@ export default function BookingsPage() {
       return (
         <div>
           <ErrorState
-            title="Loading your bookings..."
-            description="Please wait while we connect to the server. This may take a moment."
+            title="Could not load bookings"
+            description="The server is taking too long to respond. Please click Retry."
             refetch={dataQuery.refetch}
           />
         </div>
