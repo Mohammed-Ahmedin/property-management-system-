@@ -84,39 +84,128 @@ const DataContainer = ({ data }: Props) => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Gallery Modal — full screen with thumbnail strip */}
+      {/* Gallery Modal — Agoda style */}
       {galleryOpen && lightboxImages.length > 0 && (
-        <div className="fixed inset-0 bg-white z-[9998] flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setGalleryOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
+        <div className="fixed inset-0 z-[9998] flex">
+          {/* Main area */}
+          <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 shrink-0">
+              {galleryStartIdx !== null ? (
+                <button onClick={() => setGalleryStartIdx(null as any)} className="p-1.5 hover:bg-gray-100 rounded-full">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              ) : (
+                <div className="w-8" />
+              )}
+              <div className="flex gap-2">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-primary text-primary text-sm font-medium">
+                  <ImageIcon className="w-4 h-4" /> Property Images
+                </button>
+              </div>
+              <button onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); }} className="ml-auto p-1.5 hover:bg-gray-100 rounded-full">
                 <X className="w-5 h-5" />
               </button>
-              <h2 className="font-semibold">{property.name}</h2>
             </div>
-            <span className="text-sm text-gray-500">{galleryStartIdx + 1} / {lightboxImages.length}</span>
-          </div>
-          <div className="flex-1 flex overflow-hidden">
-            <div className="flex-1 relative bg-black flex items-center justify-center">
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                onClick={() => setGalleryStartIdx(i => Math.max(0, i - 1))}>
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <img src={(lightboxImages[galleryStartIdx] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                onClick={() => setGalleryStartIdx(i => Math.min(lightboxImages.length - 1, i + 1))}>
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="w-[180px] shrink-0 overflow-y-auto bg-gray-50 border-l border-gray-200 p-2 flex flex-col gap-2">
-              {lightboxImages.map((img, i) => (
-                <button key={i} onClick={() => setGalleryStartIdx(i)}
-                  className={cn("relative rounded-lg overflow-hidden aspect-video shrink-0 border-2 transition-colors",
-                    galleryStartIdx === i ? "border-primary" : "border-transparent hover:border-gray-300")}>
-                  <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+
+            {/* Category tabs */}
+            <div className="flex gap-1 px-4 py-2 border-b border-gray-100 overflow-x-auto shrink-0">
+              {[
+                { label: `All (${lightboxImages.length})`, active: true },
+                { label: `Rooms (${(property.rooms || []).flatMap((r: any) => r.images || []).length})` },
+                { label: `Property views (${allImages.length})` },
+              ].filter(t => !t.label.includes("(0)")).map((tab, i) => (
+                <button key={i} className={`px-3 py-1.5 text-sm font-medium whitespace-nowrap rounded-full transition-colors ${i === 0 ? "text-primary border-b-2 border-primary" : "text-gray-600 hover:text-gray-900"}`}>
+                  {tab.label}
                 </button>
               ))}
             </div>
+
+            {/* Content */}
+            {(galleryStartIdx as any) === null || galleryStartIdx === 0 && !galleryOpen ? null :
+              typeof galleryStartIdx === "number" && galleryStartIdx > 0 ? (
+                /* Single image view */
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 relative bg-black flex items-center justify-center">
+                    <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                      onClick={() => setGalleryStartIdx((i: number) => Math.max(1, i - 1))}>
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <img src={(lightboxImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
+                    <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 bg-black/40 hover:bg-black/60 rounded-full z-10"
+                      onClick={() => setGalleryStartIdx((i: number) => Math.min(lightboxImages.length, i + 1))}>
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                    <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                      {(lightboxImages[galleryStartIdx - 1] as any)?.name || "Photo"}
+                    </div>
+                  </div>
+                  {/* Thumbnail strip */}
+                  <div className="h-[80px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
+                    <button onClick={() => setGalleryStartIdx(0)} className="flex flex-col items-center gap-1 px-3 py-1 text-white text-xs shrink-0">
+                      <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4" />
+                      </div>
+                      Gallery
+                    </button>
+                    {lightboxImages.map((img, i) => (
+                      <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
+                        className={`shrink-0 h-[60px] w-[80px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent"}`}>
+                        <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Grid view */
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    {lightboxImages.map((img, i) => (
+                      <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
+                        className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+                        <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+
+            {/* Default: grid view when galleryStartIdx === 0 */}
+            {galleryStartIdx === 0 && (
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="grid grid-cols-3 gap-2">
+                  {lightboxImages.map((img, i) => (
+                    <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
+                      className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+                      <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right sidebar */}
+          <div className="w-[280px] shrink-0 bg-white border-l border-gray-200 flex flex-col p-5 overflow-y-auto">
+            <h3 className="font-bold text-base mb-3">Things you'll love</h3>
+            <ul className="space-y-2 mb-6">
+              {property.facilities?.slice(0, 4).map((f: any) => (
+                <li key={f.id} className="flex items-center gap-2 text-sm text-gray-700">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  {f.name}
+                </li>
+              ))}
+              {property.location?.city && (
+                <li className="flex items-center gap-2 text-sm text-gray-700">
+                  <MapPin className="w-4 h-4 text-primary shrink-0" />
+                  Located in {property.location.city}
+                </li>
+              )}
+            </ul>
+            <Button className="w-full rounded-full" onClick={() => { setGalleryOpen(false); scrollTo("rooms"); }}>
+              Check availability
+            </Button>
           </div>
         </div>
       )}
