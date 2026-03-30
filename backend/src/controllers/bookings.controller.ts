@@ -113,6 +113,13 @@ export default {
     const txRef = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const CLIENT_FRONTEND_URL = process.env.CLIENT_FRONTEND_URL;
 
+    // Find broker assigned to this property (if any)
+    const brokerRecord = await prisma.managedProperty.findFirst({
+      where: { propertyId: roomDoc.propertyId, role: "BROKER" },
+      select: { userId: true },
+    });
+    const brokerId = brokerRecord?.userId || "";
+
     const { chapaResponse, commission, subaccounts } =
       await initializeChapaPayment({
         data: {
@@ -125,7 +132,7 @@ export default {
           returnUrl: `${CLIENT_FRONTEND_URL}/account/bookings`,
         },
         propertyId: roomDoc.propertyId,
-        brokerId: "",
+        brokerId,
       });
 
     if (!chapaResponse?.checkout_url && !chapaResponse?.data?.checkout_url) {
