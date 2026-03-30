@@ -118,43 +118,40 @@ export default {
     let staff = await prisma.user.findUnique({ where: { email } });
     let staffId = staff?.id;
 
-    let existing;
     if (staffId) {
-      // 3️⃣ Check if user is already a staff/broker/owner for this property
-      existing = await prisma.managedProperty.findUnique({
-        where: {
-          userId_propertyId: { userId: staffId, propertyId },
-        },
+      // Check if already assigned to this property
+      const existing = await prisma.managedProperty.findUnique({
+        where: { userId_propertyId: { userId: staffId, propertyId } },
+      });
+
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "User is already assigned to this property.",
+        });
+      }
+
+      // User exists — just assign them to the property
+      await prisma.managedProperty.create({
+        data: { userId: staffId, propertyId, role: "STAFF" },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Existing user successfully added as staff to property.",
       });
     }
 
-    if (existing) {
-      return res.status(400).json({
-        success: false,
-        message: "User is already assigned to this property.",
-      });
-    }
-
-    if (staffId) {
-      res.status(409).json({
-        message: "Email or phone are already registerd",
-      });
-      return;
-    }
-
+    // User doesn't exist — create new account
     const response = await auth.api.signUpEmail({
       body: { email, password, name, role: "STAFF", phone: phone },
     });
 
     staffId = response.user.id;
 
-    // 4️⃣ Create ManagedProperty record with role STAFF
+    // Create ManagedProperty record with role STAFF
     await prisma.managedProperty.create({
-      data: {
-        userId: staffId,
-        propertyId,
-        role: "STAFF",
-      },
+      data: { userId: staffId, propertyId, role: "STAFF" },
     });
 
     res.status(200).json({
