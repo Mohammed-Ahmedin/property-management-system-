@@ -175,20 +175,15 @@ export default {
   getBrokerDashboardStats: tryCatch(async (req, res) => {
     const userId = (req as any).user.id;
 
+    // Check both BROKER and STAFF roles since brokers may be added as STAFF
+    const managedFilter = {
+      managers: { some: { userId, role: { in: ["BROKER", "STAFF"] } } },
+    };
+
     const [propertiesCount, roomsCount, bookingsCount] = await Promise.all([
-      prisma.property.count({
-        where: { managers: { some: { role: "BROKER", userId } } },
-      }),
-      prisma.room.count({
-        where: {
-          property: { managers: { some: { role: "BROKER", userId } } },
-        },
-      }),
-      prisma.booking.count({
-        where: {
-          property: { managers: { some: { role: "BROKER", userId } } },
-        },
-      }),
+      prisma.property.count({ where: managedFilter }),
+      prisma.room.count({ where: { property: managedFilter } }),
+      prisma.booking.count({ where: { property: managedFilter } }),
     ]);
 
     return res.json({ propertiesCount, roomsCount, bookingsCount });
