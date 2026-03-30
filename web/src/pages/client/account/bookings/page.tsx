@@ -1,17 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { BookingCard } from "./booking-card";
-import { mockBookings } from "@/const/mocks";
 import { useGetUserBookings } from "@/hooks/api/use-bookings";
 import { EmptyState } from "@/components/shared/empty-state";
-// import DataContainer from "./data-container";
-import { ErrorState } from "@/components/shared/error-state";
 import LoaderState from "@/components/shared/loader-state";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function BookingsPage() {
   const dataQuery = useGetUserBookings();
+  const [countdown, setCountdown] = useState(0);
+
+  // Auto-retry with countdown when error occurs
+  useEffect(() => {
+    if (dataQuery.isError) {
+      setCountdown(10);
+    }
+  }, [dataQuery.isError]);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          dataQuery.refetch();
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
 
   const renderData = () => {
     if (dataQuery.isLoading || dataQuery.isFetching || dataQuery.isRefetching) {
@@ -25,12 +45,23 @@ export default function BookingsPage() {
 
     if (dataQuery.isError || !dataQuery.data?.data) {
       return (
-        <div>
-          <ErrorState
-            title="Could not load bookings"
-            description="The server is taking too long to respond. Please click Retry."
-            refetch={dataQuery.refetch}
-          />
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4 text-center px-4">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-1">Connecting to server...</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              The server is waking up. This usually takes 30-60 seconds.
+            </p>
+            {countdown > 0 ? (
+              <p className="text-sm text-primary font-medium">Retrying in {countdown}s...</p>
+            ) : (
+              <Button onClick={() => { setCountdown(10); dataQuery.refetch(); }} variant="default">
+                Retry now
+              </Button>
+            )}
+          </div>
         </div>
       );
     }
@@ -40,29 +71,23 @@ export default function BookingsPage() {
         <div className="flex justify-center items-center h-[70dvh]">
           <EmptyState
             title="No bookings yet"
-            description="You don’t have any bookings at the moment. Once you make a booking, it will appear here."
+            description="You don't have any bookings at the moment. Once you make a booking, it will appear here."
           />
         </div>
       );
     }
 
     return (
-      <>
-        {dataQuery.data.data.map((booking) => {
-          return (
-            <>
-              <BookingCard key={booking.id} booking={booking as any} />
-            </>
-          );
-        })}
-
-        {/* <DataContainer data={dataQuery.data?.data} /> */}
-      </>
+      <div className="flex flex-col gap-4">
+        {dataQuery.data.data.map((booking) => (
+          <BookingCard key={booking.id} booking={booking as any} />
+        ))}
+      </div>
     );
   };
+
   return (
     <div className="min-h-screen bg-background p-3 c-px">
-      {/* Header */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl font-bold tracking-tight mb-2">Your Bookings</h1>
       </div>
