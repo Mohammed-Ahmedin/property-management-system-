@@ -26,7 +26,8 @@ export default function BookingsPage() {
       return (
         <div>
           <ErrorState
-            title="Somthing went wrong please try again"
+            title="Loading your bookings..."
+            description="Please wait while we connect to the server. This may take a moment."
             refetch={dataQuery.refetch}
           />
         </div>
