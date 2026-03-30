@@ -486,19 +486,28 @@ const DataContainer = ({ data }: Props) => {
                   <p className="text-sm text-muted-foreground italic mb-5">No facilities available at the moment.</p>
                 )}
                 {/* Services */}
-                {allRoomServices.length > 0 && (
-                  <>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Room Services</p>
-                    <div className="flex flex-wrap gap-2">
-                      {allRoomServices.slice(0, 10).map((s: any) => (
-                        <span key={s.id} className="inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-full px-3 py-1 text-xs font-medium">
-                          <CheckCircle2 className="w-3 h-3 shrink-0" />
-                          {s.name}{s.price ? ` · ETB ${s.price}` : " · Free"}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
+                {(() => {
+                  const allRoomServices = Array.from(new Map(
+                    (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
+                  ).values());
+                  return (
+                    <>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-1">Room Services</p>
+                      {allRoomServices.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {allRoomServices.slice(0, 10).map((s: any) => (
+                            <span key={s.id} className="inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-full px-3 py-1 text-xs font-medium">
+                              <CheckCircle2 className="w-3 h-3 shrink-0" />
+                              {s.name}{s.price ? ` · ETB ${s.price}` : " · Free"}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">No services available at the moment.</p>
+                      )}
+                    </>
+                  );
+                })()}
                 {(propFacilities.length > 6 || allRoomServices.length > 10) && (
                   <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
                     See all services & facilities
@@ -668,23 +677,26 @@ const DataContainer = ({ data }: Props) => {
                     const allServices = Array.from(new Map(
                       (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
                     ).values());
-                    if (allServices.length === 0) return null;
                     return (
                       <>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Room Services</p>
-                        <div className="flex flex-col gap-2">
-                          {allServices.map((s: any) => (
-                            <div key={s.id} className="flex items-center justify-between py-2.5 px-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                                <span className="text-sm font-medium text-green-800 dark:text-green-300">{s.name}</span>
+                        {allServices.length > 0 ? (
+                          <div className="flex flex-col gap-2">
+                            {allServices.map((s: any) => (
+                              <div key={s.id} className="flex items-center justify-between py-2.5 px-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                                  <span className="text-sm font-medium text-green-800 dark:text-green-300">{s.name}</span>
+                                </div>
+                                <span className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">
+                                  {s.price ? `ETB ${s.price}` : "Free"}
+                                </span>
                               </div>
-                              <span className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">
-                                {s.price ? `ETB ${s.price}` : "Free"}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">No services available at the moment.</p>
+                        )}
                       </>
                     );
                   })()}
