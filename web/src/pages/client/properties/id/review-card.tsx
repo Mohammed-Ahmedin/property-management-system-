@@ -36,35 +36,23 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       key={review.id}
       className="w-full border border-border shadow-sm hover:shadow-md transition-shadow duration-200"
     >
-      <CardHeader className="flex justify-between gap-4 ">
-        <div className="flex flex-row items-center gap-4">
-          <Avatar src={user.image} fallback={user.name} className="h-10 w-10" />
-          <div className="flex flex-col">
-            <CardTitle className="text-base font-semibold">
-              {user.name}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {new Date(createdAt).toLocaleDateString()}
-            </p>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-row items-center gap-3">
+            <Avatar src={user.image} fallback={user.name} className="h-10 w-10 shrink-0" />
+            <div className="flex flex-col">
+              <CardTitle className="text-base font-semibold">{user.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">{new Date(createdAt).toLocaleDateString()}</p>
+            </div>
           </div>
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-end flex-col  mb-2">
-          <div className="flex gap-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  "h-4 w-4",
-                  i < (rating || 0)
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-muted-foreground"
-                )}
-              />
-            ))}
+          <div className="flex flex-col items-end shrink-0">
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className={cn("h-4 w-4", i < (rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground")} />
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{rating} / 5</p>
           </div>
-          <p className="text-sm">{rating} / 5</p>
         </div>
       </CardHeader>
 

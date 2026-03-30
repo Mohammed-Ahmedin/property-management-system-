@@ -47,9 +47,9 @@ const ReviewsContainer = ({ propertyId }: { propertyId: string }) => {
 
     if (dataQuery.data?.data) {
       return (
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="w-full grid grid-cols-1 gap-3">
           {dataQuery.data.data.map((review) => {
-            return <ReviewCard review={review} />;
+            return <ReviewCard key={review.id} review={review} />;
           })}
         </div>
       );

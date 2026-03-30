@@ -457,29 +457,40 @@ const DataContainer = ({ data }: Props) => {
           </section>
 
           {/* ── Facilities (inline, also in panel) ── */}
-          {property.facilities?.length > 0 && (
-            <section id="facilities" className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Amenities and facilities</h2>
-                <button onClick={() => setPanelTab("Facilities")} className="text-sm text-primary hover:underline flex items-center gap-1">
-                  See all <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {property.facilities.slice(0, 9).map((f: any) => (
-                  <div key={f.id} className="flex items-center gap-2 text-sm py-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                    <span>{f.name}</span>
-                  </div>
-                ))}
-              </div>
-              {property.facilities.length > 9 && (
-                <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
-                  +{property.facilities.length - 9} more facilities
-                </button>
-              )}
-            </section>
-          )}
+          {(() => {
+            const propFacilities = property.facilities || [];
+            // Fallback: collect unique service names from all rooms
+            const roomServices = propFacilities.length === 0
+              ? Array.from(new Map(
+                  (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
+                ).values()).slice(0, 9)
+              : [];
+            const displayFacilities = propFacilities.length > 0 ? propFacilities : roomServices;
+            if (displayFacilities.length === 0) return null;
+            return (
+              <section id="facilities" className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">Amenities and facilities</h2>
+                  <button onClick={() => setPanelTab("Facilities")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                    See all <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {displayFacilities.slice(0, 9).map((f: any) => (
+                    <div key={f.id} className="flex items-center gap-2 text-sm py-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                      <span>{f.name}</span>
+                    </div>
+                  ))}
+                </div>
+                {displayFacilities.length > 9 && (
+                  <button onClick={() => setPanelTab("Facilities")} className="mt-3 text-sm text-primary hover:underline">
+                    +{displayFacilities.length - 9} more facilities
+                  </button>
+                )}
+              </section>
+            );
+          })()}
 
           {/* ── Reviews ── */}
           <section id="reviews" className="mb-8">
@@ -621,12 +632,20 @@ const DataContainer = ({ data }: Props) => {
                 <div>
                   <h3 className="text-lg font-bold mb-4">Amenities and facilities</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    {property.facilities?.map((f: any) => (
-                      <div key={f.id} className="flex items-center gap-2 text-sm py-2 border-b border-border/50">
-                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                        <span>{f.name}</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      const propFacilities = property.facilities || [];
+                      const displayFacilities = propFacilities.length > 0
+                        ? propFacilities
+                        : Array.from(new Map(
+                            (property.rooms || []).flatMap((r: any) => r.services || []).map((s: any) => [s.name, s])
+                          ).values());
+                      return displayFacilities.map((f: any) => (
+                        <div key={f.id} className="flex items-center gap-2 text-sm py-2 border-b border-border/50">
+                          <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                          <span>{f.name}</span>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               )}
@@ -635,7 +654,7 @@ const DataContainer = ({ data }: Props) => {
                 <div>
                   {avgRating > 0 && (
                     <div className="flex items-center gap-4 mb-6 p-4 bg-muted/30 rounded-xl">
-                      <div className="bg-primary text-white font-bold text-2xl w-14 h-14 flex items-center justify-center rounded-xl shrink-0">
+                      <div className="bg-primary text-white font-bold text-xl w-12 h-12 flex items-center justify-center rounded-xl shrink-0">
                         {avgRating.toFixed(1)}
                       </div>
                       <div>
