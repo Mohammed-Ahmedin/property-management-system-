@@ -469,7 +469,7 @@ export default {
       case "STAFF":
       case "BROKER":
         const managed = await prisma.managedProperty.findMany({
-          where: { userId, role: userRole },
+          where: { userId, role: { in: [userRole, "STAFF", "BROKER", "OWNER"] } },
           select: { propertyId: true },
         });
 
@@ -516,7 +516,7 @@ export default {
       case "STAFF":
       case "BROKER":
         const managed = await prisma.managedProperty.findMany({
-          where: { userId, role: userRole },
+          where: { userId, role: { in: [userRole, "STAFF", "BROKER", "OWNER"] } },
           select: { propertyId: true },
         });
 
@@ -600,7 +600,7 @@ export default {
       case "STAFF":
       case "BROKER":
         const managed = await prisma.managedProperty.findMany({
-          where: { userId, role: userRole },
+          where: { userId, role: { in: [userRole, "STAFF", "BROKER", "OWNER"] } },
           select: { propertyId: true },
         });
 
@@ -746,7 +746,7 @@ export default {
       case "STAFF":
       case "BROKER":
         const managed = await prisma.managedProperty.findMany({
-          where: { userId, role: userRole },
+          where: { userId, role: { in: [userRole, "STAFF", "BROKER", "OWNER"] } },
           select: { propertyId: true },
         });
 
@@ -871,3 +871,4 @@ export default {
     });
   }),
 };
+

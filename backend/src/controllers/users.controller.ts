@@ -15,16 +15,16 @@ export default {
         orderBy: { createdAt: "desc" },
       });
     } else {
-      // Broker: return guests who booked properties managed by this broker
+      // Broker/Staff: return guests who booked properties managed by this user
       const managed = await prisma.managedProperty.findMany({
-        where: { userId, role: "BROKER" },
+        where: { userId, role: { in: ["BROKER", "STAFF"] } },
         select: { propertyId: true },
       });
       const propertyIds = managed.map((m) => m.propertyId);
 
       if (!propertyIds.length) return res.json([]);
 
-      // Get unique userIds from bookings on broker's properties
+      // Get unique userIds from bookings on managed properties
       const bookings = await prisma.booking.findMany({
         where: { propertyId: { in: propertyIds }, userId: { not: null } },
         select: { userId: true },
