@@ -34,6 +34,7 @@ const DataContainer = ({ data }: Props) => {
   const [stickyNav, setStickyNav] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState<"all" | "rooms" | "property" | "nearby">("all");
   const [galleryStartIdx, setGalleryStartIdx] = useState(0);
   const [panelTab, setPanelTab] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -50,7 +51,8 @@ const DataContainer = ({ data }: Props) => {
 
   const starCount = Math.round(avgRating / 2); // convert 10-scale to 5-star
 
-  const allImages = property.images || [];
+  const allImages = (property.images || []).filter((img: any) => !img.category || img.category === "property");
+  const nearbyImgs = (property.images || []).filter((img: any) => img.category === "nearby");
   const mainImg = allImages[0]?.url;
 
   // Collect room images for the 2x2 grid — fall back to more property images
@@ -58,8 +60,15 @@ const DataContainer = ({ data }: Props) => {
   const gridSources = [...roomImgs, ...allImages.slice(1)];
   const thumbs = Array.from({ length: 4 }, (_, i) => gridSources[i] || null);
 
-  // All images for lightbox
-  const lightboxImages = [...allImages, ...roomImgs];
+  // All images for lightbox (combined)
+  const lightboxImages = [...allImages, ...roomImgs, ...nearbyImgs];
+
+  // Filtered images based on gallery tab
+  const filteredGalleryImages =
+    galleryFilter === "rooms" ? roomImgs
+    : galleryFilter === "property" ? allImages
+    : galleryFilter === "nearby" ? nearbyImgs
+    : lightboxImages;
 
   useEffect(() => {
     const hero = heroRef.current;
@@ -86,7 +95,7 @@ const DataContainer = ({ data }: Props) => {
     <div className="max-w-7xl mx-auto">
       {/* Gallery Modal — Agoda style, overlays the page (not full screen) */}
       {galleryOpen && lightboxImages.length > 0 && (
-        <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-8 px-4" onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); }}>
+        <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-8 px-4" onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); setGalleryFilter("all"); }}>
           <div className="absolute inset-0 bg-black/60" />
           <div
             className="relative bg-white rounded-xl shadow-2xl flex w-full max-w-5xl max-h-[90vh] overflow-hidden"
@@ -104,7 +113,7 @@ const DataContainer = ({ data }: Props) => {
                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-primary text-primary text-sm font-medium">
                   <ImageIcon className="w-4 h-4" /> Property Images
                 </button>
-                <button onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); }} className="ml-auto p-1.5 hover:bg-gray-100 rounded-full">
+                <button onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); setGalleryFilter("all"); }} className="ml-auto p-1.5 hover:bg-gray-100 rounded-full">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -112,12 +121,14 @@ const DataContainer = ({ data }: Props) => {
               {/* Category tabs */}
               <div className="flex gap-0 px-4 border-b border-gray-100 shrink-0 overflow-x-auto">
                 {[
-                  { label: `All (${lightboxImages.length})`, key: "all" },
-                  ...(roomImgs.length > 0 ? [{ label: `Rooms (${roomImgs.length})`, key: "rooms" }] : []),
-                  ...(allImages.length > 0 ? [{ label: `Property views (${allImages.length})`, key: "property" }] : []),
-                ].map((tab, i) => (
+                  { label: `All (${lightboxImages.length})`, key: "all" as const },
+                  ...(roomImgs.length > 0 ? [{ label: `Rooms (${roomImgs.length})`, key: "rooms" as const }] : []),
+                  ...(allImages.length > 0 ? [{ label: `Property views (${allImages.length})`, key: "property" as const }] : []),
+                  ...(nearbyImgs.length > 0 ? [{ label: `Nearby attractions (${nearbyImgs.length})`, key: "nearby" as const }] : []),
+                ].map((tab) => (
                   <button key={tab.key}
-                    className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${i === 0 ? "border-primary text-primary" : "border-transparent text-gray-600 hover:text-gray-900"}`}>
+                    onClick={() => { setGalleryFilter(tab.key); setGalleryStartIdx(0); }}
+                    className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${galleryFilter === tab.key ? "border-primary text-primary" : "border-transparent text-gray-600 hover:text-gray-900"}`}>
                     {tab.label}
                   </button>
                 ))}
@@ -132,9 +143,9 @@ const DataContainer = ({ data }: Props) => {
                       onClick={() => setGalleryStartIdx(i => Math.max(1, i - 1))}>
                       <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <img src={(lightboxImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
+                    <img src={(filteredGalleryImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
                     <button className="absolute right-3 top-1/2 -translate-y-1/2 text-white p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10"
-                      onClick={() => setGalleryStartIdx(i => Math.min(lightboxImages.length, i + 1))}>
+                      onClick={() => setGalleryStartIdx(i => Math.min(filteredGalleryImages.length, i + 1))}>
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
@@ -146,7 +157,7 @@ const DataContainer = ({ data }: Props) => {
                       </div>
                       Gallery
                     </button>
-                    {lightboxImages.map((img, i) => (
+                    {filteredGalleryImages.map((img, i) => (
                       <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
                         className={`shrink-0 h-[56px] w-[72px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
                         <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
@@ -158,13 +169,19 @@ const DataContainer = ({ data }: Props) => {
                 /* Grid view */
                 <div className="flex-1 overflow-y-auto p-3">
                   <div className="grid grid-cols-3 gap-1.5">
-                    {lightboxImages.map((img, i) => (
+                    {filteredGalleryImages.map((img, i) => (
                       <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
                         className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
                         <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
+                  {filteredGalleryImages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                      <ImageIcon className="w-12 h-12 mb-2 opacity-30" />
+                      <p className="text-sm">No images in this category</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -186,7 +203,7 @@ const DataContainer = ({ data }: Props) => {
                   </li>
                 )}
               </ul>
-              <Button className="w-full rounded-full text-sm" onClick={() => { setGalleryOpen(false); scrollTo("rooms"); }}>
+              <Button className="w-full rounded-full text-sm" onClick={() => { setGalleryOpen(false); setGalleryFilter("all"); scrollTo("rooms"); }}>
                 Check availability
               </Button>
             </div>
@@ -468,7 +485,7 @@ const DataContainer = ({ data }: Props) => {
           <section id="reviews" className="mb-8">
             {avgRating > 0 && (
               <div className="flex items-center gap-4 mb-4 p-4 border border-border rounded-xl cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setPanelTab("Reviews")}>
-                <div className="bg-primary text-white font-bold text-3xl w-16 h-16 flex items-center justify-center rounded-xl shrink-0">
+                <div className="bg-primary text-white font-bold text-2xl w-14 h-14 flex items-center justify-center rounded-xl shrink-0">
                   {avgRating.toFixed(1)}
                 </div>
                 <div className="flex-1">

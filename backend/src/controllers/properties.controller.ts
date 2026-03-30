@@ -585,9 +585,11 @@ export default {
 
   addPropertyImage: tryCatch(async (req, res) => {
     const { id: propertyId } = req.params;
-    const { url, name } = req.body;
+    const { url, name, category } = req.body;
     if (!url) return res.status(400).json({ message: "url is required" });
-    const image = await prisma.propertyImage.create({ data: { url, name: name || "", propertyId } });
+    const image = await prisma.propertyImage.create({
+      data: { url, name: name || "", propertyId, category: category || "property" },
+    });
     res.status(201).json({ success: true, message: "Image added", data: image });
   }),
 
