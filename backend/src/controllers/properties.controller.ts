@@ -180,13 +180,9 @@ export default {
       if (city || subcity || country) {
         filters.AND.push({
           location: {
-            ...(city && { city: { equals: city, mode: "insensitive" } }),
-            ...(subcity && {
-              subcity: { equals: subcity, mode: "insensitive" },
-            }),
-            ...(country && {
-              country: { equals: country, mode: "insensitive" },
-            }),
+            ...(city && { city: { contains: city, mode: "insensitive" } }),
+            ...(subcity && { subcity: { contains: subcity, mode: "insensitive" } }),
+            ...(country && { country: { contains: country, mode: "insensitive" } }),
           },
         });
       }
