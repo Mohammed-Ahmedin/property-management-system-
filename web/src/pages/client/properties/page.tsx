@@ -271,25 +271,18 @@ export default function PropertiesPage() {
 
   const handleSearch = (q: string, checkIn?: Date, checkOut?: Date, adults?: number) => {
     const p = new URLSearchParams(searchParams);
+    // Clear old location-related params
+    p.delete("search"); p.delete("location"); p.delete("city"); p.delete("subcity");
     if (q) {
-      // Parse "Subcity, City" format
       if (q.includes(", ")) {
+        // "Subcity, City" format
         const parts = q.split(", ");
         p.set("subcity", parts[0].trim());
         p.set("city", parts[1].trim());
-        p.delete("search");
       } else {
-        // Could be a city name or property name — search both
+        // Could be city name or property name — use search (searches name + city)
         p.set("search", q);
-        p.set("city", q);
-        p.delete("subcity");
       }
-      p.set("location", q);
-    } else {
-      p.delete("search");
-      p.delete("location");
-      p.delete("city");
-      p.delete("subcity");
     }
     if (checkIn) p.set("checkIn", checkIn.toISOString()); else p.delete("checkIn");
     if (checkOut) p.set("checkOut", checkOut.toISOString()); else p.delete("checkOut");
