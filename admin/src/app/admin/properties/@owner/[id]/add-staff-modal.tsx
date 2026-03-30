@@ -50,32 +50,29 @@ export function AddStaffModal({ propertyId }: { propertyId: string }) {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Name validation
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     } else if (formData.name.trim().length < 2) {
       newErrors.name = "Name must be at least 2 characters";
     }
 
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Phone validation
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
     } else if (!/^\+?[\d\s-()]{10,}$/.test(formData.phone)) {
       newErrors.phone = "Please enter a valid phone number";
     }
 
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    // Password only required if creating a new account (not assigning existing user)
+    // We can't know upfront if user exists, so only validate if password is provided
+    // and it's too short — don't require it
+    if (formData.password && formData.password.length < 4) {
+      newErrors.password = "Password must be at least 4 characters";
     }
 
     setErrors(newErrors);
