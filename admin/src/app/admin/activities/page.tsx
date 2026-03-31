@@ -19,7 +19,7 @@ export default function ActivityDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: activitiesData, isFetching } = useGetActivities();
-  const activities = activitiesData?.data || [];
+  const activities: any[] = activitiesData?.data || [];
 
   const filteredActivities = useMemo(() => {
     return activities.filter((activity: any) => {
@@ -40,8 +40,8 @@ export default function ActivityDashboard() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const uniqueActions = Array.from(new Set(activities.map((a: any) => a.action as string)));
-  const uniqueStatuses = Array.from(new Set(activities.map((a: any) => a.status as string)));
+  const uniqueActions: string[] = Array.from(new Set<string>(activities.map((a: any) => String(a.action || ""))));
+  const uniqueStatuses: string[] = Array.from(new Set<string>(activities.map((a: any) => String(a.status || ""))));
 
   if (isFetching) return <LoaderState />;
 
@@ -59,7 +59,7 @@ export default function ActivityDashboard() {
                 <SelectTrigger className="w-[180px]"><Filter className="mr-2 h-4 w-4" /><SelectValue placeholder="Action" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Actions</SelectItem>
-                  {uniqueActions.map((action) => (
+                  {uniqueActions.map((action: string) => (
                     <SelectItem key={action} value={action}>{action.replace(/_/g, " ")}</SelectItem>
                   ))}
                 </SelectContent>
@@ -68,7 +68,7 @@ export default function ActivityDashboard() {
                 <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  {uniqueStatuses.map((s) => (
+                  {uniqueStatuses.map((s: string) => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
@@ -88,7 +88,7 @@ export default function ActivityDashboard() {
 
         <div className="space-y-3">
           {paginatedActivities.length > 0 ? (
-            paginatedActivities.map((activity) => (
+            paginatedActivities.map((activity: any) => (
               <ActivityItem key={activity.id} activity={activity} />
             ))
           ) : (
