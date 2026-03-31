@@ -54,7 +54,7 @@ const RoomsTab = ({ propertyId }: { propertyId: string }) => {
                 const activeBookings = ((room as any).bookings || []).filter(
                   (b: any) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today && ["PENDING","APPROVED"].includes(b.status)
                 );
-                const isAvailable = activeBookings.length === 0 && room.availability;
+                const isAvailable = activeBookings.length === 0 && (room as any).availability;
                 const latestCheckout = activeBookings.reduce((latest: Date | null, b: any) => {
                   const co = new Date(b.checkOut); return !latest || co > latest ? co : latest;
                 }, null);
