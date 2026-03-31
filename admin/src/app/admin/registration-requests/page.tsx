@@ -15,7 +15,7 @@ export default function RegistrationRequestsPage() {
       <main className="container mx-auto px-6 py-8">
         <StatsCards />
         <div className="mt-8">
-          <RegistrationTable registrations={Array.isArray(data) ? data : []} />
+          <RegistrationTable registrations={Array.isArray(data) ? data as any : []} />
         </div>
       </main>
     </div>
