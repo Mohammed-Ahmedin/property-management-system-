@@ -52,21 +52,8 @@ const roleSidebarLinks: Record<
     { title: "Rooms", url: "/admin/rooms", icon: Bed },
     { title: "Bookings", url: "/admin/bookings", icon: Calendar },
     { title: "Users", url: "/admin/users", icon: Users },
-    {
-      title: "Registrations",
-      url: "/admin/registration-requests",
-      icon: HomeIcon,
-    },
+    { title: "Registrations", url: "/admin/registration-requests", icon: HomeIcon },
     { title: "Activities", url: "/admin/activities", icon: Activity },
-    {
-      title: "Finance",
-      icon: Wallet,
-      items: [
-        { title: "Commisions", url: "/admin/income", icon: CreditCard },
-        { title: "Payments", url: "/admin/payments", icon: DollarSign },
-        { title: "Sub Accounts", url: "/admin/subaccounts", icon: Banknote },
-      ],
-    },
   ],
   OWNER: [
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
@@ -75,17 +62,11 @@ const roleSidebarLinks: Record<
     { title: "Rooms", url: "/admin/rooms", icon: Bed },
     { title: "Staffs", url: "/admin/staffs", icon: Users2 },
     { title: "Activities", url: "/admin/activities", icon: Activity },
-    {
-      title: "Finance",
-      icon: Wallet,
-      items: [{ title: "Payments", url: "/admin/payments", icon: DollarSign }],
-    },
   ],
   STAFF: [
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
     { title: "Property", url: "/admin/properties", icon: Hotel },
     { title: "Rooms", url: "/admin/rooms", icon: Bed },
-    { title: "Bookings", url: "/admin/bookings", icon: Calendar },
   ],
   BROKER: [
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },

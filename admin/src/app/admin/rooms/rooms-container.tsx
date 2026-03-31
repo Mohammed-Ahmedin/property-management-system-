@@ -18,10 +18,14 @@ import { RoomCard } from "./room-card";
 import { DataPagination } from "@/components/pagination";
 import Link from "next/link";
 import { useGetRoomsForManagementQuery } from "@/hooks/api/use-rooms";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const RoomsContainer = () => {
   const { isFetching, error, data } = useGetRoomsForManagementQuery();
+  const { role } = useAuthSession();
   const router = useRouter();
+  const isAdmin = role === "ADMIN";
+  const isStaff = role === "STAFF";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -106,12 +110,13 @@ const RoomsContainer = () => {
         <h2 className="text-xl font-semibold text-foreground">All Rooms</h2>
         <div className="flex gap-2 items-center">
           <p className="text-sm text-muted-foreground">
-            {filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""}{" "}
-            found
+            {filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""} found
           </p>
-          <Link href={`/admin/rooms/create`}>
-            <Button>Add new</Button>
-          </Link>
+          {!isAdmin && !isStaff && (
+            <Link href={`/admin/rooms/create`}>
+              <Button>Add new</Button>
+            </Link>
+          )}
         </div>
       </div>
 

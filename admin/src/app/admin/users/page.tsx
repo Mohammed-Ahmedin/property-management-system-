@@ -15,8 +15,9 @@ const Page = () => {
 
   if (error) {
     return (
-      <div className="py-100 grid place-content-center">
-        <p>Something went wrong</p>
+      <div className="py-20 flex flex-col items-center gap-4">
+        <p className="text-muted-foreground">Failed to load users. Please try again.</p>
+        <button onClick={() => window.location.reload()} className="text-primary underline text-sm">Retry</button>
       </div>
     );
   }
