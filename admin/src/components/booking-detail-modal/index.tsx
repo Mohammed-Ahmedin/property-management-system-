@@ -225,16 +225,77 @@ export function BookingDetailModal({
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" title="Download" onClick={() => {
-                const content = `Booking #${booking.id}\nStatus: ${booking.status}\nCheck-in: ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}\nCheck-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}\nGuests: ${booking.guests}\nTotal: ${booking.currency} ${booking.totalAmount}`;
-                const blob = new Blob([content], { type: "text/plain" });
+                const lines = [
+                  `BOOKING RECEIPT`,
+                  `=====================================`,
+                  `Property: ${booking.property?.name || "—"}`,
+                  `Room: ${booking.room?.name || "—"}`,
+                  `Booking ID: ${booking.id}`,
+                  `Status: ${booking.status}`,
+                  ``,
+                  `DATES`,
+                  `Check-in:  ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}`,
+                  `Check-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}`,
+                  `Guests:    ${booking.guests}`,
+                  ``,
+                  `GUEST`,
+                  `Name:  ${booking.user?.name || booking.guestName || "—"}`,
+                  `Email: ${booking.user?.email || booking.guestEmail || "—"}`,
+                  `Phone: ${booking.user?.phone || booking.guestPhone || "—"}`,
+                  ``,
+                  `PAYMENT`,
+                  `Base Price:   ${booking.currency} ${booking.basePrice}`,
+                  `Tax:          ${booking.currency} ${booking.taxAmount}`,
+                  `Discount:     ${booking.currency} ${booking.discount}`,
+                  `Total Amount: ${booking.currency} ${booking.totalAmount}`,
+                  `Payment:      ${booking.payment?.status || "—"} (${booking.payment?.method || "—"})`,
+                  ``,
+                  `Created: ${format(new Date(booking.createdAt), "PPP 'at' p")}`,
+                  `=====================================`,
+                ];
+                const blob = new Blob([lines.join("\n")], { type: "text/plain" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
-                a.href = url; a.download = `booking-${booking.id.slice(0, 8)}.txt`; a.click();
+                a.href = url;
+                a.download = `booking-${booking.id.slice(0, 8)}.txt`;
+                a.click();
                 URL.revokeObjectURL(url);
               }}>
                 <Download className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" title="Print" onClick={() => window.print()}>
+              <Button variant="outline" size="icon" title="Print" onClick={() => {
+                const w = window.open("", "_blank", "width=700,height=900");
+                if (!w) return;
+                w.document.write(`
+                  <html><head><title>Booking #${booking.id.slice(0,8)}</title>
+                  <style>body{font-family:sans-serif;padding:32px;color:#111}h1{font-size:20px;margin-bottom:4px}h2{font-size:14px;color:#555;margin:20px 0 8px}table{width:100%;border-collapse:collapse}td{padding:6px 0;font-size:13px}td:first-child{color:#666;width:40%}.total{font-size:16px;font-weight:bold;color:#1a56db}.divider{border-top:1px solid #ddd;margin:12px 0}</style>
+                  </head><body>
+                  <h1>${booking.property?.name || "Booking Receipt"}</h1>
+                  <p style="color:#666;font-size:13px">Booking ID: ${booking.id} &nbsp;|&nbsp; ${format(new Date(booking.createdAt), "PPP")}</p>
+                  <div class="divider"></div>
+                  <h2>Booking Details</h2>
+                  <table><tr><td>Room</td><td>${booking.room?.name || "—"}</td></tr>
+                  <tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}</td></tr>
+                  <tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}</td></tr>
+                  <tr><td>Guests</td><td>${booking.guests}</td></tr>
+                  <tr><td>Status</td><td>${booking.status}</td></tr></table>
+                  <div class="divider"></div>
+                  <h2>Guest Information</h2>
+                  <table><tr><td>Name</td><td>${booking.user?.name || booking.guestName || "—"}</td></tr>
+                  <tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "—"}</td></tr>
+                  <tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "—"}</td></tr></table>
+                  <div class="divider"></div>
+                  <h2>Payment</h2>
+                  <table><tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td></tr>
+                  <tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td></tr>
+                  <tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td></tr>
+                  <tr><td>Method</td><td>${booking.payment?.method || "—"}</td></tr>
+                  <tr><td>Payment Status</td><td>${booking.payment?.status || "—"}</td></tr>
+                  <tr><td class="total">Total</td><td class="total">${booking.currency} ${booking.totalAmount}</td></tr></table>
+                  </body></html>`);
+                w.document.close();
+                w.print();
+              }}>
                 <Printer className="h-4 w-4" />
               </Button>
               <DropdownMenu>
@@ -253,14 +314,18 @@ export function BookingDetailModal({
                     const phone = booking.user?.phone || booking.guestPhone || "";
                     if (phone) window.open(`sms:${phone}`);
                   }}>Send SMS</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    disabled={disableAllButtons}
-                    onClick={() => handleCancelBooking(booking.id)}
-                  >
-                    Delete Booking
-                  </DropdownMenuItem>
+                  {booking.status === BookingStatus.PENDING && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        disabled={disableAllButtons}
+                        onClick={() => handleCancelBooking(booking.id)}
+                      >
+                        Delete Booking
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -279,29 +344,14 @@ export function BookingDetailModal({
           <Tabs defaultValue="overview" className="w-full">
             <div className="sticky top-0 z-10 bg-background border-b px-6">
               <TabsList className="w-full justify-start h-12 bg-transparent p-0">
-                <TabsTrigger
-                  value="overview"
-                  className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none"
-                >
+                <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none">
                   Overview
                 </TabsTrigger>
-                <TabsTrigger
-                  value="guest"
-                  className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none"
-                >
+                <TabsTrigger value="guest" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none">
                   Guest Info
                 </TabsTrigger>
-                <TabsTrigger
-                  value="payment"
-                  className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none"
-                >
+                <TabsTrigger value="payment" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none">
                   Payment
-                </TabsTrigger>
-                <TabsTrigger
-                  value="activity"
-                  className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none"
-                >
-                  Activity Log
                 </TabsTrigger>
               </TabsList>
             </div>

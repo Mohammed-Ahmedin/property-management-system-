@@ -140,3 +140,20 @@ export const useChangePropertyStatusMutation = () => {
     },
   });
 };
+
+export const useVoidPropertyMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, string>({
+    mutationFn: async (id: string) => {
+      const response = await api.post(`/properties/${id}/void`);
+      return response.data;
+    },
+    onSuccess: ({ message }) => {
+      toast.success(message || "Property voided");
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to void property");
+    },
+  });
+};

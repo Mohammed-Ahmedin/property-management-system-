@@ -88,3 +88,20 @@ export const useRemoveStaffFromGHMutation = () => {
     },
   });
 };
+
+export const useAddBrokerToPropertyMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { propertyId: string; email: string; name?: string }) => {
+      const response = await api.post<SuccessResponse>("/properties/staff/add-broker", data);
+      return response.data;
+    },
+    onSuccess: ({ message }, { propertyId }) => {
+      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ["staffs", propertyId] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error.message || "Something went wrong");
+    },
+  });
+};

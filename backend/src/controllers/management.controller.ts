@@ -222,4 +222,53 @@ export default {
       message: "Staff removed from property successfully.",
     });
   }),
+
+  // ✅ Add an approved broker to a property by email
+  addBrokerToProperty: tryCatch(async (req, res) => {
+    const ownerId = req.user.id;
+    const { propertyId, email, name } = req.body;
+
+    if (!email) return res.status(400).json({ success: false, message: "Email is required." });
+
+    // Check property ownership
+    const property = await prisma.property.findFirst({
+      where: {
+        id: propertyId,
+        managers: { some: { userId: ownerId, role: "OWNER" } },
+      },
+    });
+
+    if (!property) {
+      return res.status(403).json({ success: false, message: "Not authorized to manage this property." });
+    }
+
+    // Find user by email — must exist and be an approved BROKER
+    const broker = await prisma.user.findUnique({ where: { email } });
+
+    if (!broker) {
+      return res.status(404).json({ success: false, message: "No user found with this email." });
+    }
+
+    if (broker.role !== "BROKER") {
+      return res.status(400).json({
+        success: false,
+        message: "This user is not an approved broker. They must register and be approved by admin first.",
+      });
+    }
+
+    // Check if already assigned
+    const existing = await prisma.managedProperty.findUnique({
+      where: { userId_propertyId: { userId: broker.id, propertyId } },
+    });
+
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Broker is already assigned to this property." });
+    }
+
+    await prisma.managedProperty.create({
+      data: { userId: broker.id, propertyId, role: "BROKER" },
+    });
+
+    return res.status(200).json({ success: true, message: "Broker added to property successfully." });
+  }),
 };

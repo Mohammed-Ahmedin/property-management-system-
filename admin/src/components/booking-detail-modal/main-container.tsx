@@ -55,18 +55,21 @@ interface BookingDetailContentProps {
   onRefund?: (bookingId: string) => void;
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; icon: any; className: string }> = {
   [BookingStatus.PENDING]: {
     label: "Pending",
     icon: Clock,
-    className:
-      "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  },
+  [BookingStatus.PENDING_OWNER_APPROVAL]: {
+    label: "Pending Owner Approval",
+    icon: Clock,
+    className: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
   },
   [BookingStatus.APPROVED]: {
     label: "Approved",
     icon: CheckCircle2,
-    className:
-      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
   },
   [BookingStatus.REJECTED]: {
     label: "Rejected",
@@ -76,8 +79,7 @@ const statusConfig = {
   [BookingStatus.CANCELLED]: {
     label: "Cancelled",
     icon: AlertCircle,
-    className:
-      "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
+    className: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
   },
 };
 

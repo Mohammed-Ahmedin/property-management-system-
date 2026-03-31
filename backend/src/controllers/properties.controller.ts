@@ -965,6 +965,30 @@ export default {
     res.json({ ...rest, staffs });
   }),
 
+  voidProperty: tryCatch(async (req, res) => {
+    const { id: propertyId } = req.params;
+    const user = req.user as { id: string; role: string };
+
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      include: { managers: true },
+    });
+
+    if (!property) return res.status(404).json({ message: "Property not found" });
+
+    const isOwner = property.managers.some((m) => m.userId === user.id && m.role === "OWNER");
+    if (!isOwner && user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Not authorized." });
+    }
+
+    await prisma.property.update({
+      where: { id: propertyId },
+      data: { visibility: false },
+    });
+
+    return res.json({ success: true, message: "Property voided (hidden) successfully." });
+  }),
+
   changePropertyStatus: tryCatch(async (req, res) => {
     const { id: propertyId } = req.params;
     const { status, reason } = req.body;
