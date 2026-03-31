@@ -70,29 +70,22 @@ export function BookingsTable({ bookings }: { bookings: any }) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "CONFIRMED":
-        return "bg-success/10 text-success border-success/20";
-      case "PENDING":
-        return "bg-warning/10 text-warning border-warning/20";
-      case "CANCELLED":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      case "COMPLETED":
-        return "bg-info/10 text-info border-info/20";
-      default:
-        return "bg-muted text-muted-foreground";
+      case "APPROVED": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+      case "PENDING": return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+      case "CANCELLED": return "bg-gray-500/10 text-gray-600 border-gray-500/20";
+      case "REJECTED": return "bg-red-500/10 text-red-600 border-red-500/20";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
-      case "PAID":
-        return "bg-success/10 text-success border-success/20";
-      case "PENDING":
-        return "bg-warning/10 text-warning border-warning/20";
-      case "FAILED":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      default:
-        return "bg-muted text-muted-foreground";
+      case "SUCCESS": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+      case "PENDING": return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+      case "FAILED": return "bg-red-500/10 text-red-600 border-red-500/20";
+      case "CANCELLED": return "bg-gray-500/10 text-gray-600 border-gray-500/20";
+      case "REFUNDED": return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -196,9 +189,8 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                   <TableHead className="font-semibold">Check Out</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
                   <TableHead className="font-semibold">Payment</TableHead>
-                  <TableHead className="font-semibold text-right">
-                    Amount
-                  </TableHead>
+                  <TableHead className="font-semibold">Booking Type</TableHead>
+                  <TableHead className="font-semibold text-right">Amount</TableHead>
                   <TableHead className="font-semibold text-right">
                     Actions
                   </TableHead>
@@ -257,27 +249,19 @@ export function BookingsTable({ bookings }: { bookings: any }) {
 
                       {booking?.payment ? (
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={getPaymentStatusColor(
-                              booking?.payment?.status
-                            )}
-                          >
+                          <Badge variant="outline" className={getPaymentStatusColor(booking?.payment?.status)}>
                             {booking?.payment?.status}
                           </Badge>
                         </TableCell>
                       ) : (
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={getPaymentStatusColor(
-                              booking?.payment?.status
-                            )}
-                          >
-                            {booking?.payment?.status}
-                          </Badge>
-                        </TableCell>
+                        <TableCell><Badge variant="outline">—</Badge></TableCell>
                       )}
+
+                      <TableCell>
+                        <Badge variant={booking.manualBooked ? "secondary" : "default"}>
+                          {booking.manualBooked ? "Broker" : "Online"}
+                        </Badge>
+                      </TableCell>
 
                       <TableCell className="text-right font-semibold">
                         {booking.totalAmount ? (

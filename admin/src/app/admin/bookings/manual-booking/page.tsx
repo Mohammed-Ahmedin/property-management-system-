@@ -77,13 +77,15 @@ export default function ManualBookingPage() {
   const discount = watch("discount");
   const totalAmount = watch("totalAmount");
 
-  // Auto-calculate total amount
+  // Auto-calculate total amount (tax and discount are percentages)
   const calculateTotal = () => {
     const base = Number(basePrice) || 0;
-    const tax = Number(taxAmount) || 0;
-    const disc = Number(discount) || 0;
-    const total = base + tax - disc;
-    setValue("totalAmount", Math.max(0, total));
+    const taxPct = Number(taxAmount) || 0;
+    const discPct = Number(discount) || 0;
+    const taxValue = base * (taxPct / 100);
+    const discValue = base * (discPct / 100);
+    const total = base + taxValue - discValue;
+    setValue("totalAmount", Math.max(0, Math.round(total * 100) / 100));
   };
 
   const handleFormSubmit = async (data: ManualBookingFormData) => {
@@ -370,48 +372,42 @@ export default function ManualBookingPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="taxAmount">Tax Amount</Label>
+                        <Label htmlFor="taxAmount">Tax (%)</Label>
                         <Input
                           id="taxAmount"
                           type="number"
-                          step="0.01"
+                          step="0.1"
                           min="0"
-                          placeholder="0.00"
+                          max="100"
+                          placeholder="0"
                           {...register("taxAmount", {
                             valueAsNumber: true,
                             onChange: calculateTotal,
                           })}
-                          className={cn(
-                            errors.taxAmount && "border-destructive"
-                          )}
+                          className={cn(errors.taxAmount && "border-destructive")}
                         />
                         {errors.taxAmount && (
-                          <p className="text-sm text-destructive">
-                            {errors.taxAmount.message}
-                          </p>
+                          <p className="text-sm text-destructive">{errors.taxAmount.message}</p>
                         )}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="discount">Discount</Label>
+                        <Label htmlFor="discount">Discount (%)</Label>
                         <Input
                           id="discount"
                           type="number"
-                          step="0.01"
+                          step="0.1"
                           min="0"
-                          placeholder="0.00"
+                          max="100"
+                          placeholder="0"
                           {...register("discount", {
                             valueAsNumber: true,
                             onChange: calculateTotal,
                           })}
-                          className={cn(
-                            errors.discount && "border-destructive"
-                          )}
+                          className={cn(errors.discount && "border-destructive")}
                         />
                         {errors.discount && (
-                          <p className="text-sm text-destructive">
-                            {errors.discount.message}
-                          </p>
+                          <p className="text-sm text-destructive">{errors.discount.message}</p>
                         )}
                       </div>
 
@@ -478,22 +474,16 @@ export default function ManualBookingPage() {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Tax</span>
+                          <span className="text-muted-foreground">Tax ({taxAmount || 0}%)</span>
                           <span className="font-medium">
-                            {taxAmount ? (
-                              <FormatedAmount amount={taxAmount} />
-                            ) : (
-                              <FormatedAmount amount={0} />
-                            )}
+                            <FormatedAmount amount={(Number(basePrice) || 0) * ((Number(taxAmount) || 0) / 100)} />
                           </span>
                         </div>
                         {discount && Number(discount) > 0 ? (
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">
-                              Discount
-                            </span>
+                            <span className="text-muted-foreground">Discount ({discount}%)</span>
                             <span className="font-medium text-green-600">
-                              <FormatedAmount amount={discount} />
+                              -<FormatedAmount amount={(Number(basePrice) || 0) * ((Number(discount) || 0) / 100)} />
                             </span>
                           </div>
                         ) : null}

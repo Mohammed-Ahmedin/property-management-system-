@@ -213,7 +213,7 @@ const DataContainer = ({ data }: Props) => {
 
       {/* Back */}
       <div className="py-3 px-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-primary hover:underline">
+        <button onClick={() => window.history.go(-1)} className="flex items-center gap-1 text-sm text-primary hover:underline">
           <ArrowLeft className="w-4 h-4" /> Back to search results
         </button>
       </div>
