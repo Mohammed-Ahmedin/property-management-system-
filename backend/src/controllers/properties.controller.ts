@@ -408,8 +408,6 @@ export default {
             bookings: {
               where: {
                 status: { in: ["PENDING", "APPROVED"] },
-                checkIn: { not: null },
-                checkOut: { not: null },
               },
               select: { checkIn: true, checkOut: true },
             },
