@@ -98,3 +98,16 @@ export const useGetBookingDetailById = ({ bookingId }: { bookingId: string }) =>
     },
   });
 };
+
+export const useGetActivities = () => {
+  const { isAuthenticated } = useAuthSession();
+  return useQuery({
+    queryKey: ["activities"],
+    enabled: isAuthenticated,
+    retry: false,
+    queryFn: async () => {
+      const response = await api.get("/activities?limit=100");
+      return response.data;
+    },
+  });
+};

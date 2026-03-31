@@ -39,10 +39,11 @@ const RoomsContainer = () => {
         room.roomNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         room.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Filter by status
+      // Filter by status — use availability field
       const matchesStatus =
         statusFilter === "all" ||
-        room.status?.toLowerCase() === statusFilter.toLowerCase();
+        (statusFilter === "available" && room.availability === true) ||
+        (statusFilter === "occupied" && room.availability === false);
 
       // Filter by type
       const matchesType =

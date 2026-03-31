@@ -67,8 +67,8 @@ const StaffsTab = ({ propertyId }: { propertyId: string }) => {
               <AddStaffModal propertyId={propertyId} />
             </div>
           ) : (
-            <div className="space-y-4">
-              {data?.map((staff: any) => (
+            <div className="space-y-3">
+              {data?.filter((staff: any) => staff.role !== "BROKER").map((staff: any) => (
                 <div
                   key={staff.id}
                   className="flex items-center justify-between p-4 border border-border rounded-lg"

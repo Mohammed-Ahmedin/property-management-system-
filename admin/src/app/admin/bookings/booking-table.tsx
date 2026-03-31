@@ -24,7 +24,7 @@ import { Search, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import FormatedAmount from "@/components/shared/formatted-amount";
 import { BookingDetailModal } from "@/components/booking-detail-modal";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 50;
 
 export function BookingsTable({ bookings }: { bookings: any }) {
   console.log({bookings})
