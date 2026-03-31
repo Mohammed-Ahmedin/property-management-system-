@@ -40,8 +40,8 @@ export default function ActivityDashboard() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const uniqueActions = Array.from(new Set(activities.map((a: any) => a.action)));
-  const uniqueStatuses = Array.from(new Set(activities.map((a: any) => a.status)));
+  const uniqueActions = Array.from(new Set(activities.map((a: any) => a.action as string)));
+  const uniqueStatuses = Array.from(new Set(activities.map((a: any) => a.status as string)));
 
   if (isFetching) return <LoaderState />;
 
