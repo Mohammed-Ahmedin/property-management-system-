@@ -24,14 +24,15 @@ export default {
     if (!propertyIds.length) return res.json([]);
 
     const staffRecords = await prisma.managedProperty.findMany({
-      where: { propertyId: { in: propertyIds }, role: "STAFF" },
+      where: { propertyId: { in: propertyIds }, role: { in: ["STAFF", "BROKER"] } },
       select: {
+        role: true,
         user: { select: { id: true, name: true, email: true, image: true, role: true } },
         property: { select: { id: true, name: true } },
       },
     });
 
-    // deduplicate by user id
+    // deduplicate by user id, keep role from ManagedProperty
     const seen = new Set<string>();
     const staffs = staffRecords
       .filter((r) => {
@@ -39,7 +40,7 @@ export default {
         seen.add(r.user.id);
         return true;
       })
-      .map((r) => r.user);
+      .map((r) => ({ ...r.user, role: r.role }));
 
     res.json(staffs);
   }),
