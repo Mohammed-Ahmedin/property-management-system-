@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar,
   User,
@@ -46,12 +47,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/hooks/api";
+import { useState } from "react";
 import {
   useGetBookingDetailById,
   useUpdateBookingStatusMutation,
 } from "@/hooks/api/use-bookings";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 interface BookingDetailModalProps {
   bookingId: string | null;
@@ -66,6 +67,10 @@ export function BookingDetailModal({
   setOpen,
   onOpenChange,
 }: BookingDetailModalProps) {
+  const { role } = useAuthSession();
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
   const {
     data: booking,
     isLoading,
@@ -79,26 +84,36 @@ export function BookingDetailModal({
   const updateBookingStatus = useUpdateBookingStatusMutation();
   const disableAllButtons = updateBookingStatus.isPending;
 
+  const isAdmin = role === "ADMIN";
+  const isBroker = role === "BROKER";
+  const isOwner = role === "OWNER";
+
   const handleApproveBooking = (id: string) => {
-    id &&
-      updateBookingStatus.mutateAsync({
-        bookingId: id,
-        newStatus: "APPROVED",
-      });
+    id && updateBookingStatus.mutateAsync({ bookingId: id, newStatus: "APPROVED" });
   };
-  const handleRejectBooking = (id: string) => {
-    id &&
-      updateBookingStatus.mutateAsync({
-        bookingId: id,
-        newStatus: "REJECTED",
-      });
+
+  const handleRejectBooking = (id: string, reason?: string) => {
+    id && updateBookingStatus.mutateAsync({
+      bookingId: id,
+      newStatus: "REJECTED",
+      reason,
+    }).then(() => { setRejectDialogOpen(false); setRejectReason(""); });
   };
+
   const handleCancelBooking = (id: string) => {
-    id &&
-      updateBookingStatus.mutateAsync({
-        bookingId: id,
-        newStatus: "CANCELLED",
-      });
+    id && updateBookingStatus.mutateAsync({ bookingId: id, newStatus: "CANCELLED" });
+  };
+
+  const handleBrokerApprove = (id: string) => {
+    id && updateBookingStatus.mutateAsync({ bookingId: id, newStatus: "APPROVED" });
+  };
+
+  const handleBrokerReject = (id: string, reason?: string) => {
+    id && updateBookingStatus.mutateAsync({
+      bookingId: id,
+      newStatus: "REJECTED",
+      reason,
+    }).then(() => { setRejectDialogOpen(false); setRejectReason(""); });
   };
 
   if (isLoading) {
@@ -856,37 +871,90 @@ export function BookingDetailModal({
             Last updated: {format(new Date(booking.updatedAt), "PPp")}
           </div>
           <div className="flex items-center gap-2">
-            {booking.status === BookingStatus.PENDING && (
+            {/* Broker: can pre-approve/reject → goes to PENDING_OWNER_APPROVAL */}
+            {isBroker && booking.status === BookingStatus.PENDING && (
               <>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleRejectBooking(booking.id)}
-                  disabled={disableAllButtons}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Reject
+                <Button variant="destructive" onClick={() => setRejectDialogOpen(true)} disabled={disableAllButtons}>
+                  <XCircle className="h-4 w-4 mr-2" /> Reject
                 </Button>
-                <Button
-                  onClick={() => handleApproveBooking(booking.id)}
-                  disabled={disableAllButtons}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Approve Booking
+                <Button onClick={() => handleBrokerApprove(booking.id)} disabled={disableAllButtons}>
+                  <CheckCircle2 className="h-4 w-4 mr-2" /> Approve
                 </Button>
               </>
             )}
-            {booking.status === BookingStatus.APPROVED && (
-              <Button
-                variant="destructive"
-                onClick={() => handleCancelBooking(booking.id)}
-                disabled={disableAllButtons}
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Cancel Booking
+            {isBroker && (booking.status as string) === "PENDING_OWNER_APPROVAL" && (
+              <Badge variant="outline" className="px-3 py-1.5 text-amber-600 border-amber-300 bg-amber-50">
+                Waiting for owner response
+              </Badge>
+            )}
+
+            {/* Owner/Staff: full control */}
+            {!isAdmin && !isBroker && (booking.status === BookingStatus.PENDING || (booking.status as string) === "PENDING_OWNER_APPROVAL") && (
+              <>
+                <Button variant="destructive" onClick={() => setRejectDialogOpen(true)} disabled={disableAllButtons}>
+                  <XCircle className="h-4 w-4 mr-2" /> Reject
+                </Button>
+                <Button onClick={() => handleApproveBooking(booking.id)} disabled={disableAllButtons}>
+                  <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Booking
+                </Button>
+              </>
+            )}
+            {!isAdmin && !isBroker && booking.status === BookingStatus.APPROVED && (
+              <Button variant="destructive" onClick={() => handleCancelBooking(booking.id)} disabled={disableAllButtons}>
+                <XCircle className="h-4 w-4 mr-2" /> Cancel Booking
               </Button>
             )}
+
+            {/* Admin: view only */}
+            {isAdmin && (
+              <Badge variant="outline" className="px-3 py-1.5 text-muted-foreground">View only</Badge>
+            )}
           </div>
-        </div>{" "}
+        </div>
+
+        {/* Reject Reason Dialog */}
+        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Reject Booking</DialogTitle>
+              <DialogDescription>Optionally provide a reason for rejection.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <Textarea
+                placeholder="Enter reason for rejection (optional)"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={3}
+              />
+              <button
+                type="button"
+                onClick={() => setRejectReason("")}
+                className={cn(
+                  "w-full text-sm py-2 px-3 rounded-lg border text-left transition-colors",
+                  !rejectReason
+                    ? "border-primary bg-primary/5 text-primary font-medium"
+                    : "border-border text-muted-foreground hover:bg-muted"
+                )}
+              >
+                ☐ None — reject without reason
+              </button>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
+              <Button
+                variant="destructive"
+                disabled={disableAllButtons}
+                onClick={() => isBroker
+                  ? handleBrokerReject(booking.id, rejectReason || undefined)
+                  : handleRejectBooking(booking.id, rejectReason || undefined)
+                }
+              >
+                {disableAllButtons ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Confirm Rejection
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

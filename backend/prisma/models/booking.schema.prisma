@@ -23,6 +23,9 @@ model Booking {
   // The admin or staff who approved the booking
   status BookingStatus @default(PENDING)
 
+  rejectionReason String? // optional reason when rejected
+  brokerApprovedAt DateTime? // when broker pre-approved, waiting for owner
+
   approvedBy   User?   @relation("ApprovedBookings", fields: [approvedById], references: [id])
   approvedById String?
 
@@ -116,6 +119,7 @@ enum PaymentStatus {
 
 enum BookingStatus {
   PENDING
+  PENDING_OWNER_APPROVAL
   APPROVED
   REJECTED
   CANCELLED

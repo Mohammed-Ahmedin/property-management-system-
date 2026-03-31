@@ -184,6 +184,7 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="font-semibold">Booking ID</TableHead>
                   <TableHead className="font-semibold">Guest</TableHead>
+                  <TableHead className="font-semibold">Property</TableHead>
                   <TableHead className="font-semibold">Room</TableHead>
                   <TableHead className="font-semibold">Check In</TableHead>
                   <TableHead className="font-semibold">Check Out</TableHead>
@@ -221,6 +222,9 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                             {booking.guestEmail || booking?.user?.email}
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm font-medium">{booking.property?.name || "—"}</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">

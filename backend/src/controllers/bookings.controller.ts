@@ -492,6 +492,7 @@ export default {
       include: {
         user: true,
         room: true,
+        property: { select: { id: true, name: true } },
         payment: true,
         additionalServices: true,
       },
@@ -722,16 +723,24 @@ export default {
   }),
   changeBookingStatus: tryCatch(async (req, res) => {
     const { bookingId } = req.params;
-    const { status } = req.body;
+    const { status, reason } = req.body;
 
     const userId = (req as any).user.id;
     const userRole = (req as any).user.role;
 
-    const validStatuses = ["APPROVED", "REJECTED", "CANCELLED"];
+    const validStatuses = ["APPROVED", "REJECTED", "CANCELLED", "PENDING_OWNER_APPROVAL"];
     if (!validStatuses.includes(status)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid status update.", success: false });
+      return res.status(400).json({ message: "Invalid status update.", success: false });
+    }
+
+    // ADMIN cannot approve/reject bookings
+    if (userRole === "ADMIN" && ["APPROVED", "REJECTED", "PENDING_OWNER_APPROVAL"].includes(status)) {
+      return res.status(403).json({ message: "Admins cannot approve or reject bookings.", success: false });
+    }
+
+    // BROKER cannot cancel bookings
+    if (userRole === "BROKER" && status === "CANCELLED") {
+      return res.status(403).json({ message: "Brokers cannot cancel bookings.", success: false });
     }
 
     // Determine which properties the user can access
@@ -739,126 +748,114 @@ export default {
 
     switch (userRole) {
       case "ADMIN":
-        // Admin can access all properties
         break;
-
       case "OWNER":
       case "STAFF":
       case "BROKER":
         const managed = await prisma.managedProperty.findMany({
-          where: { userId, role: { in: [userRole, "STAFF", "BROKER", "OWNER"] } },
+          where: { userId, role: { in: [userRole] } },
           select: { propertyId: true },
         });
-
         propertyIds = managed.map((m) => m.propertyId);
-
         if (!propertyIds.length) {
-          return res.status(403).json({
-            message: "Access denied. No assigned properties.",
-            success: false,
-          });
+          return res.status(403).json({ message: "Access denied. No assigned properties.", success: false });
         }
         break;
-
       default:
-        return res
-          .status(403)
-          .json({ message: "Access denied.", success: false });
+        return res.status(403).json({ message: "Access denied.", success: false });
     }
 
-    // Get the booking to ensure it belongs to an allowed property
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      select: {
-        id: true,
-        propertyId: true,
-        status: true,
-        checkIn: true,
-        checkOut: true,
-        roomId: true,
-      },
+      select: { id: true, propertyId: true, status: true, checkIn: true, checkOut: true, roomId: true },
     });
 
-    if (!booking) {
-      return res
-        .status(404)
-        .json({ message: "Booking not found.", success: false });
-    }
+    if (!booking) return res.status(404).json({ message: "Booking not found.", success: false });
 
     if (propertyIds.length && !propertyIds.includes(booking.propertyId)) {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized property.", success: false });
+      return res.status(403).json({ message: "Unauthorized property.", success: false });
     }
 
-    // Prevent invalid transitions
     if (booking.status === "APPROVED" && status === "APPROVED") {
-      return res
-        .status(400)
-        .json({ message: "Booking already approved.", success: false });
+      return res.status(400).json({ message: "Booking already approved.", success: false });
     }
     if (booking.status === "CANCELLED" && status !== "CANCELLED") {
-      return res
-        .status(400)
-        .json({ message: "Booking already cancelled.", success: false });
+      return res.status(400).json({ message: "Booking already cancelled.", success: false });
     }
 
-    // Run update safely inside a transaction
+    // Broker approve/reject → set to PENDING_OWNER_APPROVAL with broker note
+    const isBrokerAction = userRole === "BROKER" && ["APPROVED", "REJECTED"].includes(status);
+    const effectiveStatus = isBrokerAction ? "PENDING_OWNER_APPROVAL" : status;
+
+    const now = new Date();
+    const activityDesc = isBrokerAction
+      ? `Broker pre-${status.toLowerCase()} booking #${bookingId.slice(0, 8)} on ${now.toLocaleString()}. Waiting for owner response.`
+      : `Booking ${status.toLowerCase()} by ${userRole} on ${now.toLocaleString()}. Booking ID: ${bookingId.slice(0, 8)}.${reason ? ` Reason: ${reason}` : ""}`;
+
     await prisma.$transaction(async (tx) => {
-      if (["CANCELLED", "REJECTED"].includes(status)) {
-        // Preserve dates in cancelled fields, set checkIn/checkOut to same value (can't be null)
+      if (["CANCELLED", "REJECTED"].includes(effectiveStatus)) {
         await tx.booking.update({
           where: { id: bookingId },
           data: {
-            status,
+            status: effectiveStatus as any,
             cancelledCheckIn: booking.checkIn,
             cancelledCheckOut: booking.checkOut,
             approvedById: null,
-            updatedAt: new Date(),
+            rejectionReason: reason || null,
+            updatedAt: now,
           },
         });
 
-        // Update payment status
-        const payment = await tx.payment.findUnique({
-          where: { bookingId: booking.id },
-        });
-
+        const payment = await tx.payment.findUnique({ where: { bookingId: booking.id } });
         if (payment) {
           await tx.payment.update({
             where: { id: payment.id },
-            data: {
-              status: payment.status === "SUCCESS" ? "REFUNDED" : "CANCELLED",
-            },
+            data: { status: payment.status === "SUCCESS" ? "REFUNDED" : "CANCELLED" },
           });
         }
 
-        // Log the action
         await tx.activity.create({
           data: {
             bookingId: booking.id,
             propertyId: booking.propertyId,
             roomId: booking.roomId,
             userId,
-            action: status === "REJECTED" ? "REJECTED_BOOKING" : "CANCELLED_BOOKING",
-            description: `Booking ${status.toLowerCase()} by ${userRole}.`,
+            action: effectiveStatus === "REJECTED" ? "REJECTED_BOOKING" : "CANCELLED_BOOKING",
+            description: activityDesc,
           },
         });
-      } else {
-        // Approve
+      } else if (effectiveStatus === "PENDING_OWNER_APPROVAL") {
         await tx.booking.update({
           where: { id: bookingId },
           data: {
-            status,
-            approvedById: status === "APPROVED" ? userId : null,
-            updatedAt: new Date(),
+            status: "PENDING_OWNER_APPROVAL" as any,
+            brokerApprovedAt: now,
+            updatedAt: now,
+          },
+        });
+        await tx.activity.create({
+          data: {
+            bookingId: booking.id,
+            propertyId: booking.propertyId,
+            roomId: booking.roomId,
+            userId,
+            action: "UPDATED_BOOKING",
+            description: activityDesc,
+          },
+        });
+      } else {
+        // APPROVED by owner/staff
+        await tx.booking.update({
+          where: { id: bookingId },
+          data: {
+            status: effectiveStatus as any,
+            approvedById: effectiveStatus === "APPROVED" ? userId : null,
+            updatedAt: now,
           },
         });
 
-        // Update payment to SUCCESS on approval
-        if (status === "APPROVED") {
-          const payment = await tx.payment.findUnique({
-            where: { bookingId: booking.id },
-          });
+        if (effectiveStatus === "APPROVED") {
+          const payment = await tx.payment.findUnique({ where: { bookingId: booking.id } });
           if (payment && payment.status === "PENDING") {
             await tx.payment.update({
               where: { id: payment.id },
@@ -867,7 +864,6 @@ export default {
           }
         }
 
-        // Log the action
         await tx.activity.create({
           data: {
             bookingId: booking.id,
@@ -875,16 +871,17 @@ export default {
             roomId: booking.roomId,
             userId,
             action: "APPROVED_BOOKING",
-            description: `Booking approved by ${userRole}.`,
+            description: activityDesc,
           },
         });
       }
     });
 
-    return res.status(200).json({
-      message: `Booking ${status.toLowerCase()} successfully.`,
-      success: true,
-    });
+    const responseMessage = isBrokerAction
+      ? `Booking sent to owner for ${status.toLowerCase()} approval.`
+      : `Booking ${effectiveStatus.toLowerCase()} successfully.`;
+
+    return res.status(200).json({ message: responseMessage, success: true });
   }),
 };
 

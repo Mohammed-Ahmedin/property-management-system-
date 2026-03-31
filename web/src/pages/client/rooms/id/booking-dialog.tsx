@@ -132,8 +132,23 @@ export default function BookingDialog({
     }
   };
 
+  // Validate that selected date range doesn't overlap any booked range
+  const hasOverlap = (ci: string, co: string) => {
+    if (!ci || !co) return false;
+    const start = new Date(ci);
+    const end = new Date(co);
+    return bookedRanges.some(({ checkIn: bci, checkOut: bco }) => {
+      if (!bci || !bco) return false;
+      const bs = new Date(bci);
+      const be = new Date(bco);
+      return start <= be && end >= bs;
+    });
+  };
+
+  const rangeOverlap = hasOverlap(checkIn, checkOut);
+
   const handleNextStep = () => {
-    if (step === "booking" && checkIn && checkOut && !dateError) {
+    if (step === "booking" && checkIn && checkOut && !dateError && !rangeOverlap) {
       setStep("receipt");
     }
   };
@@ -293,9 +308,11 @@ export default function BookingDialog({
         size="lg"
         className="w-full"
         onClick={handleNextStep}
-        disabled={!room.availability || !checkIn || !checkOut || !!dateError}
+        disabled={!checkIn || !checkOut || !!dateError || rangeOverlap}
       >
-        Review Booking
+        {rangeOverlap
+          ? "Selected dates overlap a booked period"
+          : "Review Booking"}
       </Button>
     </div>
   );

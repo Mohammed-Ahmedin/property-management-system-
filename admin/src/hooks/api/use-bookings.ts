@@ -23,13 +23,14 @@ export const useManualBookMutation = () => {
 export const useUpdateBookingStatusMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ bookingId, newStatus }: { bookingId: string; newStatus: any }) => {
-      const response = await api.post(`/bookings/management/${bookingId}/status`, { status: newStatus });
+    mutationFn: async ({ bookingId, newStatus, reason }: { bookingId: string; newStatus: any; reason?: string }) => {
+      const response = await api.post(`/bookings/management/${bookingId}/status`, { status: newStatus, reason });
       return response.data;
     },
     onSuccess: ({ message }, { bookingId }) => {
       toast.message(message);
       queryClient.invalidateQueries({ queryKey: ["bookings", bookingId] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || error.message || "Something went wrong");
