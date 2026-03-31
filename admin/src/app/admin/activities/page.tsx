@@ -22,7 +22,7 @@ export default function ActivityDashboard() {
   const activities = activitiesData?.data || [];
 
   const filteredActivities = useMemo(() => {
-    return activities.filter((activity) => {
+    return activities.filter((activity: any) => {
       const matchesSearch =
         searchQuery === "" ||
         activity.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
