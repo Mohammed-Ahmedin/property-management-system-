@@ -58,6 +58,7 @@ export const useGetProtectedPropertyForListQuery = (search?: string) => {
     queryKey: ["protected_properties_for_list"],
     enabled: isAuthenticated,
     retry: false,
+    staleTime: 0,
     queryFn: async () => {
       const response = await api.get<PropertyForList[]>(`/properties/management/for-list`);
       return response.data;

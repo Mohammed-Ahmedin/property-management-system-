@@ -93,7 +93,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Badge>{"Pending"}</Badge>
+                <Badge variant={property.status === "APPROVED" ? "default" : property.status === "REJECTED" ? "destructive" : "secondary"}
+                  className={property.status === "APPROVED" ? "bg-emerald-100 text-emerald-700 border-emerald-200" : property.status === "REJECTED" ? "" : "bg-amber-100 text-amber-700 border-amber-200"}>
+                  {property.status || "PENDING"}
+                </Badge>
               </div>
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
@@ -124,12 +127,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
               <ExternalLink className="ml-2 h-3.5 w-3.5" />
             </Button>
             {(role === "ADMIN" || role === "OWNER") && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setConfirmDelete(true)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
+              <Button variant="outline" size="sm" className="text-muted-foreground" onClick={() => setConfirmDelete(true)}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> Void
               </Button>
             )}
           </div>

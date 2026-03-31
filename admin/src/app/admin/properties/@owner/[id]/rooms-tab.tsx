@@ -49,37 +49,50 @@ const RoomsTab = ({ propertyId }: { propertyId: string }) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rooms.map((room) => (
-                <Card key={room.id} className="pt-0 overflow-hidden">
-                  {room.images?.[0]?.url && (
-                    <img src={room.images[0].url} alt={room.name} className="w-full h-32 object-cover" />
-                  )}
-                  <CardHeader>
-                    <CardTitle className="text-base">{room.name}</CardTitle>
-                    <CardDescription>{room.type}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-between items-center">
-                      <FormatedAmount amount={room.price} suffix="/night" />
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost" size="sm"
-                          onClick={() => router.push(`/admin/rooms/${room.id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost" size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => setConfirmId(room.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+              {rooms.map((room) => {
+                const today = new Date(); today.setHours(0,0,0,0);
+                const activeBookings = ((room as any).bookings || []).filter(
+                  (b: any) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today && ["PENDING","APPROVED"].includes(b.status)
+                );
+                const isAvailable = activeBookings.length === 0 && room.availability;
+                const latestCheckout = activeBookings.reduce((latest: Date | null, b: any) => {
+                  const co = new Date(b.checkOut); return !latest || co > latest ? co : latest;
+                }, null);
+                return (
+                  <Card key={room.id} className="pt-0 overflow-hidden">
+                    {(room as any).images?.[0]?.url && (
+                      <img src={(room as any).images[0].url} alt={room.name} className="w-full h-32 object-cover" />
+                    )}
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-base">{room.name}</CardTitle>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isAvailable ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                          {isAvailable ? "Available" : "Unavailable"}
+                        </span>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardDescription>{room.type}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {!isAvailable && latestCheckout && (
+                        <p className="text-xs text-red-500 mb-2">
+                          Booked until {latestCheckout.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <FormatedAmount amount={room.price} suffix="/night" />
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/rooms/${room.id}`)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmId(room.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </CardContent>
