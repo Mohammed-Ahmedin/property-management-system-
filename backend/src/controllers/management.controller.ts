@@ -53,9 +53,10 @@ export default {
       include: {
         managers: {
           where: {
-            role: "STAFF",
+            role: { in: ["STAFF", "BROKER"] },
           },
           select: {
+            role: true,
             user: {
               select: {
                 id: true,
@@ -70,7 +71,7 @@ export default {
     });
 
     let staffs = property.managers.map((m) => {
-      return m.user;
+      return { ...m.user, role: m.role };
     });
 
     res.status(200).json(staffs);

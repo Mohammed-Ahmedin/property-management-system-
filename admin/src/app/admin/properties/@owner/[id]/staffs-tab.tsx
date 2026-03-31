@@ -7,12 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   useGetGhStaffsQuery,
   useRemoveStaffFromGHMutation,
 } from "@/hooks/api/use-staff";
 import { AlertTriangle, Trash2, Users } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { AddStaffModal } from "./add-staff-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { Avatar } from "@/components/shared/avatar";
@@ -72,35 +73,24 @@ const StaffsTab = ({ propertyId }: { propertyId: string }) => {
                   key={staff.id}
                   className="flex items-center justify-between p-4 border border-border rounded-lg"
                 >
-                  <div className="flex gap-2 items-center">
-                    <Avatar
-                      name={staff.name}
-                      fallback={staff.fallback}
-                      src={staff?.image}
-                    />
+                  <div className="flex gap-3 items-center">
+                    <Avatar name={staff.name} fallback={staff.name?.[0]} src={staff?.image} />
                     <div>
-                      <p className="font-medium text-foreground">
-                        {staff.name}
-                      </p>
+                      <p className="font-medium text-foreground">{staff.name}</p>
+                      <p className="text-sm text-muted-foreground">{staff.email}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={staff.role === "BROKER" ? "default" : "secondary"}>
+                      {staff.role === "BROKER" ? "Broker" : "Staff"}
+                    </Badge>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() =>
-                        removeStaffMutation.mutate({
-                          propertyId,
-                          userId: staff.id,
-                        })
-                      }
+                      onClick={() => removeStaffMutation.mutate({ propertyId, userId: staff.id })}
                       disabled={removeStaffMutation.isPending}
                     >
-                      {removeStaffMutation.isPending ? (
-                        <Spinner />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
+                      {removeStaffMutation.isPending ? <Spinner /> : <Trash2 className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>

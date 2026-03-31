@@ -209,10 +209,17 @@ export function BookingDetailModal({
               </DialogDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" title="Download" onClick={() => {
+                const content = `Booking #${booking.id}\nStatus: ${booking.status}\nCheck-in: ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}\nCheck-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}\nGuests: ${booking.guests}\nTotal: ${booking.currency} ${booking.totalAmount}`;
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `booking-${booking.id.slice(0, 8)}.txt`; a.click();
+                URL.revokeObjectURL(url);
+              }}>
                 <Download className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" title="Print" onClick={() => window.print()}>
                 <Printer className="h-4 w-4" />
               </Button>
               <DropdownMenu>
@@ -222,13 +229,20 @@ export function BookingDetailModal({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Send Email</DropdownMenuItem>
-                  <DropdownMenuItem>Send SMS</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const subject = encodeURIComponent(`Booking Confirmation #${booking.id.slice(0, 8)}`);
+                    const body = encodeURIComponent(`Dear ${booking.user?.name || booking.guestName || "Guest"},\n\nYour booking is ${booking.status}.\nCheck-in: ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}\nCheck-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}\n\nThank you.`);
+                    window.open(`mailto:${booking.user?.email || booking.guestEmail || ""}?subject=${subject}&body=${body}`);
+                  }}>Send Email</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const phone = booking.user?.phone || booking.guestPhone || "";
+                    if (phone) window.open(`sms:${phone}`);
+                  }}>Send SMS</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Duplicate Booking</DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive"
                     disabled={disableAllButtons}
+                    onClick={() => handleCancelBooking(booking.id)}
                   >
                     Delete Booking
                   </DropdownMenuItem>
@@ -238,9 +252,7 @@ export function BookingDetailModal({
               <Button
                 variant="destructive"
                 size="icon"
-                onClick={() => {
-                  setOpen(false);
-                }}
+                onClick={() => setOpen(false)}
                 disabled={disableAllButtons}
               >
                 <X className="h-4 w-4" />
@@ -808,19 +820,14 @@ export function BookingDetailModal({
                             <div className="absolute left-0 top-1 h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
                             <div className="space-y-1">
                               <div className="flex items-center justify-between">
-                                <p className="font-medium">{activity.type}</p>
+                                <p className="font-medium capitalize">{(activity.action || activity.type || "").replace(/_/g, " ").toLowerCase()}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {format(new Date(activity.createdAt), "PPp")}
+                                  {format(new Date(activity.timestamp || activity.createdAt), "PPp")}
                                 </p>
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 {activity.description}
                               </p>
-                              {activity.performedBy && (
-                                <p className="text-xs text-muted-foreground">
-                                  by {activity.performedBy.name}
-                                </p>
-                              )}
                             </div>
                           </div>
                         ))}

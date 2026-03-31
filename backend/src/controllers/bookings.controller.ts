@@ -806,21 +806,19 @@ export default {
     // Run update safely inside a transaction
     await prisma.$transaction(async (tx) => {
       if (["CANCELLED", "REJECTED"].includes(status)) {
-        // Preserve and clear dates
+        // Preserve dates in cancelled fields, set checkIn/checkOut to same value (can't be null)
         await tx.booking.update({
           where: { id: bookingId },
           data: {
             status,
             cancelledCheckIn: booking.checkIn,
             cancelledCheckOut: booking.checkOut,
-            checkIn: null,
-            checkOut: null,
             approvedById: null,
             updatedAt: new Date(),
           },
         });
 
-        // Optional: handle payment cleanup
+        // Update payment status
         const payment = await tx.payment.findUnique({
           where: { bookingId: booking.id },
         });
@@ -834,17 +832,19 @@ export default {
           });
         }
 
-        // // Log the action
-        // await tx.activity.create({
-        //   data: {
-        //     bookingId: booking.id,
-        //     userId,
-        //     action: `BOOKING_${status}`,
-        //     message: `Booking ${status.toLowerCase()} — original dates preserved.`,
-        //   },
-        // });
+        // Log the action
+        await tx.activity.create({
+          data: {
+            bookingId: booking.id,
+            propertyId: booking.propertyId,
+            roomId: booking.roomId,
+            userId,
+            action: status === "REJECTED" ? "REJECTED_BOOKING" : "CANCELLED_BOOKING",
+            description: `Booking ${status.toLowerCase()} by ${userRole}.`,
+          },
+        });
       } else {
-        // Simple approve
+        // Approve
         await tx.booking.update({
           where: { id: bookingId },
           data: {
@@ -854,14 +854,30 @@ export default {
           },
         });
 
-        // await tx.activity.create({
-        //   data: {
-        //     bookingId: booking.id,
-        //     userId,
-        //     action: `BOOKING_${status}`,
-        //     message: `Booking ${status.toLowerCase()} by ${userRole}.`,
-        //   },
-        // });
+        // Update payment to SUCCESS on approval
+        if (status === "APPROVED") {
+          const payment = await tx.payment.findUnique({
+            where: { bookingId: booking.id },
+          });
+          if (payment && payment.status === "PENDING") {
+            await tx.payment.update({
+              where: { id: payment.id },
+              data: { status: "SUCCESS", amount: payment.pendingAmount ?? payment.amount },
+            });
+          }
+        }
+
+        // Log the action
+        await tx.activity.create({
+          data: {
+            bookingId: booking.id,
+            propertyId: booking.propertyId,
+            roomId: booking.roomId,
+            userId,
+            action: "APPROVED_BOOKING",
+            description: `Booking approved by ${userRole}.`,
+          },
+        });
       }
     });
 

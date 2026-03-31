@@ -44,12 +44,12 @@ const DataContainer = ({ data }: Props) => {
     : 0;
 
   const ratingLabel =
-    avgRating >= 9 ? "Exceptional"
-    : avgRating >= 8 ? "Excellent"
-    : avgRating >= 7 ? "Very Good"
+    avgRating >= 4.5 ? "Exceptional"
+    : avgRating >= 4 ? "Excellent"
+    : avgRating >= 3.5 ? "Very Good"
     : avgRating > 0 ? "Good" : null;
 
-  const starCount = Math.round(avgRating / 2); // convert 10-scale to 5-star
+  const starCount = Math.round(avgRating); // reviews are already 1-5 scale
 
   const allImages = (property.images || []).filter((img: any) => !img.category || img.category === "property");
   const nearbyImgs = (property.images || []).filter((img: any) => img.category === "nearby");
