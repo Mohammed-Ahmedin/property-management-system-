@@ -12,7 +12,7 @@ import {
   Home,
   User,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, eachDayOfInterval } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,7 @@ export default function ManualBookingPage() {
   const [checkInDate, setCheckInDate] = useState<Date>();
   const [checkOutDate, setCheckOutDate] = useState<Date>();
   const [takenDates, setTakenDates] = useState<string[]>([]);
+  const [bookedRanges, setBookedRanges] = useState<{ checkIn: Date; checkOut: Date }[]>([]);
 
   const {
     register,
@@ -71,6 +72,18 @@ export default function ManualBookingPage() {
 
   const router = useRouter();
   const manualBookMutation = useManualBookMutation();
+
+  // Build set of booked dates for disabling in calendar
+  const bookedDateSet = new Set<string>();
+  bookedRanges.forEach(({ checkIn, checkOut }) => {
+    try {
+      eachDayOfInterval({ start: checkIn, end: checkOut }).forEach((d) =>
+        bookedDateSet.add(d.toISOString().split("T")[0])
+      );
+    } catch {}
+  });
+  const isBookedDate = (date: Date) => bookedDateSet.has(date.toISOString().split("T")[0]);
+  const isPastDate = (date: Date) => { const t = new Date(); t.setHours(0,0,0,0); return date < t; };
 
   const basePrice = watch("basePrice");
   const taxAmount = watch("taxAmount");
@@ -133,7 +146,11 @@ export default function ManualBookingPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Room Selection */}
                 <Card>
-                  <PropertyRoomSelect errors={errors} setValue={setValue} />
+                  <PropertyRoomSelect
+                    errors={errors}
+                    setValue={setValue}
+                    onBookedRangesChange={setBookedRanges}
+                  />
                 </Card>
 
                 {/* Guest Information */}
@@ -247,11 +264,12 @@ export default function ManualBookingPage() {
                             <Calendar
                               mode="single"
                               selected={checkInDate}
+                              disabled={(date) => isPastDate(date) || isBookedDate(date)}
+                              modifiers={{ booked: isBookedDate }}
+                              modifiersClassNames={{ booked: "line-through text-red-400 opacity-60" }}
                               onSelect={(date) => {
                                 setCheckInDate(date);
-                                if (date) {
-                                  setValue("checkIn", date.toISOString());
-                                }
+                                if (date) setValue("checkIn", date.toISOString());
                               }}
                               initialFocus
                             />
@@ -291,15 +309,15 @@ export default function ManualBookingPage() {
                             <Calendar
                               mode="single"
                               selected={checkOutDate}
+                              disabled={(date) =>
+                                isPastDate(date) || isBookedDate(date) || (checkInDate ? date <= checkInDate : false)
+                              }
+                              modifiers={{ booked: isBookedDate }}
+                              modifiersClassNames={{ booked: "line-through text-red-400 opacity-60" }}
                               onSelect={(date) => {
                                 setCheckOutDate(date);
-                                if (date) {
-                                  setValue("checkOut", date.toISOString());
-                                }
+                                if (date) setValue("checkOut", date.toISOString());
                               }}
-                              disabled={(date) =>
-                                checkInDate ? date <= checkInDate : false
-                              }
                               initialFocus
                             />
                           </PopoverContent>

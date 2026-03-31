@@ -26,34 +26,24 @@ export default function BookingCard({
     <Card className="sticky top-20">
       <CardHeader>
         <div className="space-y-2">
-          <div className="flex items-baseline gap-2">
-            <FormatedAmount
-              amount={room.price}
-              suffix="/night"
-              className="text-2xl font-bold "
-            />
-            <span className="text-muted-foreground">/night</span>
-          </div>
-          <p className="text-sm text-green-600 dark:text-green-400">
+          <FormatedAmount
+            amount={room.price}
+            suffix="/night"
+            className="text-2xl font-bold"
+          />
+          <p className={`text-sm ${room.availability ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
             {room.availability ? "✓ Available" : "✗ Not Available"}
           </p>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <div className="text-sm">
-            <span className="text-muted-foreground">Max Occupancy:</span>
-            <span className="ml-2 font-medium">{room.maxOccupancy} Guests</span>
-          </div>
+        <div className="text-sm">
+          <span className="text-muted-foreground">Max Occupancy:</span>
+          <span className="ml-2 font-medium">{room.maxOccupancy} Guests</span>
         </div>
 
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={() => handleOpenBookingModal()}
-          disabled={!room.availability}
-        >
+        <Button size="lg" className="w-full" onClick={() => handleOpenBookingModal()}>
           Book Now
         </Button>
 
