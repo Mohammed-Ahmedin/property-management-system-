@@ -1,6 +1,8 @@
-import { UserRoleType } from "@/types";
-import React from "react";
-import { ReactNode } from "react";
+"use client";
+
+import React, { ReactNode } from "react";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import LoaderState from "@/components/shared/loader-state";
 
 const Layout = ({
   admin,
@@ -13,11 +15,14 @@ const Layout = ({
   owner: ReactNode;
   staff: ReactNode;
 }) => {
-  const currentUserRole: UserRoleType = UserRoleType.OWNER;
+  const { role, isPending } = useAuthSession();
 
-  if (currentUserRole === UserRoleType.OWNER) return owner;
-  if (currentUserRole === UserRoleType.ADMIN) return owner;
-  if (currentUserRole === UserRoleType.STAFF) return owner;
-  if (currentUserRole === UserRoleType.BROKER) return owner;
+  if (isPending) return <LoaderState />;
+
+  if (role === "ADMIN") return <>{admin}</>;
+  if (role === "BROKER") return <>{broker}</>;
+  if (role === "STAFF") return <>{staff}</>;
+  return <>{owner}</>;
 };
+
 export default Layout;

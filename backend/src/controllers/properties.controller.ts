@@ -38,7 +38,8 @@ export default {
           latitude: { not: null },
           longitude: { not: null },
           property: {
-            visibility: true, // optional filter for visible properties
+            visibility: true,
+            status: "APPROVED",
           },
         },
         include: {
@@ -174,7 +175,7 @@ export default {
       const max = parseInt((maxPrice as string) || "100000", 10);
 
       // Build Prisma filters dynamically
-      const filters: any = { AND: [] };
+      const filters: any = { AND: [{ status: "APPROVED" }, { visibility: true }] };
 
       // 🏙️ Location filters (city, subcity, country)
       if (city || subcity || country) {
@@ -381,7 +382,7 @@ export default {
       },
       orderBy: { createdAt: "desc" },
       take: 3,
-      where: {},
+      where: { status: "APPROVED", visibility: true },
     });
 
     res.json({ data: properties, success: true });
@@ -962,6 +963,28 @@ export default {
     const staffs = managers.map((m) => m.user);
 
     res.json({ ...rest, staffs });
+  }),
+
+  changePropertyStatus: tryCatch(async (req, res) => {
+    const { id: propertyId } = req.params;
+    const { status, reason } = req.body;
+    const userRole = (req as any).user?.role;
+
+    if (userRole !== "ADMIN") {
+      return res.status(403).json({ message: "Only admins can approve or reject properties." });
+    }
+
+    const validStatuses = ["APPROVED", "REJECTED", "PENDING"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status." });
+    }
+
+    const property = await prisma.property.update({
+      where: { id: propertyId },
+      data: { status, statusReason: reason || null },
+    });
+
+    return res.json({ success: true, message: `Property ${status.toLowerCase()} successfully.`, data: property });
   }),
 
   requestNewProperty: tryCatch(async (req, res, next) => {

@@ -123,3 +123,20 @@ export const useUpdatePropertyMutation = () => {
     },
   });
 };
+
+export const useChangePropertyStatusMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { id: string; status: string; reason?: string }>({
+    mutationFn: async ({ id, status, reason }) => {
+      const response = await api.post(`/properties/${id}/status`, { status, reason });
+      return response.data;
+    },
+    onSuccess: ({ message }) => {
+      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update property status");
+    },
+  });
+};
