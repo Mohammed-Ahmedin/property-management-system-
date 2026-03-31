@@ -74,6 +74,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
         onClose={() => setIsDialogOpen(false)}
         room={roomData}
         services={roomData.services}
+        bookedRanges={(roomData as any).bookings || []}
         handleOpenBookingModal={handleOpenBookingModal}
       />
     </>

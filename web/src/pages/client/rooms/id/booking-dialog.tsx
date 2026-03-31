@@ -53,6 +53,7 @@ interface BookingDialogProps {
   handleOpenBookingModal: () => void;
   room: Room;
   services: Service[];
+  bookedRanges?: { checkIn: string | Date; checkOut: string | Date }[];
 }
 
 export default function BookingDialog({
@@ -60,6 +61,7 @@ export default function BookingDialog({
   onClose,
   room,
   services,
+  bookedRanges = [],
   handleOpenBookingModal,
 }: BookingDialogProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -207,6 +209,7 @@ export default function BookingDialog({
           checkOut={checkOut}
           setCheckIn={setCheckIn}
           setCheckOut={setCheckOut}
+          bookedRanges={bookedRanges}
         />
 
         {/* Guests */}

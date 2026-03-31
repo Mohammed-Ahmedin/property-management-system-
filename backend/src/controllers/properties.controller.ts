@@ -405,12 +405,33 @@ export default {
             images: true,
             features: true,
             services: true,
+            bookings: {
+              where: {
+                status: { in: ["PENDING", "APPROVED"] },
+                checkIn: { not: null },
+                checkOut: { not: null },
+              },
+              select: { checkIn: true, checkOut: true },
+            },
           },
         },
       },
     });
 
-    res.json({ data: propertyDoc, success: true });
+    // Compute real availability per room
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const data = {
+      ...propertyDoc,
+      rooms: propertyDoc?.rooms.map((r) => ({
+        ...r,
+        availability: !r.bookings.some(
+          (b) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today
+        ),
+      })),
+    };
+
+    res.json({ data, success: true });
   }),
 
   // management

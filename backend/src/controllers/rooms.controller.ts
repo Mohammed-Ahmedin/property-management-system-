@@ -31,6 +31,14 @@ export default {
         images: true,
         features: true,
         services: true,
+        bookings: {
+          where: {
+            status: { in: ["PENDING", "APPROVED"] },
+            checkIn: { not: null },
+            checkOut: { not: null },
+          },
+          select: { checkIn: true, checkOut: true },
+        },
       },
     });
 
@@ -38,7 +46,17 @@ export default {
       return res.status(404).json({ message: "Room not found" });
     }
 
-    res.status(200).json({ data: room, success: true });
+    // Compute real availability: no active bookings overlapping today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const hasActiveBooking = room.bookings.some(
+      (b) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today
+    );
+
+    res.status(200).json({
+      data: { ...room, availability: !hasActiveBooking },
+      success: true,
+    });
   }),
 
   //management
