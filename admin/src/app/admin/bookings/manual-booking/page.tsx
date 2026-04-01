@@ -91,10 +91,10 @@ export default function ManualBookingPage() {
   const totalAmount = watch("totalAmount");
 
   // Auto-calculate total amount (tax and discount are percentages)
-  const calculateTotal = () => {
-    const base = Number(basePrice) || 0;
-    const taxPct = Number(taxAmount) || 0;
-    const discPct = Number(discount) || 0;
+  const calculateTotal = (overrides?: { base?: number; tax?: number; disc?: number }) => {
+    const base = overrides?.base ?? Number(basePrice) ?? 0;
+    const taxPct = overrides?.tax ?? Number(taxAmount) ?? 0;
+    const discPct = overrides?.disc ?? Number(discount) ?? 0;
     const taxValue = base * (taxPct / 100);
     const discValue = base * (discPct / 100);
     const total = base + taxValue - discValue;
@@ -376,7 +376,7 @@ export default function ManualBookingPage() {
                           placeholder="100.00"
                           {...register("basePrice", {
                             valueAsNumber: true,
-                            onChange: calculateTotal,
+                            onChange: (e) => calculateTotal({ base: Number(e.target.value) }),
                           })}
                           className={cn(
                             errors.basePrice && "border-destructive"
@@ -400,7 +400,7 @@ export default function ManualBookingPage() {
                           placeholder="0"
                           {...register("taxAmount", {
                             valueAsNumber: true,
-                            onChange: calculateTotal,
+                            onChange: (e) => calculateTotal({ tax: Number(e.target.value) }),
                           })}
                           className={cn(errors.taxAmount && "border-destructive")}
                         />
@@ -420,7 +420,7 @@ export default function ManualBookingPage() {
                           placeholder="0"
                           {...register("discount", {
                             valueAsNumber: true,
-                            onChange: calculateTotal,
+                            onChange: (e) => calculateTotal({ disc: Number(e.target.value) }),
                           })}
                           className={cn(errors.discount && "border-destructive")}
                         />

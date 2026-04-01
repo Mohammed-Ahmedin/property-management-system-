@@ -72,6 +72,7 @@ const roleSidebarLinks: Record<
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
     { title: "Clients", url: "/admin/clients", icon: Users },
     { title: "Bookings", url: "/admin/bookings", icon: Calendar },
+    { title: "Activities", url: "/admin/activities", icon: Activity },
   ],
 };
 

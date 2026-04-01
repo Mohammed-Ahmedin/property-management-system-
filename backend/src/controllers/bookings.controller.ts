@@ -495,6 +495,7 @@ export default {
         property: { select: { id: true, name: true } },
         payment: true,
         additionalServices: true,
+        approvedBy: { select: { id: true, name: true, role: true } },
       },
       orderBy: { createdAt: "desc" },
     });

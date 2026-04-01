@@ -183,6 +183,7 @@ export function BookingsTable({ bookings }: { bookings: any }) {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="font-semibold">Booking ID</TableHead>
+                  <TableHead className="font-semibold">Booked By</TableHead>
                   <TableHead className="font-semibold">Guest</TableHead>
                   <TableHead className="font-semibold">Property</TableHead>
                   <TableHead className="font-semibold">Room</TableHead>
@@ -190,11 +191,9 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                   <TableHead className="font-semibold">Check Out</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
                   <TableHead className="font-semibold">Payment</TableHead>
-                  <TableHead className="font-semibold">Booking Type</TableHead>
+                  <TableHead className="font-semibold">Type</TableHead>
                   <TableHead className="font-semibold text-right">Amount</TableHead>
-                  <TableHead className="font-semibold text-right">
-                    Actions
-                  </TableHead>
+                  <TableHead className="font-semibold text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -212,6 +211,25 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                     <TableRow key={booking.id} className="group">
                       <TableCell className="font-mono text-xs">
                         {booking.id.slice(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          {booking.manualBooked ? (
+                            <>
+                              <span className="font-medium text-foreground text-xs">
+                                {booking.approvedBy?.name || "Broker/Staff"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">Manual</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-medium text-foreground text-xs">
+                                {booking.user?.name || booking.guestName || "Client"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">Online</span>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
