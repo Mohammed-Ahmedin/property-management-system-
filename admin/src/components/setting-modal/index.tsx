@@ -25,13 +25,15 @@ import GeneralSetting from "./general-setting";
 import NotificationsSetting from "./notifications-setting";
 import SecuritySetting from "./security-setting";
 
+import { useAuthSession } from "@/hooks/use-auth-session";
+
 interface SettingsModalProps {
   open: boolean;
   setIsSettingsModalOpen: Dispatch<SetStateAction<boolean>>;
   defaultTab?: any;
 }
 
-const settingsItems = [
+const allSettingsItems = [
   { id: "account", label: "Account", icon: UserCircle },
   { id: "payment", label: "Payment", icon: DollarSign },
   { id: "general", label: "General", icon: SettingsIcon },
@@ -43,10 +45,12 @@ function SettingsSidebar({
   activeSection,
   setActiveSection,
   onClose,
+  settingsItems,
 }: {
   activeSection: string;
   setActiveSection: (section: string) => void;
   onClose?: () => void;
+  settingsItems: typeof allSettingsItems;
 }) {
   return (
     <div className="w-full h-full bg-card border-r border-border flex flex-col">
@@ -81,15 +85,16 @@ function SettingsSidebar({
   );
 }
 
-// <CHANGE> Added mobile tab list component
 function MobileTabList({
   setActiveSection,
   setShowTabList,
   setIsSettingsModalOpen,
+  settingsItems,
 }: {
   setActiveSection: (section: string) => void;
   setShowTabList: (show: boolean) => void;
   setIsSettingsModalOpen: any;
+  settingsItems: typeof allSettingsItems;
 }) {
   return (
     <div className="flex-1 flex flex-col">
@@ -177,6 +182,12 @@ export default function SettingsModal({
   const [activeSection, setActiveSection] = useState(defaultTab || "account");
   const [showTabList, setShowTabList] = useState(true);
   const isMobile = useIsMobile();
+  const { role } = useAuthSession();
+
+  // Hide payment for ADMIN
+  const settingsItems = allSettingsItems.filter(
+    (item) => !(item.id === "payment" && role === "ADMIN")
+  );
 
   const onOpenChange = (bool: boolean) => {
     setIsSettingsModalOpen(bool);
@@ -212,6 +223,7 @@ export default function SettingsModal({
               setActiveSection={setActiveSection}
               setShowTabList={setShowTabList}
               setIsSettingsModalOpen={setIsSettingsModalOpen}
+              settingsItems={settingsItems}
             />
           )}
 
@@ -266,6 +278,7 @@ export default function SettingsModal({
                 <SettingsSidebar
                   activeSection={activeSection}
                   setActiveSection={setActiveSection}
+                  settingsItems={settingsItems}
                 />
               </div>
 
