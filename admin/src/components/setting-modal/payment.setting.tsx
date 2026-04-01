@@ -131,9 +131,82 @@ const PaymentSetting = ({
 
   if (isError)
     return (
-      <Alert>
-        <AlertDescription>Failed to load subaccount.</AlertDescription>
-      </Alert>
+      <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-5">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Once submitted, you won't be able to edit these details without
+            admin approval.
+          </AlertDescription>
+        </Alert>
+
+        <div className="space-y-2">
+          <Label htmlFor="businessName" className="text-sm font-medium">
+            Business Name{" "}
+            <span className="text-muted-foreground">(Optional)</span>
+          </Label>
+          <div className="relative">
+            <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="businessName"
+              {...register("businessName")}
+              placeholder="Enter your business name"
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="accountName" className="text-sm font-medium">
+            Account Name <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="accountName"
+              {...register("accountName")}
+              placeholder="Enter account holder name"
+              className="pl-10"
+            />
+          </div>
+          {errors.accountName && (
+            <p className="text-sm text-destructive">{errors.accountName.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bankCode" className="text-sm font-medium">
+            Bank Code <span className="text-destructive">*</span>
+          </Label>
+          <BankSelector code={bankCodeWatch} setValue={setValue} />
+          {errors.bankCode && (
+            <p className="text-sm text-destructive">{errors.bankCode.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="accountNumber" className="text-sm font-medium">
+            Account Number <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="accountNumber"
+              {...register("accountNumber")}
+              placeholder="Enter account number"
+              className="pl-10 font-mono"
+            />
+          </div>
+          {errors.accountNumber && (
+            <p className="text-sm text-destructive">{errors.accountNumber.message}</p>
+          )}
+        </div>
+
+        <div className="gap-2 sm:gap-0">
+          <Button type="button" variant="outline" onClick={() => setIsSettingsModalOpen(false)}>Cancel</Button>
+          <Button type="button" disabled={isSubmitting} onClick={() => setShowConfirmDialog(true)}>Add now</Button>
+        </div>
+      </form>
     );
 
   return (
