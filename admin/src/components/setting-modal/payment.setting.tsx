@@ -64,7 +64,7 @@ const PaymentSetting = ({
   );
 
   const { role: userRole } = useAuthSession();
-  const canAccessPayments = ["ADMIN", "OWNER", "BROKER"].includes(userRole ?? "");
+  const canAccessPayments = ["OWNER", "BROKER", "STAFF"].includes(userRole ?? "");
 
   const {
     register,

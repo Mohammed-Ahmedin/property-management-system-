@@ -948,8 +948,8 @@ export default {
         location: true,
         bookings: true,
         managers: {
-          where: { role: "STAFF" },
-          include: { user: true }, // include user details
+          where: { role: { in: ["STAFF", "BROKER"] } },
+          include: { user: true },
         },
       },
     });
@@ -958,9 +958,9 @@ export default {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    // Map managers to staffs array
+    // Map managers to staffs array with role
     const { managers, ...rest } = propertyDoc;
-    const staffs = managers.map((m) => m.user);
+    const staffs = managers.map((m) => ({ ...m.user, role: m.role }));
 
     res.json({ ...rest, staffs });
   }),

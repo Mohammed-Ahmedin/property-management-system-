@@ -92,9 +92,9 @@ export default function ManualBookingPage() {
 
   // Auto-calculate total amount (tax and discount are percentages)
   const calculateTotal = (overrides?: { base?: number; tax?: number; disc?: number }) => {
-    const base = overrides?.base ?? Number(basePrice) ?? 0;
-    const taxPct = overrides?.tax ?? Number(taxAmount) ?? 0;
-    const discPct = overrides?.disc ?? Number(discount) ?? 0;
+    const base = overrides?.base !== undefined ? overrides.base : (Number(basePrice) || 0);
+    const taxPct = overrides?.tax !== undefined ? overrides.tax : (Number(taxAmount) || 0);
+    const discPct = overrides?.disc !== undefined ? overrides.disc : (Number(discount) || 0);
     const taxValue = base * (taxPct / 100);
     const discValue = base * (discPct / 100);
     const total = base + taxValue - discValue;

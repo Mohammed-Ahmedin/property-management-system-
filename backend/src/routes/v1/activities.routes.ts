@@ -14,19 +14,25 @@ router.get(
     const { page = 1, limit = 50 } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    let propertyIds: string[] = [];
+    let where: any = {};
 
-    if (userRole !== "ADMIN") {
+    if (userRole === "ADMIN") {
+      // Admin sees all activities
+      where = {};
+    } else if (userRole === "BROKER") {
+      // Broker sees only activities they performed
+      where = { userId };
+    } else if (userRole === "OWNER" || userRole === "STAFF") {
+      // Owner/Staff see all activities in their assigned properties
       const managed = await prisma.managedProperty.findMany({
         where: { userId, role: { in: [userRole] } },
         select: { propertyId: true },
       });
-      propertyIds = managed.map((m) => m.propertyId);
+      const propertyIds = [...new Set(managed.map((m) => m.propertyId))];
+      where = propertyIds.length ? { propertyId: { in: propertyIds } } : { userId };
+    } else {
+      where = { userId };
     }
-
-    const where = propertyIds.length
-      ? { propertyId: { in: propertyIds } }
-      : userRole === "ADMIN" ? {} : { userId };
 
     const [activities, total] = await Promise.all([
       prisma.activity.findMany({
