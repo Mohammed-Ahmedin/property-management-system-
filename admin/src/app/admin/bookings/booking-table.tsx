@@ -43,15 +43,18 @@ export function BookingsTable({ bookings }: { bookings: any }) {
         searchQuery === "" ||
         booking.guestEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         booking.guestName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        booking.room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        booking.room?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         booking.id.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
         statusFilter === "all" || booking.status === statusFilter;
       const matchesPayment =
-        paymentFilter === "all" || booking.payment.status === paymentFilter;
+        paymentFilter === "all" || booking.payment?.status === paymentFilter;
 
       return matchesSearch && matchesStatus && matchesPayment;
+    }).sort((a: any, b: any) => {
+      // Sort by createdAt descending (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [searchQuery, statusFilter, paymentFilter]);
 

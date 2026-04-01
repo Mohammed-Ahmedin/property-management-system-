@@ -92,6 +92,7 @@ export const useGetBookingDetailById = ({ bookingId }: { bookingId: string }) =>
     queryKey: ["bookings", bookingId],
     enabled: isAuthenticated && !!bookingId,
     retry: false,
+    staleTime: 0,
     queryFn: async () => {
       const response = await api.get(`/bookings/management/${bookingId}`);
       return response.data;
