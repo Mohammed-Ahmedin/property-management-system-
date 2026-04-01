@@ -906,7 +906,7 @@ export function BookingDetailModal({
           </div>
           <div className="flex items-center gap-2">
             {/* Broker: can pre-approve/reject → goes to PENDING_OWNER_APPROVAL */}
-            {isBroker && booking.status === BookingStatus.PENDING && (
+            {isBroker && (booking.status === BookingStatus.PENDING || (booking.status as string) === "PENDING") && (
               <>
                 <Button variant="destructive" onClick={() => setRejectDialogOpen(true)} disabled={disableAllButtons}>
                   <XCircle className="h-4 w-4 mr-2" /> Reject
@@ -916,9 +916,9 @@ export function BookingDetailModal({
                 </Button>
               </>
             )}
-            {isBroker && (booking.status as string) === "PENDING_OWNER_APPROVAL" && (
+            {isBroker && ((booking.status as string) === "PENDING_OWNER_APPROVAL" || (booking.status as string) === "PENDING_OWNER_REJECTION") && (
               <Badge variant="outline" className="px-3 py-1.5 text-amber-600 border-amber-300 bg-amber-50">
-                Waiting for owner response
+                {(booking.status as string) === "PENDING_OWNER_REJECTION" ? "Rejection waiting for owner" : "Approval waiting for owner"}
               </Badge>
             )}
 
@@ -930,6 +930,34 @@ export function BookingDetailModal({
                 </Button>
                 <Button onClick={() => handleApproveBooking(booking.id)} disabled={disableAllButtons}>
                   <CheckCircle2 className="h-4 w-4 mr-2" /> Approve Booking
+                </Button>
+              </>
+            )}
+
+            {/* Owner: broker submitted rejection — cancel or approve it */}
+            {!isAdmin && !isBroker && (booking.status as string) === "PENDING_OWNER_REJECTION" && (
+              <>
+                <div className="flex flex-col items-end gap-1 mr-2">
+                  <Badge variant="outline" className="px-3 py-1 text-amber-600 border-amber-300 bg-amber-50 text-xs">
+                    Broker requested rejection
+                  </Badge>
+                  {(booking as any).rejectionReason && (
+                    <span className="text-xs text-muted-foreground">Reason: {(booking as any).rejectionReason}</span>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => updateBookingStatus.mutateAsync({ bookingId: booking.id, newStatus: "PENDING" })}
+                  disabled={disableAllButtons}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500" /> Cancel Rejection
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => updateBookingStatus.mutateAsync({ bookingId: booking.id, newStatus: "REJECTED" })}
+                  disabled={disableAllButtons}
+                >
+                  <XCircle className="h-4 w-4 mr-2" /> Approve Rejection
                 </Button>
               </>
             )}

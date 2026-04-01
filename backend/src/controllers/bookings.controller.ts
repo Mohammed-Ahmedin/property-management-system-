@@ -729,13 +729,13 @@ export default {
     const userId = (req as any).user.id;
     const userRole = (req as any).user.role;
 
-    const validStatuses = ["APPROVED", "REJECTED", "CANCELLED", "PENDING_OWNER_APPROVAL"];
+    const validStatuses = ["APPROVED", "REJECTED", "CANCELLED", "PENDING_OWNER_APPROVAL", "PENDING_OWNER_REJECTION", "PENDING"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status update.", success: false });
     }
 
     // ADMIN cannot approve/reject bookings
-    if (userRole === "ADMIN" && ["APPROVED", "REJECTED", "PENDING_OWNER_APPROVAL"].includes(status)) {
+    if (userRole === "ADMIN" && ["APPROVED", "REJECTED", "PENDING_OWNER_APPROVAL", "PENDING_OWNER_REJECTION"].includes(status)) {
       return res.status(403).json({ message: "Admins cannot approve or reject bookings.", success: false });
     }
 
@@ -784,13 +784,20 @@ export default {
       return res.status(400).json({ message: "Booking already cancelled.", success: false });
     }
 
-    // Broker approve/reject → set to PENDING_OWNER_APPROVAL with broker note
+    // Broker approve/reject → set to PENDING_OWNER_APPROVAL or PENDING_OWNER_REJECTION
     const isBrokerAction = userRole === "BROKER" && ["APPROVED", "REJECTED"].includes(status);
-    const effectiveStatus = isBrokerAction ? "PENDING_OWNER_APPROVAL" : status;
+    const effectiveStatus = isBrokerAction
+      ? (status === "APPROVED" ? "PENDING_OWNER_APPROVAL" : "PENDING_OWNER_REJECTION")
+      : status;
+
+    // Owner: cancel broker rejection → back to PENDING
+    const isOwnerCancelRejection = userRole === "OWNER" && status === "PENDING" && booking.status === "PENDING_OWNER_REJECTION";
 
     const now = new Date();
     const activityDesc = isBrokerAction
       ? `Broker pre-${status.toLowerCase()} booking #${bookingId.slice(0, 8)} on ${now.toLocaleString()}. Waiting for owner response.`
+      : isOwnerCancelRejection
+      ? `Owner cancelled broker rejection for booking #${bookingId.slice(0, 8)} on ${now.toLocaleString()}. Booking returned to PENDING.`
       : `Booking ${status.toLowerCase()} by ${userRole} on ${now.toLocaleString()}. Booking ID: ${bookingId.slice(0, 8)}.${reason ? ` Reason: ${reason}` : ""}`;
 
     await prisma.$transaction(async (tx) => {
@@ -825,12 +832,34 @@ export default {
             description: activityDesc,
           },
         });
-      } else if (effectiveStatus === "PENDING_OWNER_APPROVAL") {
+      } else if (effectiveStatus === "PENDING_OWNER_APPROVAL" || effectiveStatus === "PENDING_OWNER_REJECTION") {
         await tx.booking.update({
           where: { id: bookingId },
           data: {
-            status: "PENDING_OWNER_APPROVAL" as any,
+            status: effectiveStatus as any,
             brokerApprovedAt: now,
+            rejectionReason: effectiveStatus === "PENDING_OWNER_REJECTION" ? (reason || null) : null,
+            updatedAt: now,
+          },
+        });
+        await tx.activity.create({
+          data: {
+            bookingId: booking.id,
+            propertyId: booking.propertyId,
+            roomId: booking.roomId,
+            userId,
+            action: "UPDATED_BOOKING",
+            description: activityDesc,
+          },
+        });
+      } else if (effectiveStatus === "PENDING" && isOwnerCancelRejection) {
+        // Owner cancels broker rejection → back to PENDING
+        await tx.booking.update({
+          where: { id: bookingId },
+          data: {
+            status: "PENDING" as any,
+            rejectionReason: null,
+            brokerApprovedAt: null,
             updatedAt: now,
           },
         });
@@ -880,6 +909,8 @@ export default {
 
     const responseMessage = isBrokerAction
       ? `Booking sent to owner for ${status.toLowerCase()} approval.`
+      : isOwnerCancelRejection
+      ? "Broker rejection cancelled. Booking returned to pending."
       : `Booking ${effectiveStatus.toLowerCase()} successfully.`;
 
     return res.status(200).json({ message: responseMessage, success: true });
