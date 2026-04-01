@@ -56,7 +56,7 @@ export default function ReviewDialog({
 
   return (
     <Dialog open={reviewDialog} onOpenChange={setReviewDialog}>
-      <DialogContent className="sm:max-w-lg sm:w-full">
+      <DialogContent className="sm:max-w-lg sm:w-full z-[99999]" style={{ zIndex: 99999 }}>
         <DialogHeader>
           <DialogTitle>Write a Review</DialogTitle>
           <DialogDescription>

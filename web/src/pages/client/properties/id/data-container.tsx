@@ -8,7 +8,7 @@ import PropertyDetails from "./location";
 import ReviewsContainer from "./reviews-container";
 import {
   ArrowLeft, Bath, BedDouble, MapPin, Phone, Mail,
-  Wifi, Car, UtensilsCrossed, Star, Users, Heart,
+  Wifi, Car, UtensilsCrossed, Users, Heart,
   ChevronRight, CheckCircle2, Image as ImageIcon, X, ChevronLeft,
   Plane, CarFront
 } from "lucide-react";
@@ -24,9 +24,7 @@ const facilityIcons: Record<string, React.ReactNode> = {
   wifi: <Wifi className="w-4 h-4" />,
   parking: <Car className="w-4 h-4" />,
   breakfast: <UtensilsCrossed className="w-4 h-4" />,
-};
-
-const DataContainer = ({ data }: Props) => {
+};const DataContainer = ({ data }: Props) => {
   const property = data.data;
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
@@ -323,10 +321,9 @@ const DataContainer = ({ data }: Props) => {
                     ))}
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 text-sm text-primary">
-                  <MapPin className="w-4 h-4 shrink-0" />
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4 shrink-0 text-primary" />
                   <span>{property.address}</span>
-                  <span className="text-muted-foreground cursor-pointer hover:underline">· SEE MAP</span>
                 </div>
               </div>
               {avgRating > 0 && (
@@ -342,26 +339,9 @@ const DataContainer = ({ data }: Props) => {
               )}
             </div>
 
-            {/* Highlights */}
-            {property.facilities?.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                {property.facilities.slice(0, 3).map((f: any) => (
-                  <div key={f.id} className="border border-border rounded-xl p-3 flex flex-col gap-2">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      {facilityIcons[f.name?.toLowerCase()] ?? <Star className="w-5 h-5 text-primary" />}
-                    </div>
-                    <p className="text-sm font-semibold">{f.name}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* About */}
             {property.about?.description && (
-              <div className="mb-6">
-                <h2 className="text-lg font-bold mb-2">About us</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{property.about.description}</p>
-              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{property.about.description}</p>
             )}
           </section>
 
