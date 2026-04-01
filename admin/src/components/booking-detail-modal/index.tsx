@@ -947,14 +947,18 @@ export function BookingDetailModal({
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => updateBookingStatus.mutateAsync({ bookingId: booking.id, newStatus: "PENDING" })}
+                  onClick={async () => {
+                    await updateBookingStatus.mutateAsync({ bookingId: booking.id, newStatus: "PENDING" });
+                  }}
                   disabled={disableAllButtons}
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-500" /> Cancel Rejection
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => updateBookingStatus.mutateAsync({ bookingId: booking.id, newStatus: "REJECTED" })}
+                  onClick={async () => {
+                    await updateBookingStatus.mutateAsync({ bookingId: booking.id, newStatus: "REJECTED", reason: (booking as any).rejectionReason });
+                  }}
                   disabled={disableAllButtons}
                 >
                   <XCircle className="h-4 w-4 mr-2" /> Approve Rejection
