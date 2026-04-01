@@ -29,7 +29,7 @@ export const useBookNowMutation = () => {
     },
     onSuccess: ({ message }: any) => {
       toast.message(message, { position: "top-center" });
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["user_bookings"] });
     },
     onError: (error) => handleTanstackError({ error }),
   });
@@ -37,8 +37,9 @@ export const useBookNowMutation = () => {
 
 export const useGetUserBookings = () => {
   return useQuery<BookingsResponse>({
-    queryKey: ["bookings"],
+    queryKey: ["user_bookings"],
     retry: false,
+    staleTime: 0,
     queryFn: async () => {
       const res = await api.get<BookingsResponse>(`/bookings/user`);
       return res.data;
