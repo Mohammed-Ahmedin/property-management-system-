@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -51,6 +51,8 @@ export default function ManualBookingPage() {
   const [checkOutDate, setCheckOutDate] = useState<Date>();
   const [takenDates, setTakenDates] = useState<string[]>([]);
   const [bookedRanges, setBookedRanges] = useState<{ checkIn: Date; checkOut: Date }[]>([]);
+  const [vatMode, setVatMode] = useState<"with" | "without">("with");
+  const [discountMode, setDiscountMode] = useState<"amount" | "percentage">("percentage");
 
   const {
     register,
@@ -90,14 +92,16 @@ export default function ManualBookingPage() {
   const discount = watch("discount");
   const totalAmount = watch("totalAmount");
 
-  // Auto-calculate total amount (tax and discount are percentages)
-  const calculateTotal = (overrides?: { base?: number; tax?: number; disc?: number }) => {
+  // Auto-calculate total amount
+  const calculateTotal = (overrides?: { base?: number; disc?: number; vatM?: "with" | "without"; discM?: "amount" | "percentage" }) => {
     const base = overrides?.base !== undefined ? overrides.base : (Number(basePrice) || 0);
-    const taxPct = overrides?.tax !== undefined ? overrides.tax : (Number(taxAmount) || 0);
-    const discPct = overrides?.disc !== undefined ? overrides.disc : (Number(discount) || 0);
-    const taxValue = base * (taxPct / 100);
-    const discValue = base * (discPct / 100);
+    const currentVatMode = overrides?.vatM ?? vatMode;
+    const currentDiscMode = overrides?.discM ?? discountMode;
+    const rawDisc = overrides?.disc !== undefined ? overrides.disc : (Number(discount) || 0);
+    const taxValue = currentVatMode === "with" ? base * 0.15 : 0;
+    const discValue = currentDiscMode === "percentage" ? base * (rawDisc / 100) : rawDisc;
     const total = base + taxValue - discValue;
+    setValue("taxAmount", currentVatMode === "with" ? 15 : 0);
     setValue("totalAmount", Math.max(0, Math.round(total * 100) / 100));
   };
 
@@ -352,112 +356,69 @@ export default function ManualBookingPage() {
                 </Card>
 
                 {/* Payment Details */}
+                {/* Payment Details */}
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-5 w-5 text-primary" />
                       <CardTitle>Payment Details</CardTitle>
                     </div>
-                    <CardDescription>
-                      Enter pricing and payment information
-                    </CardDescription>
+                    <CardDescription>Enter pricing and payment information</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="basePrice">Base Price <span className="text-destructive">*</span></Label>
+                      <Input id="basePrice" type="number" step="0.01" min="0" placeholder="100.00"
+                        {...register("basePrice", { valueAsNumber: true, onChange: (e) => calculateTotal({ base: Number(e.target.value) }) })}
+                        className={cn(errors.basePrice && "border-destructive")} />
+                      {errors.basePrice && <p className="text-sm text-destructive">{errors.basePrice.message}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>VAT</Label>
+                      <div className="flex gap-3">
+                        {(["with", "without"] as const).map((v) => (
+                          <label key={v} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-colors ${vatMode === v ? "border-primary bg-primary/5" : "border-border hover:bg-muted"}`}>
+                            <input type="radio" name="vat" value={v} checked={vatMode === v}
+                              onChange={() => { setVatMode(v); calculateTotal({ vatM: v }); }} className="accent-primary" />
+                            <span className="text-sm font-medium">{v === "with" ? "With VAT (15%)" : "Without VAT"}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {vatMode === "with" && <p className="text-xs text-muted-foreground">15% VAT will be automatically applied.</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Discount</Label>
+                      <div className="flex gap-3 mb-2">
+                        {(["percentage", "amount"] as const).map((d) => (
+                          <label key={d} className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-colors ${discountMode === d ? "border-primary bg-primary/5" : "border-border hover:bg-muted"}`}>
+                            <input type="radio" name="discountMode" value={d} checked={discountMode === d}
+                              onChange={() => { setDiscountMode(d); setValue("discount", 0); calculateTotal({ disc: 0, discM: d }); }} className="accent-primary" />
+                            <span className="text-sm font-medium">{d === "percentage" ? "By Percentage (%)" : "By Amount (ETB)"}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <Input type="number" step={discountMode === "percentage" ? "0.1" : "1"} min="0"
+                        max={discountMode === "percentage" ? "100" : undefined}
+                        placeholder={discountMode === "percentage" ? "e.g. 10 for 10%" : "e.g. 50 for ETB 50"}
+                        {...register("discount", { valueAsNumber: true, onChange: (e) => calculateTotal({ disc: Number(e.target.value) }) })}
+                        className={cn(errors.discount && "border-destructive")} />
+                      {errors.discount && <p className="text-sm text-destructive">{errors.discount.message}</p>}
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="basePrice">
-                          Base Price <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id="basePrice"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="100.00"
-                          {...register("basePrice", {
-                            valueAsNumber: true,
-                            onChange: (e) => calculateTotal({ base: Number(e.target.value) }),
-                          })}
-                          className={cn(
-                            errors.basePrice && "border-destructive"
-                          )}
-                        />
-                        {errors.basePrice && (
-                          <p className="text-sm text-destructive">
-                            {errors.basePrice.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="taxAmount">Tax (%)</Label>
-                        <Input
-                          id="taxAmount"
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          placeholder="0"
-                          {...register("taxAmount", {
-                            valueAsNumber: true,
-                            onChange: (e) => calculateTotal({ tax: Number(e.target.value) }),
-                          })}
-                          className={cn(errors.taxAmount && "border-destructive")}
-                        />
-                        {errors.taxAmount && (
-                          <p className="text-sm text-destructive">{errors.taxAmount.message}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="discount">Discount (%)</Label>
-                        <Input
-                          id="discount"
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          placeholder="0"
-                          {...register("discount", {
-                            valueAsNumber: true,
-                            onChange: (e) => calculateTotal({ disc: Number(e.target.value) }),
-                          })}
-                          className={cn(errors.discount && "border-destructive")}
-                        />
-                        {errors.discount && (
-                          <p className="text-sm text-destructive">{errors.discount.message}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
                         <Label htmlFor="currency">Currency</Label>
-                        <Select
-                          onValueChange={(value) => setValue("currency", value)}
-                          defaultValue="ETB"
-                        >
-                          <SelectTrigger id="currency">
-                            <SelectValue placeholder="Select currency" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ETB">ETB</SelectItem>
-                          </SelectContent>
+                        <Select onValueChange={(value) => setValue("currency", value)} defaultValue="ETB">
+                          <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
+                          <SelectContent><SelectItem value="ETB">ETB</SelectItem></SelectContent>
                         </Select>
                       </div>
-
-                      <div className="space-y-2 md:col-span-2">
+                      <div className="space-y-2">
                         <Label htmlFor="paymentMethod">Payment Method</Label>
-                        <Select
-                          onValueChange={(value) =>
-                            setValue(
-                              "paymentMethod",
-                              value as "CASH" | "ONLINE"
-                            )
-                          }
-                          defaultValue="CASH"
-                        >
-                          <SelectTrigger id="paymentMethod">
-                            <SelectValue placeholder="Select payment method" />
-                          </SelectTrigger>
+                        <Select onValueChange={(value) => setValue("paymentMethod", value as "CASH" | "ONLINE")} defaultValue="CASH">
+                          <SelectTrigger id="paymentMethod"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="CASH">Cash</SelectItem>
                             <SelectItem value="ONLINE">Online</SelectItem>
@@ -467,98 +428,3 @@ export default function ManualBookingPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-
-              {/* Right Column - Summary */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-16">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Booking Summary</CardTitle>
-                      <CardDescription>Review the total amount</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Base Price
-                          </span>
-                          <span className="font-medium">
-                            {basePrice ? (
-                              <FormatedAmount amount={basePrice} />
-                            ) : (
-                              <FormatedAmount amount={0} />
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Tax ({taxAmount || 0}%)</span>
-                          <span className="font-medium">
-                            <FormatedAmount amount={(Number(basePrice) || 0) * ((Number(taxAmount) || 0) / 100)} />
-                          </span>
-                        </div>
-                        {discount && Number(discount) > 0 ? (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Discount ({discount}%)</span>
-                            <span className="font-medium text-green-600">
-                              -<FormatedAmount amount={(Number(basePrice) || 0) * ((Number(discount) || 0) / 100)} />
-                            </span>
-                          </div>
-                        ) : null}
-                        <Separator />
-                        <div className="flex justify-between">
-                          <span className="font-semibold text-lg">
-                            Total Amount
-                          </span>
-                          <span className="font-bold text-2xl text-primary">
-                            {totalAmount ? (
-                              <FormatedAmount amount={totalAmount} />
-                            ) : (
-                              <FormatedAmount amount={0} />
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      <TakenDatesList takenDates={takenDates} />
-
-                      <Separator />
-
-                      <div className="space-y-3 pt-2">
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          size="lg"
-                          disabled={manualBookMutation.isPending}
-                        >
-                          {manualBookMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Creating Booking...
-                            </>
-                          ) : (
-                            "Create Booking"
-                          )}
-                        </Button>
-                        <Link href="/" className="block">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full bg-transparent"
-                            disabled={manualBookMutation.isPending}
-                          >
-                            Cancel
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}

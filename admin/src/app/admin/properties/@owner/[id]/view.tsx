@@ -20,10 +20,12 @@ import { DashboardCard } from "@/components/shared/dashboard-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import Link from "next/link";
 import { useUpdatePropertyMutation, useVoidPropertyMutation } from "@/hooks/api/use-property";
-import { useAddBrokerToPropertyMutation, useRemoveStaffFromGHMutation } from "@/hooks/api/use-staff";
+import { useAddBrokerToPropertyMutation, useRemoveStaffFromGHMutation, useGetGhStaffsQuery } from "@/hooks/api/use-staff";
 import { Avatar } from "@/components/shared/avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { api } from "@/hooks/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PropertyData {
   id: string;
@@ -63,9 +65,32 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   const voidMutation = useVoidPropertyMutation();
   const addBrokerMutation = useAddBrokerToPropertyMutation();
   const removeStaffMutation = useRemoveStaffFromGHMutation();
+  const queryClient = useQueryClient();
+  const [addFacilityName, setAddFacilityName] = useState("");
+  const [addFacilityOpen, setAddFacilityOpen] = useState(false);
+  const [addingFacility, setAddingFacility] = useState(false);
 
-  const staffMembers = (data.staffs || []).filter((s: any) => s.role === "STAFF" || !s.role);
-  const brokerMembers = (data.staffs || []).filter((s: any) => s.role === "BROKER");
+  // Use live query for staffs so broker shows immediately after add
+  const { data: liveStaffs } = useGetGhStaffsQuery({ propertyId: data.id });
+  const allStaffs = liveStaffs || data.staffs || [];
+  const staffMembers = allStaffs.filter((s: any) => s.role !== "BROKER");
+  const brokerMembers = allStaffs.filter((s: any) => s.role === "BROKER");
+
+  const handleAddFacility = async () => {
+    if (!addFacilityName.trim()) return;
+    setAddingFacility(true);
+    try {
+      await api.post(`/properties/${data.id}/facilities`, { name: addFacilityName.trim() });
+      toast.success("Facility added");
+      queryClient.invalidateQueries({ queryKey: ["guest_houses", data.id] });
+      setAddFacilityName("");
+      setAddFacilityOpen(false);
+    } catch {
+      toast.error("Failed to add facility");
+    } finally {
+      setAddingFacility(false);
+    }
+  };
 
   const handleSave = () => {
     updateMutation.mutate({
@@ -309,7 +334,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div><CardTitle>Facilities</CardTitle><CardDescription>Amenities offered</CardDescription></div>
-                <Button size="sm"><Wifi className="h-4 w-4 mr-2" />Add Facility</Button>
+                <Button size="sm" onClick={() => setAddFacilityOpen(true)}><Wifi className="h-4 w-4 mr-2" />Add Facility</Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -328,6 +353,23 @@ export default function PropertyView({ data }: { data: PropertyData }) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Add Facility Dialog */}
+        <Dialog open={addFacilityOpen} onOpenChange={setAddFacilityOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle>Add Facility</DialogTitle></DialogHeader>
+            <div className="space-y-3 py-2">
+              <Label>Facility Name</Label>
+              <Input placeholder="e.g. Free Wi-Fi, Parking, Pool" value={addFacilityName} onChange={e => setAddFacilityName(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAddFacility()} />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAddFacilityOpen(false)}>Cancel</Button>
+              <Button onClick={handleAddFacility} disabled={addingFacility || !addFacilityName.trim()}>
+                {addingFacility ? <Spinner /> : "Add"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <ImagesTab images={data.images} propertyId={data.id} />
       </Tabs>

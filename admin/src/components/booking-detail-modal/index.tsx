@@ -951,36 +951,27 @@ export function BookingDetailModal({
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Reject Booking</DialogTitle>
-              <DialogDescription>Optionally provide a reason for rejection.</DialogDescription>
+              <DialogDescription>Reason is required for rejection.</DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-2">
               <Textarea
-                placeholder="Enter reason for rejection (optional)"
+                placeholder="Enter reason for rejection (required)"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={3}
               />
-              <button
-                type="button"
-                onClick={() => setRejectReason("")}
-                className={cn(
-                  "w-full text-sm py-2 px-3 rounded-lg border text-left transition-colors",
-                  !rejectReason
-                    ? "border-primary bg-primary/5 text-primary font-medium"
-                    : "border-border text-muted-foreground hover:bg-muted"
-                )}
-              >
-                ☐ None — reject without reason
-              </button>
+              {!rejectReason.trim() && (
+                <p className="text-xs text-destructive">Please provide a reason before confirming.</p>
+              )}
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
               <Button
                 variant="destructive"
-                disabled={disableAllButtons}
+                disabled={disableAllButtons || !rejectReason.trim()}
                 onClick={() => isBroker
-                  ? handleBrokerReject(booking.id, rejectReason || undefined)
-                  : handleRejectBooking(booking.id, rejectReason || undefined)
+                  ? handleBrokerReject(booking.id, rejectReason)
+                  : handleRejectBooking(booking.id, rejectReason)
                 }
               >
                 {disableAllButtons ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

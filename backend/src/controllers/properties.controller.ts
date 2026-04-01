@@ -965,6 +965,14 @@ export default {
     res.json({ ...rest, staffs });
   }),
 
+  addFacility: tryCatch(async (req, res) => {
+    const { id: propertyId } = req.params;
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "name is required" });
+    const facility = await prisma.facility.create({ data: { name, propertyId } });
+    res.status(201).json({ success: true, message: "Facility added", data: facility });
+  }),
+
   voidProperty: tryCatch(async (req, res) => {
     const { id: propertyId } = req.params;
     const user = req.user as { id: string; role: string };
