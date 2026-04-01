@@ -7,12 +7,12 @@ const router = Router();
 // @/bookings
 router.get(
   "/user",
-  authGuard({ accessedBy: ["GUEST"] }),
+  authGuard(),
   BookingsController.getUserBookings
 );
 router.get(
   "/user/:userId",
-  authGuard({ accessedBy: ["GUEST"] }),
+  authGuard(),
   BookingsController.getUserBookingDetailById
 );
 router.post("/", BookingsController.bookNow);
