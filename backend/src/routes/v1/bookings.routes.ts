@@ -11,7 +11,7 @@ router.get(
   BookingsController.getUserBookings
 );
 router.get(
-  "/user/:userId",
+  "/user/:bookingId",
   authGuard(),
   BookingsController.getUserBookingDetailById
 );
