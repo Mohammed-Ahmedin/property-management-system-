@@ -224,9 +224,11 @@ export function BookingDetailModal({
               </DialogDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" title="Download PDF" onClick={() => {
-                const html = `<html><head><title>Booking #${booking.id.slice(0,8)}</title>
-                  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}h1{font-size:16px;font-weight:bold;margin-bottom:2px}.sub{color:#666;font-size:10px;margin-bottom:10px}.divider{border-top:1px solid #ddd;margin:8px 0}.section-title{font-size:11px;font-weight:bold;color:#444;margin:8px 0 4px;text-transform:uppercase}table{width:100%;border-collapse:collapse}td{padding:3px 0;font-size:11px;vertical-align:top}td:first-child{color:#666;width:38%}.total-row td{font-weight:bold;font-size:13px;color:#1a56db;padding-top:6px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}</style></head><body>
+              <Button variant="outline" size="icon" title="Save as PDF" onClick={() => {
+                const w = window.open("", "_blank", "width=700,height=900");
+                if (!w) return;
+                w.document.write(`<html><head><title>Booking #${booking.id.slice(0,8)}</title>
+                  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}h1{font-size:16px;font-weight:bold;margin-bottom:2px}.sub{color:#666;font-size:10px;margin-bottom:10px}.divider{border-top:1px solid #ddd;margin:8px 0}.section-title{font-size:11px;font-weight:bold;color:#444;margin:8px 0 4px;text-transform:uppercase}table{width:100%;border-collapse:collapse}td{padding:3px 0;font-size:11px;vertical-align:top}td:first-child{color:#666;width:38%}.total-row td{font-weight:bold;font-size:13px;color:#1a56db;padding-top:6px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}@media print{@page{size:A4;margin:10mm}}</style></head><body>
                   <h1>${booking.property?.name || "Booking Receipt"}</h1>
                   <div class="sub">Booking ID: ${booking.id.slice(0,8)} | ${format(new Date(booking.createdAt), "PPP")} | Status: ${booking.status}</div>
                   <div class="divider"></div>
@@ -234,14 +236,10 @@ export function BookingDetailModal({
                   <div><div class="section-title">Guest</div><table><tr><td>Name</td><td>${booking.user?.name || booking.guestName || "—"}</td></tr><tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "—"}</td></tr><tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "—"}</td></tr></table></div></div>
                   <div class="divider"></div><div class="section-title">Payment</div>
                   <table><tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "—"}</td></tr><tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "—"}</td></tr><tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td><td></td><td></td></tr><tr class="total-row"><td>Total</td><td>${booking.currency} ${booking.totalAmount}</td><td></td><td></td></tr></table>
-                  </body></html>`;
-                const blob = new Blob([html], { type: "text/html" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `booking-${booking.id.slice(0, 8)}.html`;
-                a.click();
-                URL.revokeObjectURL(url);
+                  </body></html>`);
+                w.document.close();
+                w.focus();
+                setTimeout(() => w.print(), 500);
               }}>
                 <Download className="h-4 w-4" />
               </Button>

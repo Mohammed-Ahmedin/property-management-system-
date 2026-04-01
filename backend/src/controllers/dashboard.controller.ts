@@ -175,12 +175,13 @@ export default {
   getBrokerDashboardStats: tryCatch(async (req, res) => {
     const userId = (req as any).user.id;
 
-    // Get all property IDs where this user is assigned (any role)
+    // Get unique property IDs where this user is assigned as BROKER
     const managed = await prisma.managedProperty.findMany({
-      where: { userId },
+      where: { userId, role: "BROKER" },
       select: { propertyId: true },
     });
-    const propertyIds = managed.map((m) => m.propertyId);
+    // Deduplicate
+    const propertyIds = [...new Set(managed.map((m) => m.propertyId))];
 
     if (!propertyIds.length) {
       return res.json({ propertiesCount: 0, roomsCount: 0, bookingsCount: 0 });

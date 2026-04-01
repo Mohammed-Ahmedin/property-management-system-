@@ -30,6 +30,8 @@ const RoomsContainer = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   const filteredRooms = useMemo(() => {
     if (!data?.data) return [];
@@ -63,7 +65,11 @@ const RoomsContainer = () => {
     setSearchQuery("");
     setStatusFilter("all");
     setTypeFilter("all");
+    setCurrentPage(1);
   };
+
+  const totalPages = Math.ceil(filteredRooms.length / ITEMS_PER_PAGE);
+  const paginatedRooms = filteredRooms.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const hasActiveFilters =
     searchQuery !== "" || statusFilter !== "all" || typeFilter !== "all";
@@ -218,7 +224,7 @@ const RoomsContainer = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRooms.map((room: any) => (
+          {paginatedRooms.map((room: any) => (
             <RoomCard key={room.id} room={room} />
           ))}
         </div>
@@ -227,14 +233,15 @@ const RoomsContainer = () => {
       <div className="py-6">
         <DataPagination
           pagination={{
-            currentPage: 1,
-            hasMore: false,
-            limit: 5,
+            currentPage,
+            hasMore: currentPage < totalPages,
+            limit: ITEMS_PER_PAGE,
             totalItems: filteredRooms.length,
-            totalPages: 1,
-            previousPage: 0,
-            nextPage: 2,
+            totalPages,
+            previousPage: currentPage > 1 ? currentPage - 1 : null,
+            nextPage: currentPage < totalPages ? currentPage + 1 : null,
           }}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       </div>
     </div>

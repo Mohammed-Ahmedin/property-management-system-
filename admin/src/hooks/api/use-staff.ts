@@ -99,6 +99,8 @@ export const useAddBrokerToPropertyMutation = () => {
     onSuccess: ({ message }, { propertyId }) => {
       toast.success(message);
       queryClient.invalidateQueries({ queryKey: ["staffs", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["guest_houses", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["staffs-for-list"] });
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || error.message || "Something went wrong");
