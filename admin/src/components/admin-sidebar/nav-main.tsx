@@ -53,7 +53,6 @@ const roleSidebarLinks: Record<
     { title: "Bookings", url: "/admin/bookings", icon: Calendar },
     { title: "Users", url: "/admin/users", icon: Users },
     { title: "Registrations", url: "/admin/registration-requests", icon: HomeIcon },
-    { title: "Activities", url: "/admin/activities", icon: Activity },
   ],
   OWNER: [
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
