@@ -444,7 +444,7 @@ const DataContainer = ({ data }: Props) => {
                   </div>
                 </div>
                 <Button variant="outline" size="sm" className="w-full"
-                  onClick={() => navigate(`/properties?transport=true&direction=from&dropoff=${encodeURIComponent(property.address || property.name)}`)}>
+                  onClick={() => window.open("https://www.ethiopianairlines.com/en-ke/", "_blank")}>
                   Search
                 </Button>
               </div>
@@ -458,7 +458,7 @@ const DataContainer = ({ data }: Props) => {
                     <p className="text-xs text-muted-foreground mt-1">Find an ideal ride for your trip</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/properties?transport=true`)}>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => window.open("https://ride8294.com/", "_blank")}>
                   Search
                 </Button>
               </div>

@@ -428,3 +428,69 @@ export default function ManualBookingPage() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Right Column - Summary */}
+              <div className="lg:col-span-1">
+                <div className="sticky top-16">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Booking Summary</CardTitle>
+                      <CardDescription>Review the total amount</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Base Price</span>
+                          <span className="font-medium"><FormatedAmount amount={Number(basePrice) || 0} /></span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">VAT ({vatMode === "with" ? "15%" : "0%"})</span>
+                          <span className="font-medium"><FormatedAmount amount={vatMode === "with" ? (Number(basePrice) || 0) * 0.15 : 0} /></span>
+                        </div>
+                        {Number(discount) > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Discount ({discountMode === "percentage" ? `${discount}%` : `ETB ${discount}`})
+                            </span>
+                            <span className="font-medium text-green-600">
+                              -<FormatedAmount amount={discountMode === "percentage" ? (Number(basePrice) || 0) * ((Number(discount) || 0) / 100) : (Number(discount) || 0)} />
+                            </span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-lg">Total Amount</span>
+                          <span className="font-bold text-2xl text-primary">
+                            <FormatedAmount amount={Number(totalAmount) || 0} />
+                          </span>
+                        </div>
+                      </div>
+
+                      <TakenDatesList takenDates={takenDates} />
+
+                      <Separator />
+
+                      <div className="space-y-3 pt-2">
+                        <Button type="submit" className="w-full" size="lg" disabled={manualBookMutation.isPending}>
+                          {manualBookMutation.isPending ? (
+                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Booking...</>
+                          ) : "Create Booking"}
+                        </Button>
+                        <Link href="/admin/bookings" className="block">
+                          <Button type="button" variant="outline" className="w-full bg-transparent" disabled={manualBookMutation.isPending}>
+                            Cancel
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -469,11 +469,11 @@ export default {
       case "STAFF":
       case "BROKER":
         const managed = await prisma.managedProperty.findMany({
-          where: { userId, role: { in: [userRole, "STAFF", "BROKER", "OWNER"] } },
+          where: { userId, role: userRole as any },
           select: { propertyId: true },
         });
 
-        propertyIds = managed.map((m) => m.propertyId) || [];
+        propertyIds = [...new Set(managed.map((m) => m.propertyId))];
 
         if (!propertyIds.length) {
           return res.status(200).json([]);
