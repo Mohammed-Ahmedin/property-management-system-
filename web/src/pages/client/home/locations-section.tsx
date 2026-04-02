@@ -10,7 +10,7 @@ const locationDefs = [
   },
   {
     title: "Bahir Dar",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Bahir_Dar_from_above.jpg/1200px-Bahir_Dar_from_above.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Blue_Nile_Falls%2C_Ethiopia.jpg/1200px-Blue_Nile_Falls%2C_Ethiopia.jpg",
   },
   {
     title: "Hawassa",
@@ -22,15 +22,15 @@ const locationDefs = [
   },
   {
     title: "Adama",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Adama_city.jpg/1200px-Adama_city.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Adama_Nazret_Ethiopia.jpg/1200px-Adama_Nazret_Ethiopia.jpg",
   },
   {
     title: "Mekelle",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mekelle_city.jpg/1200px-Mekelle_city.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Mekelle_University_Main_Campus.jpg/1200px-Mekelle_University_Main_Campus.jpg",
   },
   {
     title: "Dire Dawa",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Dire_Dawa_-_panoramio_%281%29.jpg/1200px-Dire_Dawa_-_panoramio_%281%29.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Dire_Dawa_Railway_Station.jpg/1200px-Dire_Dawa_Railway_Station.jpg",
   },
 ];
 

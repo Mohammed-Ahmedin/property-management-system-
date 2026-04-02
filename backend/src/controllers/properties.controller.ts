@@ -398,7 +398,7 @@ export default {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 10,
       where: { status: "APPROVED", visibility: true },
     });
 

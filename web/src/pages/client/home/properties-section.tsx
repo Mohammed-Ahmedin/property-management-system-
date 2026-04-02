@@ -11,11 +11,14 @@ const PropertiesSection = () => {
   const posRef = useRef(0);
   const pausedRef = useRef(false);
 
-  const properties = dataQuery.data?.data || [];
-  const doubled = properties.length > 0 ? [...properties, ...properties] : [];
+  const properties: any[] = dataQuery.data?.data || [];
+  // Duplicate enough times to fill the screen and loop seamlessly
+  const repeated = properties.length > 0
+    ? [...properties, ...properties, ...properties]
+    : [];
 
   useEffect(() => {
-    if (doubled.length === 0) return;
+    if (repeated.length === 0) return;
     const speed = 0.4;
     const track = trackRef.current;
     if (!track) return;
@@ -23,8 +26,9 @@ const PropertiesSection = () => {
     const animate = () => {
       if (!pausedRef.current) {
         posRef.current += speed;
-        const half = track.scrollWidth / 2;
-        if (posRef.current >= half) posRef.current = 0;
+        // Reset after one full set of original properties
+        const oneSet = track.scrollWidth / 3;
+        if (posRef.current >= oneSet) posRef.current = 0;
         track.style.transform = `translateX(-${posRef.current}px)`;
       }
       animRef.current = requestAnimationFrame(animate);
@@ -32,7 +36,7 @@ const PropertiesSection = () => {
 
     animRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animRef.current);
-  }, [doubled.length]);
+  }, [repeated.length]);
 
   return (
     <section className="c-px pb-10 overflow-hidden">
@@ -42,7 +46,7 @@ const PropertiesSection = () => {
         <div className="flex gap-4">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="w-[300px] h-[300px] rounded-2xl shrink-0" />)}
         </div>
-      ) : dataQuery.isError || doubled.length === 0 ? (
+      ) : dataQuery.isError || repeated.length === 0 ? (
         <p className="text-muted-foreground text-sm">No trending properties yet.</p>
       ) : (
         <div
@@ -51,7 +55,7 @@ const PropertiesSection = () => {
           onMouseLeave={() => { pausedRef.current = false; }}
         >
           <div ref={trackRef} className="flex gap-4 w-max will-change-transform">
-            {doubled.map((d: any, i: number) => (
+            {repeated.map((d: any, i: number) => (
               <div key={`${d.id}-${i}`} className="shrink-0 w-[300px]">
                 <PropertyCard data={d} view="vertical" />
               </div>
