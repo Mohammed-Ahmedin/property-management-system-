@@ -400,7 +400,7 @@ export default {
       },
       orderBy: { createdAt: "asc" },
       take: 10,
-      where: { status: "APPROVED" },
+      where: {},
     });
 
     res.json({ data: properties, success: true });
