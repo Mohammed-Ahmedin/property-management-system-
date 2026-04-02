@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/hooks/api";
 import SectionHeader from "./_components/section-header";
 
@@ -15,13 +15,17 @@ const locationDefs = [
 
 const CARD_W = 220;
 const GAP = 16;
-const ITEM_W = CARD_W + GAP; // 236px per item
-
+const ITEM_W = CARD_W + GAP;
+const ONE_SET = locationDefs.length * ITEM_W;
 const FALLBACK = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=600&fit=crop";
 
 const LocationsSection = () => {
   const navigate = useNavigate();
   const [countMap, setCountMap] = useState<Record<string, number>>({});
+  const trackRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef(0);
+  const rafRef = useRef(0);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     api.get("/properties/location-stats")
@@ -35,31 +39,40 @@ const LocationsSection = () => {
       .catch(() => {});
   }, []);
 
-  // The track contains [original × 2]. We scroll exactly `n * ITEM_W` px
-  // which is the width of the first copy, then CSS resets to 0 seamlessly.
-  const totalShift = locationDefs.length * ITEM_W;
-  const duration = locationDefs.length * 4; // seconds
+  useEffect(() => {
+    const tick = () => {
+      if (!pausedRef.current) {
+        posRef.current += 0.5;
+        if (posRef.current >= ONE_SET) {
+          posRef.current -= ONE_SET;
+        }
+        if (trackRef.current) {
+          trackRef.current.style.transform = `translateX(-${posRef.current}px)`;
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  const doubled = [...locationDefs, ...locationDefs];
 
   return (
     <section className="c-px pt-20 md:pt-24 pb-10 overflow-hidden">
       <SectionHeader title="Popular Locations" />
-
-      <style>{`
-        @keyframes marquee-loc {
-          0%   { transform: translateX(0px); }
-          100% { transform: translateX(-${totalShift}px); }
-        }
-        .marquee-loc { animation: marquee-loc ${duration}s linear infinite; }
-        .marquee-wrap:hover .marquee-loc { animation-play-state: paused; }
-      `}</style>
-
       <div
-        className="marquee-wrap relative overflow-hidden"
-        style={{ maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)" }}
+        className="relative overflow-hidden"
+        style={{ maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)" }}
+        onMouseEnter={() => { pausedRef.current = true; }}
+        onMouseLeave={() => { pausedRef.current = false; }}
       >
-        {/* Track: original + duplicate side by side */}
-        <div className="marquee-loc flex" style={{ gap: `${GAP}px`, width: "max-content" }}>
-          {[...locationDefs, ...locationDefs].map((loc, i) => {
+        <div
+          ref={trackRef}
+          className="flex will-change-transform"
+          style={{ gap: `${GAP}px`, width: "max-content" }}
+        >
+          {doubled.map((loc, i) => {
             const count = countMap[loc.title];
             return (
               <div
