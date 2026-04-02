@@ -11,6 +11,7 @@ const router = Router();
 router.get("/", propertiesController.getProperties);
 router.get("/trendings", propertiesController.getTrendingProperties);
 router.get("/nearby", propertiesController.getNearbyProperties);
+router.get("/location-stats", propertiesController.getLocationStats);
 
 router.post("/reviews", authGuard(), reviewsController.createReview);
 router.get("/reviews/:propertyId", reviewsController.getReviews);

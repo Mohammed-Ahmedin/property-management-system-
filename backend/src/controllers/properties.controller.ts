@@ -360,6 +360,23 @@ export default {
     }
   }),
 
+  getLocationStats: tryCatch(async (req, res) => {
+    const cities = ["Addis Ababa", "Bahir Dar", "Hawassa", "Gondar", "Lalibela", "Dire Dawa"];
+    const counts = await Promise.all(
+      cities.map(async (city) => {
+        const count = await prisma.property.count({
+          where: {
+            status: "APPROVED",
+            visibility: true,
+            location: { city: { contains: city, mode: "insensitive" } },
+          },
+        });
+        return { city, count };
+      })
+    );
+    res.json({ data: counts });
+  }),
+
   getTrendingProperties: tryCatch(async (req, res) => {
     const properties = await prisma.property.findMany({
       include: {

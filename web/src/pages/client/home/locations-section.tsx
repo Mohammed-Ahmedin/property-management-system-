@@ -1,54 +1,35 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/hooks/api";
 import SectionHeader from "./_components/section-header";
 
-const locations = [
+const locationDefs = [
   {
-    id: "1",
     title: "Addis Ababa",
-    description: "The vibrant capital city of Ethiopia",
     image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/2b/7d/7c/caption.jpg?w=1200&h=-1&s=1",
-    propertiesCount: 124,
   },
   {
-    id: "2",
     title: "Bahir Dar",
-    description: "Lakeside city with beautiful views",
-    image: "https://tuckmagazine.com/wp-content/uploads/2018/12/addis.jpg",
-    propertiesCount: 62,
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Bahir_Dar_from_above.jpg/1200px-Bahir_Dar_from_above.jpg",
   },
   {
-    id: "3",
     title: "Hawassa",
-    description: "Serene lakeshore destination",
     image: "https://imgix.brilliant-ethiopia.com/lake-awasa-2.jpg?auto=format,enhance,compress&fit=crop&w=800&h=600&q=60",
-    propertiesCount: 48,
   },
   {
-    id: "4",
     title: "Gondar",
-    description: "The Camelot of Africa",
     image: "https://imgix.brilliant-ethiopia.com/fasil-ghebbi-royal-enclosure-gondar.jpg?auto=format,enhance,compress&fit=crop&crop=entropy,faces,focalpoint&w=1880&h=740&q=30",
-    propertiesCount: 37,
   },
   {
-    id: "5",
     title: "Lalibela",
-    description: "Home of the rock-hewn churches",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Lalibela_church.jpg/1200px-Lalibela_church.jpg",
-    propertiesCount: 29,
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Bete_Giyorgis%2C_Lalibela.jpg/1200px-Bete_Giyorgis%2C_Lalibela.jpg",
   },
   {
-    id: "6",
     title: "Dire Dawa",
-    description: "Vibrant markets and local cuisine",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Dire_Dawa_city.jpg/1200px-Dire_Dawa_city.jpg",
-    propertiesCount: 41,
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Dire_Dawa_-_panoramio_%281%29.jpg/1200px-Dire_Dawa_-_panoramio_%281%29.jpg",
   },
 ];
-
-// Duplicate for seamless loop
-const doubled = [...locations, ...locations];
 
 const LocationsSection = () => {
   const navigate = useNavigate();
@@ -56,6 +37,22 @@ const LocationsSection = () => {
   const animRef = useRef<number>(0);
   const posRef = useRef(0);
   const pausedRef = useRef(false);
+
+  const { data: statsData } = useQuery({
+    queryKey: ["location_stats"],
+    retry: false,
+    queryFn: async () => {
+      const res = await api.get("/properties/location-stats");
+      return res.data;
+    },
+  });
+
+  const countMap: Record<string, number> = {};
+  (statsData?.data || []).forEach((s: { city: string; count: number }) => {
+    countMap[s.city] = s.count;
+  });
+
+  const doubled = [...locationDefs, ...locationDefs];
 
   useEffect(() => {
     const speed = 0.5;
@@ -85,24 +82,32 @@ const LocationsSection = () => {
         onMouseLeave={() => { pausedRef.current = false; }}
       >
         <div ref={trackRef} className="flex gap-4 w-max will-change-transform">
-          {doubled.map((loc, i) => (
-            <div
-              key={`${loc.id}-${i}`}
-              onClick={() => navigate(`/properties/?location=${loc.title}`)}
-              className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer shrink-0 w-[220px] h-[280px]"
-            >
-              <img
-                src={loc.image}
-                alt={loc.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="text-white font-bold text-base">{loc.title}</h3>
-                <p className="text-white/70 text-xs mt-0.5">{loc.propertiesCount}+ properties</p>
+          {doubled.map((loc, i) => {
+            const count = countMap[loc.title];
+            return (
+              <div
+                key={`${loc.title}-${i}`}
+                onClick={() => navigate(`/properties/?location=${loc.title}`)}
+                className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer shrink-0 w-[220px] h-[280px]"
+              >
+                <img
+                  src={loc.image}
+                  alt={loc.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=600&fit=crop";
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-bold text-base">{loc.title}</h3>
+                  <p className="text-white/70 text-xs mt-0.5">
+                    {count !== undefined ? `${count} propert${count === 1 ? "y" : "ies"}` : "Explore"}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
