@@ -10,10 +10,15 @@ const auth_middleware_1 = require("../../middleware/auth-middleware");
 const router = (0, express_1.Router)();
 exports.BookingsRouter = router;
 // @/bookings
-router.get("/", auth_middleware_1.authGuard, bookings_controller_1.default.getUserBookings);
-router.get("/admins", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.getAdminsBookings);
-router.get("/user-bookings/:userId", bookings_controller_1.default.getUserBookings);
-router.get("/:bookingId", bookings_controller_1.default.getUserBookingDetailById);
+router.get("/user", (0, auth_middleware_1.authGuard)(), bookings_controller_1.default.getUserBookings);
+router.get("/user/:bookingId", (0, auth_middleware_1.authGuard)(), bookings_controller_1.default.getUserBookingDetailById);
 router.post("/", bookings_controller_1.default.bookNow);
-router.post("/manual-booking", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.manualBooking);
-router.post("/dummy", bookings_controller_1.default.bookDummy);
+// management
+router.get("/management", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.getBookingsForManagement);
+router.get("/management/recent", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.getRecentBookingForManagement);
+router.get("/management/stats", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.getBookingStatsForManagement);
+router.post("/management/:bookingId/status", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.changeBookingStatus);
+router.get("/management/:bookingId", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.getBookingDetailForManagement);
+router.post("/management/manual-booking", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), bookings_controller_1.default.manualBooking);
+// user
+router.get("/:bookingId", bookings_controller_1.default.getUserBookingDetailById);

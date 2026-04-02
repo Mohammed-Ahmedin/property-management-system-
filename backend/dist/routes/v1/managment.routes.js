@@ -9,6 +9,6 @@ const management_controller_1 = __importDefault(require("../../controllers/manag
 const router = (0, express_1.Router)();
 exports.ManagementRouter = router;
 // /management
-router.get("/property/get-staffs", management_controller_1.default.getGusetHouseStaffs);
+router.get("/property/get-staffs/:propertyId", management_controller_1.default.getPropertyStaffs);
 router.delete("/property/remove-staff", management_controller_1.default.removeStaffFromProperty);
 router.post("/add-staff", management_controller_1.default.addStaffToProperty);

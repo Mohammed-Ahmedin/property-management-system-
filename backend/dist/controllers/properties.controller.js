@@ -1,0 +1,939 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const async_handler_1 = require("../utils/async-handler");
+const properties_validator_1 = require("./validators/properties.validator");
+const prisma_1 = require("../lib/prisma");
+const auth_1 = require("../lib/auth");
+exports.default = {
+    getNearbyProperties: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { lat, lon, radius = 10, page = 1, limit = 10, distance = 10, } = req.query;
+            // Validation
+            if (!lat || !lon) {
+                return res
+                    .status(400)
+                    .json({ error: "Latitude and longitude are required." });
+            }
+            const userLat = parseFloat(lat);
+            const userLon = parseFloat(lon);
+            const radiusKm = parseFloat(distance);
+            const skip = (Number(page) - 1) * Number(limit);
+            const take = Number(limit);
+            // Fetch properties with location and related info
+            const locations = yield prisma_1.prisma.location.findMany({
+                where: {
+                    latitude: { not: null },
+                    longitude: { not: null },
+                    property: {
+                        visibility: true,
+                        status: "APPROVED",
+                    },
+                },
+                include: {
+                    property: {
+                        include: {
+                            about: true,
+                            images: true,
+                            _count: {
+                                select: {
+                                    rooms: true,
+                                    bookings: true,
+                                    facilities: true,
+                                },
+                            },
+                            location: true,
+                            facilities: true,
+                            rooms: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    price: true,
+                                    availability: true,
+                                    images: { select: { url: true, name: true }, take: 4 },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            const EARTH_RADIUS = 6371; // km
+            // Apply Haversine formula
+            const nearbyProperties = locations
+                .map((loc) => {
+                const lat2 = parseFloat(loc.latitude);
+                const lon2 = parseFloat(loc.longitude);
+                if (isNaN(lat2) || isNaN(lon2))
+                    return null;
+                const dLat = ((lat2 - userLat) * Math.PI) / 180;
+                const dLon = ((lon2 - userLon) * Math.PI) / 180;
+                const a = Math.pow(Math.sin(dLat / 2), 2) +
+                    Math.cos((userLat * Math.PI) / 180) *
+                        Math.cos((lat2 * Math.PI) / 180) *
+                        Math.pow(Math.sin(dLon / 2), 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distance = EARTH_RADIUS * c;
+                return Object.assign(Object.assign({}, loc.property), { distance });
+            })
+                .filter((gh) => gh && gh.distance <= radiusKm)
+                .sort((a, b) => a.distance - b.distance);
+            const totalItems = nearbyProperties.length;
+            const totalPages = Math.ceil(totalItems / take);
+            const currentPage = Number(page);
+            const paginatedResults = nearbyProperties.slice(skip, skip + take);
+            // Build pagination meta
+            const pagination = {
+                currentPage,
+                totalPages,
+                totalItems,
+                limit: take,
+                hasMore: currentPage < totalPages,
+                previousPage: currentPage > 1 ? currentPage - 1 : null,
+                nextPage: currentPage < totalPages ? currentPage + 1 : null,
+            };
+            return res.json({
+                pagination,
+                data: paginatedResults.map((gh) => ({
+                    _count: gh._count,
+                    name: gh.name,
+                    id: gh.id,
+                    createdAt: gh.createdAt,
+                    status: gh.status,
+                    updatedAt: gh.updatedAt,
+                    type: gh.accessType,
+                    address: gh.address,
+                    visibility: gh.visibility,
+                    // licenseId: gh.licenseId,
+                    categoryId: gh.categoryId,
+                    location: gh.location,
+                    about: gh.about,
+                    images: gh.images,
+                    distance: Number(gh.distance.toFixed(2)),
+                    facilities: gh.facilities,
+                })),
+            });
+        }
+        catch (error) {
+            console.error("Error fetching nearby properties:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    })),
+    getProperties: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            console.log("Fetching properties...");
+            // Extract and normalize query parameters
+            const { minPrice, maxPrice, city, subcity, country, type, search, page, limit, sortField = "createdAt", sortDirection = "desc", facilityNames, categoryId, hasRoomsAvailable, location, minRating, maxRating, } = req.query;
+            // Pagination setup
+            const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+            const pageSize = Math.max(parseInt(limit, 10) || 10, 1);
+            const skip = (pageNumber - 1) * pageSize;
+            // Numeric filters
+            const min = parseInt(minPrice || "0", 10);
+            const max = parseInt(maxPrice || "100000", 10);
+            // Build Prisma filters dynamically
+            const filters = { AND: [{ status: "APPROVED" }, { visibility: true }] };
+            // 🏙️ Location filters (city, subcity, country)
+            if (city || subcity || country) {
+                filters.AND.push({
+                    location: Object.assign(Object.assign(Object.assign({}, (city && { city: { contains: city, mode: "insensitive" } })), (subcity && { subcity: { contains: subcity, mode: "insensitive" } })), (country && { country: { contains: country, mode: "insensitive" } })),
+                });
+            }
+            // 🏠 Type filter (PRIVATE / SHARED)
+            if (type) {
+                filters.AND.push({ type: type.toUpperCase() });
+            }
+            // 💰 Price range — filter by average room price
+            if (min > 0 || max < 100000) {
+                filters.AND.push({
+                    rooms: {
+                        some: { price: { gte: min, lte: max } },
+                    },
+                });
+            }
+            // 🧩 Category filter
+            if (categoryId) {
+                filters.AND.push({ categoryId: categoryId });
+            }
+            // 🛏️ Availability filter
+            if (hasRoomsAvailable === "true") {
+                filters.AND.push({
+                    rooms: { some: { availability: true } },
+                });
+            }
+            // 🏷️ Facilities filter
+            if (facilityNames) {
+                const facilitiesArray = Array.isArray(facilityNames)
+                    ? facilityNames
+                    : facilityNames.split(",");
+                filters.AND.push({
+                    facilities: {
+                        some: {
+                            name: { in: facilitiesArray, mode: "insensitive" },
+                        },
+                    },
+                });
+            }
+            // 🔍 Global keyword search
+            if (search) {
+                const s = search.toString();
+                filters.AND.push({
+                    OR: [
+                        { name: { contains: s, mode: "insensitive" } },
+                        { location: { city: { contains: s, mode: "insensitive" } } },
+                        { location: { subcity: { contains: s, mode: "insensitive" } } },
+                        { location: { country: { contains: s, mode: "insensitive" } } },
+                    ],
+                });
+            }
+            // 📍 Location string filter
+            if (location) {
+                const cleanLocation = decodeURIComponent(location.toString().trim());
+                filters.AND.push({
+                    OR: [
+                        { name: { contains: cleanLocation, mode: "insensitive" } }, // property name
+                        { address: { contains: cleanLocation, mode: "insensitive" } }, // property address
+                        {
+                            location: {
+                                city: { contains: cleanLocation, mode: "insensitive" },
+                            },
+                        },
+                        {
+                            location: {
+                                subcity: { contains: cleanLocation, mode: "insensitive" },
+                            },
+                        },
+                        {
+                            location: {
+                                nearby: { contains: cleanLocation, mode: "insensitive" },
+                            },
+                        },
+                    ],
+                });
+            }
+            // ⭐ Star rating filter (from star rating sidebar)
+            if (minRating || maxRating) {
+                const ratingFilter = {};
+                if (minRating)
+                    ratingFilter.gte = Number(minRating);
+                if (maxRating)
+                    ratingFilter.lte = Number(maxRating);
+                filters.AND.push({ averageRating: ratingFilter });
+            }
+            // 📝 Review score filter (separate param, independent of star rating)
+            const minReviewScore = req.query.minReviewScore;
+            const maxReviewScore = req.query.maxReviewScore;
+            if (minReviewScore || maxReviewScore) {
+                const reviewFilter = {};
+                if (minReviewScore)
+                    reviewFilter.gte = Number(minReviewScore);
+                if (maxReviewScore)
+                    reviewFilter.lte = Number(maxReviewScore);
+                filters.AND.push({ averageRating: reviewFilter });
+            }
+            // ⚙️ Sorting
+            const orderBy = {};
+            if (sortField === "rating") {
+                orderBy["averageRating"] = "desc"; // always highest first for best reviewed
+            }
+            else {
+                orderBy["createdAt"] = sortDirection === "asc" ? "asc" : "desc";
+            }
+            // 📄 Total count for pagination
+            const totalItems = yield prisma_1.prisma.property.count({
+                where: filters.AND.length > 0 ? filters : undefined,
+            });
+            const totalPages = Math.ceil(totalItems / pageSize);
+            const hasMore = pageNumber < totalPages;
+            // 📦 Fetch paginated results
+            const properties = yield prisma_1.prisma.property.findMany({
+                where: filters.AND.length > 0 ? filters : undefined,
+                include: {
+                    location: true,
+                    about: true,
+                    images: true,
+                    facilities: true,
+                    rooms: {
+                        select: {
+                            id: true,
+                            name: true,
+                            price: true,
+                            availability: true,
+                            images: { select: { url: true, name: true }, take: 4 },
+                        },
+                    },
+                    _count: {
+                        select: { rooms: true, facilities: true, bookings: true },
+                    },
+                },
+                orderBy,
+                skip,
+                take: pageSize,
+            });
+            // ✅ Return paginated + filtered data
+            res.json({
+                data: properties,
+                pagination: {
+                    totalItems,
+                    currentPage: pageNumber,
+                    limit: limit,
+                    totalPages,
+                    hasMore,
+                    nextPage: hasMore ? pageNumber + 1 : null,
+                    previousPage: pageNumber > 1 ? pageNumber - 1 : null,
+                },
+                sort: { field: sortField, direction: sortDirection },
+                filters: {
+                    city,
+                    subcity,
+                    country,
+                    type,
+                    minPrice: min,
+                    maxPrice: max,
+                    search: search || "",
+                    categoryId,
+                    facilityNames,
+                    hasRoomsAvailable,
+                },
+            });
+        }
+        catch (error) {
+            console.error(error);
+            res
+                .status(500)
+                .json({ message: error.message || "Something went wrong" });
+        }
+    })),
+    getLocationStats: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const cities = ["Addis Ababa", "Bahir Dar", "Hawassa", "Gondar", "Adama", "Mekelle", "Dire Dawa"];
+        const counts = yield Promise.all(cities.map((city) => __awaiter(void 0, void 0, void 0, function* () {
+            const count = yield prisma_1.prisma.property.count({
+                where: {
+                    status: "APPROVED",
+                    visibility: true,
+                    location: { city: { contains: city, mode: "insensitive" } },
+                },
+            });
+            return { city, count };
+        })));
+        res.json({ data: counts });
+    })),
+    getTrendingProperties: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        // Returns ALL properties (no status/visibility filter) for trending display
+        const properties = yield prisma_1.prisma.property.findMany({
+            include: {
+                location: true,
+                about: true,
+                images: true,
+                facilities: true,
+                reviews: { select: { rating: true } },
+                rooms: {
+                    select: {
+                        id: true,
+                        name: true,
+                        price: true,
+                        availability: true,
+                        images: { select: { url: true, name: true }, take: 4 },
+                    },
+                },
+                _count: {
+                    select: { rooms: true, facilities: true, bookings: true },
+                },
+            },
+            orderBy: { createdAt: "asc" },
+            take: 10,
+            where: {},
+        });
+        res.json({ data: properties, success: true });
+    })),
+    getPropertyById: (0, async_handler_1.tryCatch)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        const propertyId = req.params.id;
+        const propertyDoc = yield prisma_1.prisma.property.findFirst({
+            where: {
+                id: propertyId,
+            },
+            include: {
+                about: true,
+                images: true,
+                reviews: true,
+                location: true,
+                contact: true,
+                facilities: true,
+                rooms: {
+                    include: {
+                        images: true,
+                        features: true,
+                        services: true,
+                        bookings: {
+                            where: {
+                                status: { in: ["PENDING", "APPROVED"] },
+                            },
+                            select: { checkIn: true, checkOut: true },
+                        },
+                    },
+                },
+            },
+        });
+        // Compute real availability per room
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const data = Object.assign(Object.assign({}, propertyDoc), { rooms: propertyDoc === null || propertyDoc === void 0 ? void 0 : propertyDoc.rooms.map((r) => (Object.assign(Object.assign({}, r), { availability: !r.bookings.some((b) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today) }))) });
+        res.json({ data, success: true });
+    })),
+    // management
+    createProperty: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        try {
+            const user = req.user;
+            console.log("reached first step------000-------");
+            if (!req.body) {
+                return res.status(400).json({ message: "Missing property data" });
+            }
+            // ✅ Validate property data
+            console.log("reached first step-----1---1-1--11----1");
+            const validatedData = properties_validator_1.createPropertySchema.parse(req.body);
+            console.log("------------------", { location: validatedData.location });
+            console.log("reached first step-----2---2-2--2----2");
+            const uploadedImages = (_a = validatedData.images) !== null && _a !== void 0 ? _a : [];
+            const createdProperty = yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+                // 1️⃣ Create property
+                const property = yield tx.property.create({
+                    data: {
+                        name: validatedData.name,
+                        address: validatedData.address,
+                        type: "HOTEL",
+                        accessType: "SHARED",
+                        visibility: true,
+                        status: "PENDING",
+                        // Nested relations
+                        about: validatedData.about
+                            ? { create: validatedData.about }
+                            : undefined,
+                        location: validatedData.location
+                            ? { create: validatedData.location }
+                            : undefined,
+                        facilities: validatedData.facilities
+                            ? { create: validatedData.facilities }
+                            : undefined,
+                        contact: validatedData.contact
+                            ? { create: validatedData.contact }
+                            : undefined,
+                        images: uploadedImages.length
+                            ? { create: uploadedImages }
+                            : undefined,
+                    },
+                    include: {
+                        about: true,
+                        location: true,
+                        facilities: true,
+                        contact: true,
+                        images: true,
+                    },
+                });
+                // 2️⃣ Assign current user as OWNER in ManagedProperty
+                yield tx.managedProperty.create({
+                    data: {
+                        userId: user.id,
+                        propertyId: property.id,
+                        role: user.role,
+                    },
+                });
+                return property;
+            }), { timeout: 30000 });
+            res.status(201).json({
+                success: true,
+                message: "Property created successfully",
+                data: createdProperty,
+            });
+        }
+        catch (error) {
+            console.log("------------------------------", { error });
+            return res.status(500).json({
+                message: (error === null || error === void 0 ? void 0 : error.message) || "Failed to create property",
+            });
+        }
+    })),
+    updateProperty: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const user = req.user;
+        const { id: userId, role } = user;
+        const propertyId = req.params.id;
+        if (!req.body) {
+            return res.status(400).json({ message: "Missing property data" });
+        }
+        const validatedData = properties_validator_1.updatePropertySchema.parse(req.body);
+        // 1️⃣ Fetch property with managers
+        const property = yield prisma_1.prisma.property.findUnique({
+            where: { id: propertyId },
+            include: { managers: true },
+        });
+        if (!property) {
+            return res.status(404).json({ message: "Property not found" });
+        }
+        // 2️⃣ Authorization: OWNER or ADMIN
+        const isOwner = property.managers.some((m) => m.userId === userId && m.role === "OWNER");
+        if (!isOwner && role !== "ADMIN") {
+            return res.status(403).json({
+                message: "You are not authorized to update this property.",
+            });
+        }
+        // 3️⃣ Update nested relations safely
+        const updatedProperty = yield prisma_1.prisma.property.update({
+            where: { id: propertyId },
+            data: {
+                name: validatedData.name,
+                address: validatedData.address,
+                type: validatedData.type,
+                about: validatedData.about
+                    ? {
+                        upsert: {
+                            create: validatedData.about,
+                            update: validatedData.about,
+                        },
+                    }
+                    : undefined,
+                location: validatedData.location
+                    ? {
+                        upsert: {
+                            create: validatedData.location,
+                            update: validatedData.location,
+                        },
+                    }
+                    : undefined,
+                facilities: validatedData.facilities
+                    ? { deleteMany: {}, create: validatedData.facilities }
+                    : undefined,
+                contact: validatedData.contact
+                    ? {
+                        upsert: {
+                            create: validatedData.contact,
+                            update: validatedData.contact,
+                        },
+                    }
+                    : undefined,
+                images: validatedData.images
+                    ? { deleteMany: {}, create: validatedData.images }
+                    : undefined,
+            },
+            include: {
+                about: true,
+                location: true,
+                facilities: true,
+                contact: true,
+                images: true,
+            },
+        });
+        res.json({
+            success: true,
+            message: "Property updated successfully",
+            data: updatedProperty,
+        });
+    })),
+    addPropertyImage: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: propertyId } = req.params;
+        const { url, name, category } = req.body;
+        if (!url)
+            return res.status(400).json({ message: "url is required" });
+        const image = yield prisma_1.prisma.propertyImage.create({
+            data: { url, name: name || "", propertyId, category: category || "property" },
+        });
+        res.status(201).json({ success: true, message: "Image added", data: image });
+    })),
+    deletePropertyImage: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: propertyId } = req.params;
+        const { url } = req.body;
+        if (!url)
+            return res.status(400).json({ message: "url is required" });
+        yield prisma_1.prisma.propertyImage.deleteMany({ where: { propertyId, url } });
+        res.json({ success: true, message: "Image deleted" });
+    })),
+    deleteProperty: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const user = req.user;
+        const { id: propertyId } = req.params;
+        const property = yield prisma_1.prisma.property.findUnique({
+            where: { id: propertyId },
+            include: { managers: true },
+        });
+        if (!property) {
+            return res.status(404).json({ message: "Property not found" });
+        }
+        const isOwner = property.managers.some((m) => m.userId === user.id && m.role === "OWNER");
+        if (!isOwner && user.role !== "ADMIN") {
+            return res.status(403).json({
+                message: "You are not authorized to delete this property.",
+            });
+        }
+        // Use raw SQL to delete everything — bypasses all FK constraints (v2)
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Commission" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Payment" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Activity" WHERE "bookingId" IN (SELECT id FROM "Booking" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Booking" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "AdditionalService" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "RoomFeature" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "RoomImage" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Favorite" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Activity" WHERE "roomId" IN (SELECT id FROM "Room" WHERE "propertyId" = ${propertyId})`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Room" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "ManagedProperty" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Review" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Favorite" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "PropertyImage" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Facility" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "PropertyService" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "CarService" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Activity" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "About" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Location" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Contact" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "License" WHERE "propertyId" = ${propertyId}`;
+        yield prisma_1.prisma.$executeRaw `DELETE FROM "Property" WHERE "id" = ${propertyId}`;
+        return res.json({ message: "Property deleted successfully.", success: true });
+    })),
+    getPropertiesForList: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const user = req.user;
+        const { id: userId, role } = user;
+        let properties;
+        if (role === "ADMIN") {
+            // Admin sees all properties
+            properties = yield prisma_1.prisma.property.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    rooms: { select: { id: true, name: true } },
+                },
+            });
+        }
+        else {
+            // Non-admins: filter via ManagedProperty pivot
+            let roleFilter = [];
+            if (role === "STAFF")
+                roleFilter = ["STAFF"];
+            else if (role === "BROKER")
+                roleFilter = ["BROKER"];
+            else if (role === "OWNER")
+                roleFilter = ["OWNER"];
+            properties = yield prisma_1.prisma.property.findMany({
+                where: {
+                    managers: {
+                        some: {
+                            userId,
+                            role: { in: roleFilter },
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    rooms: { select: { id: true, name: true } },
+                },
+            });
+        }
+        res.json(properties);
+    })),
+    createDummyProperty: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const userId = "16N8WesV1IMjvnejlY3qrYpLPpp56BPC"; // Example owner ID
+        const uploadedImages = [
+            {
+                url: "https://t4.ftcdn.net/jpg/00/69/38/91/360_F_69389176_IOhx2ii1TPEmPkchCEzPnFHqR8SlhPwp.jpg",
+                name: "guest1.jpg",
+            },
+            {
+                url: "https://res.cloudinary.com/demo/image/upload/v1234567890/guest2.jpg",
+                name: "guest2.jpg",
+            },
+        ];
+        const dummyPropertyData = {
+            name: "Sunny Stay Property",
+            address: "123 Bole Street, Addis Ababa, Ethiopia",
+            type: client_1.PropertyAccessType.SHARED,
+            ownerId: userId,
+            about: {
+                description: "Sunny Stay Property offers comfortable rooms with modern amenities and a cozy atmosphere. Perfect for travelers and families.",
+            },
+            location: {
+                continent: "Africa",
+                country: "Ethiopia",
+                city: "Addis Ababa",
+                subcity: "Bole",
+                nearby: "Near Friendship Square",
+            },
+            facilities: [
+                { name: "Free Wi-Fi" },
+                { name: "Breakfast included" },
+                { name: "Parking available" },
+                { name: "24/7 Reception" },
+                { name: "Swimming Pool" },
+            ],
+            contact: {
+                phone: "+251912345678",
+                email: "info@sunnystay.com",
+            },
+            images: uploadedImages,
+        };
+        // Usage with Prisma
+        const createdProperty = yield prisma_1.prisma.property.create({
+            data: {
+                name: dummyPropertyData.name,
+                address: dummyPropertyData.address,
+                type: "VILLA",
+                about: { create: dummyPropertyData.about },
+                location: { create: dummyPropertyData.location },
+                facilities: { create: dummyPropertyData.facilities },
+                contact: { create: dummyPropertyData.contact },
+                images: { create: dummyPropertyData.images },
+            },
+            include: {
+                about: true,
+                location: true,
+                facilities: true,
+                contact: true,
+            },
+        });
+        console.log(createdProperty);
+        res.send(createdProperty);
+    })),
+    getPropertiesForManagement: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: userId, role } = req.user;
+        let properties;
+        if (role === "ADMIN") {
+            // Admin: fetch all properties
+            properties = yield prisma_1.prisma.property.findMany({
+                include: {
+                    about: true,
+                    images: true,
+                    managers: true, // optional: include staff/broker info
+                    _count: { select: { rooms: true } },
+                },
+            });
+        }
+        else if (role === "OWNER") {
+            // Owner: fetch properties they own
+            properties = yield prisma_1.prisma.property.findMany({
+                where: {
+                    managers: {
+                        some: { userId, role: "OWNER" },
+                    },
+                },
+                include: {
+                    about: true,
+                    images: true,
+                    managers: true,
+                    _count: { select: { rooms: true } },
+                },
+            });
+        }
+        else if (role === "STAFF" || role === "BROKER") {
+            // Staff/Broker: fetch only properties they are assigned to
+            properties = yield prisma_1.prisma.property.findMany({
+                where: {
+                    managers: {
+                        some: { userId, role },
+                    },
+                },
+                include: {
+                    about: true,
+                    images: true,
+                    managers: true,
+                    _count: { select: { rooms: true } },
+                },
+            });
+        }
+        else {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to access properties.",
+            });
+        }
+        res.json({ data: properties || [] });
+    })),
+    getPropertiesStatsForManagement: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        let propertiesIds = [];
+        switch (userRole) {
+            case "ADMIN":
+                // Admin sees all properties
+                break;
+            case "OWNER":
+            case "STAFF":
+            case "BROKER":
+                const managed = yield prisma_1.prisma.managedProperty.findMany({
+                    where: { userId, role: userRole },
+                    select: { propertyId: true },
+                });
+                propertiesIds = managed.map((m) => m.propertyId);
+                if (!propertiesIds.length) {
+                    return res.json({
+                        totalProperties: 0,
+                        approvedProperties: 0,
+                        pendingProperties: 0,
+                        totalRooms: 0,
+                        totalReviews: 0,
+                        totalLicensesApproved: 0,
+                        totalFavorites: 0,
+                    });
+                }
+                break;
+            default:
+                return res.status(403).json({ message: "Access denied" });
+        }
+        const filter = propertiesIds.length ? { id: { in: propertiesIds } } : {};
+        const [totalProperties, approvedProperties, pendingProperties, totalRooms, totalReviews, totalLicensesApproved, totalFavorites,] = yield Promise.all([
+            prisma_1.prisma.property.count({ where: filter }),
+            prisma_1.prisma.property.count({ where: Object.assign(Object.assign({}, filter), { status: "APPROVED" }) }),
+            prisma_1.prisma.property.count({ where: Object.assign(Object.assign({}, filter), { status: "PENDING" }) }),
+            prisma_1.prisma.room.count({
+                where: {
+                    property: {
+                        id: { in: propertiesIds.length ? propertiesIds : undefined },
+                    },
+                },
+            }),
+            prisma_1.prisma.review.count({
+                where: {
+                    property: {
+                        id: { in: propertiesIds.length ? propertiesIds : undefined },
+                    },
+                },
+            }),
+            prisma_1.prisma.license.count({
+                where: {
+                    status: "APPROVED",
+                    propertyId: {
+                        in: propertiesIds.length ? propertiesIds : undefined,
+                    },
+                },
+            }),
+            prisma_1.prisma.favorite.count({
+                where: {
+                    property: {
+                        id: { in: propertiesIds.length ? propertiesIds : undefined },
+                    },
+                },
+            }),
+        ]);
+        return res.json({
+            totalProperties,
+            approvedProperties,
+            pendingProperties,
+            totalRooms,
+            totalReviews,
+            totalLicensesApproved,
+            totalFavorites,
+        });
+    })),
+    getPropertyByIdForManagement: (0, async_handler_1.tryCatch)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        const propertyId = req.params.id;
+        const propertyDoc = yield prisma_1.prisma.property.findFirst({
+            where: { id: propertyId },
+            include: {
+                rooms: true,
+                about: true,
+                contact: true,
+                facilities: true,
+                images: true,
+                license: true,
+                location: true,
+                bookings: true,
+                managers: {
+                    where: { role: { in: ["STAFF", "BROKER"] } },
+                    include: { user: true },
+                },
+            },
+        });
+        if (!propertyDoc) {
+            return res.status(404).json({ message: "Property not found" });
+        }
+        // Map managers to staffs array with role
+        const { managers } = propertyDoc, rest = __rest(propertyDoc, ["managers"]);
+        const staffs = managers.map((m) => (Object.assign(Object.assign({}, m.user), { role: m.role })));
+        res.json(Object.assign(Object.assign({}, rest), { staffs }));
+    })),
+    addFacility: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: propertyId } = req.params;
+        const { name } = req.body;
+        if (!name)
+            return res.status(400).json({ message: "name is required" });
+        const facility = yield prisma_1.prisma.facility.create({ data: { name, propertyId } });
+        res.status(201).json({ success: true, message: "Facility added", data: facility });
+    })),
+    voidProperty: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: propertyId } = req.params;
+        const user = req.user;
+        const property = yield prisma_1.prisma.property.findUnique({
+            where: { id: propertyId },
+            include: { managers: true },
+        });
+        if (!property)
+            return res.status(404).json({ message: "Property not found" });
+        const isOwner = property.managers.some((m) => m.userId === user.id && m.role === "OWNER");
+        if (!isOwner && user.role !== "ADMIN") {
+            return res.status(403).json({ message: "Not authorized." });
+        }
+        yield prisma_1.prisma.property.update({
+            where: { id: propertyId },
+            data: { visibility: false },
+        });
+        return res.json({ success: true, message: "Property voided (hidden) successfully." });
+    })),
+    changePropertyStatus: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        const { id: propertyId } = req.params;
+        const { status, reason } = req.body;
+        const userRole = (_a = req.user) === null || _a === void 0 ? void 0 : _a.role;
+        if (userRole !== "ADMIN") {
+            return res.status(403).json({ message: "Only admins can approve or reject properties." });
+        }
+        const validStatuses = ["APPROVED", "REJECTED", "PENDING"];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: "Invalid status." });
+        }
+        const property = yield prisma_1.prisma.property.update({
+            where: { id: propertyId },
+            data: { status, statusReason: reason || null },
+        });
+        return res.json({ success: true, message: `Property ${status.toLowerCase()} successfully.`, data: property });
+    })),
+    requestNewProperty: (0, async_handler_1.tryCatch)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        const { propertyData: { name, type, license: { licenseName, licenseFile }, documents: { national_id_back, national_id_front }, }, accountData: { email, password, phoneNumber, fullName }, location: { city }, registerAs, } = req.body;
+        yield prisma_1.prisma.property.create({
+            data: {
+                name,
+                address: "",
+                license: { create: { fileUrl: licenseFile, status: "PENDING" } },
+            },
+        });
+        auth_1.auth.api.signUpEmail({
+            body: {
+                email: email,
+                name: fullName,
+                password,
+                role: registerAs,
+                phone: phoneNumber,
+                status: "PENDING",
+            },
+        });
+    })),
+};

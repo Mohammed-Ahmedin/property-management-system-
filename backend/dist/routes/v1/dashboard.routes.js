@@ -10,7 +10,11 @@ const auth_middleware_1 = require("../../middleware/auth-middleware");
 const router = (0, express_1.Router)();
 exports.DashboardRouter = router;
 // @/dashboard
-router.get("/admin", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), dashboard_controller_1.default.getAdminDashboardStats);
+router.get("/admin/stats", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), dashboard_controller_1.default.getAdminDashboardStats);
+router.get("/admin/summary", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), dashboard_controller_1.default.getAdminDashboardSummary);
+// owner
 router.get("/owner", (0, auth_middleware_1.authGuard)({ accessedBy: ["OWNER"] }), dashboard_controller_1.default.getOwnerDashboardStats);
+// borkder
 router.get("/broker", (0, auth_middleware_1.authGuard)({ accessedBy: ["BROKER"] }), dashboard_controller_1.default.getBrokerDashboardStats);
-router.get("/staff", (0, auth_middleware_1.authGuard)({ accessedBy: ["STAFF"] }), dashboard_controller_1.default.getStaffDashboardStats);
+// staffs
+router.get("/staff/stats", (0, auth_middleware_1.authGuard)({ accessedBy: ["STAFF"] }), dashboard_controller_1.default.getStaffDashboardStats);

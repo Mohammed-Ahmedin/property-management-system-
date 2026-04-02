@@ -34,14 +34,28 @@ exports.default = {
                 images: true,
                 features: true,
                 services: true,
+                bookings: {
+                    where: {
+                        status: { in: ["PENDING", "APPROVED"] },
+                    },
+                    select: { checkIn: true, checkOut: true },
+                },
             },
         });
         if (!room) {
             return res.status(404).json({ message: "Room not found" });
         }
-        res.status(200).json(room);
+        // Compute real availability: no active bookings overlapping today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const hasActiveBooking = room.bookings.some((b) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today);
+        res.status(200).json({
+            data: Object.assign(Object.assign({}, room), { availability: !hasActiveBooking }),
+            success: true,
+        });
     })),
-    getRoomsForAdminsList: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //management
+    getRoomsForManagmentList: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const propertyId = req.params.propertyId;
         const rooms = yield prisma_1.prisma.room.findMany({
             where: { propertyId },
@@ -66,10 +80,9 @@ exports.default = {
         });
         return res.status(200).json(rooms);
     })),
-    getRoomsForAdmins: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    getRoomsForManagement: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userId = req.user.id;
         const userRole = req.user.role;
-        console.log(req.user);
         // Extract query params
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
@@ -78,38 +91,39 @@ exports.default = {
         const search = req.query.search || "";
         const type = req.query.type || "";
         const propertyId = req.query.propertyId || "";
-        // Build role-based access conditions
-        const roleWhere = {};
+        // Role-based property access
+        let propertyIds = [];
         switch (userRole) {
             case "ADMIN":
-                // Admin has access to all rooms
+                // Admin sees all properties
                 break;
             case "OWNER":
-                // Owner has access to their properties
-                roleWhere.property = { ownerId: userId };
-                break;
             case "STAFF":
-                // Staff has access only to the property they belong to
-                const staffHouse = yield prisma_1.prisma.user.findUnique({
-                    where: { id: userId },
-                    select: { staffPropertyId: true },
-                });
-                if (!(staffHouse === null || staffHouse === void 0 ? void 0 : staffHouse.staffPropertyId)) {
-                    return res
-                        .status(403)
-                        .json({ message: "Access denied. No assigned property." });
-                }
-                roleWhere.propertyId = staffHouse.staffPropertyId;
-                break;
             case "BROKER":
-                // Broker has access to rooms in properties they broker
-                roleWhere.property = { brokerId: userId };
+                // Find properties assigned via ManagedProperty
+                const managed = yield prisma_1.prisma.managedProperty.findMany({
+                    where: {
+                        userId,
+                        role: userRole,
+                    },
+                    select: { propertyId: true },
+                });
+                propertyIds = managed.map((m) => m.propertyId);
+                if (propertyIds.length === 0) {
+                    return res.json([]);
+                }
                 break;
             default:
                 return res.status(403).json({ message: "Access denied" });
         }
         // Build filtering conditions
-        const where = Object.assign({}, roleWhere);
+        const where = {};
+        if (propertyIds.length)
+            where.propertyId = { in: propertyIds };
+        if (propertyId)
+            where.propertyId = propertyId;
+        if (type)
+            where.type = type;
         if (search) {
             where.OR = [
                 { name: { contains: search, mode: "insensitive" } },
@@ -117,10 +131,6 @@ exports.default = {
                 { property: { name: { contains: search, mode: "insensitive" } } },
             ];
         }
-        if (type)
-            where.type = type;
-        if (propertyId)
-            where.propertyId = propertyId;
         // Pagination
         const totalItems = yield prisma_1.prisma.room.count({ where });
         const totalPages = Math.ceil(totalItems / limit);
@@ -189,7 +199,7 @@ exports.default = {
         }
         if (roomByRoomId) {
             return res.status(409).json({
-                message: "This room id already registerd in this property",
+                message: "This room ID is already used in this property. Please use a different room ID.",
             });
         }
         // (Optional) Authorization check
@@ -263,94 +273,184 @@ exports.default = {
         });
     })),
     deleteRoom: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const user = req.body.user;
+        const user = req.user;
         const userId = user === null || user === void 0 ? void 0 : user.id;
         const role = user === null || user === void 0 ? void 0 : user.role;
         const roomId = req.params.id;
-        // Validate body
-        // Check property ownership
-        const property = yield prisma_1.prisma.property.findUnique({
+        const room = yield prisma_1.prisma.room.findUnique({
             where: { id: roomId },
+            include: { property: { include: { managers: true } } },
         });
-        if (!property) {
-            return res.status(404).json({ message: "Property not found" });
+        if (!room) {
+            return res.status(404).json({ message: "Room not found" });
         }
-        if (property.ownerId !== userId && role !== "ADMIN") {
-            return res.status(403).json({
-                message: "You are not authorized to add rooms to this property",
+        const managed = yield prisma_1.prisma.managedProperty.findFirst({
+            where: { userId, propertyId: room.property.id, role: { in: ["OWNER", "ADMIN"] } },
+        });
+        if (!managed && role !== "ADMIN") {
+            return res.status(403).json({ message: "You are not authorized to delete rooms in this property" });
+        }
+        // Delete dependents first to avoid FK violations
+        yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+            // Get booking IDs for this room
+            const bookings = yield tx.booking.findMany({
+                where: { roomId },
+                select: { id: true },
             });
-        }
-        res.status(201).json({
-            message: "Room deleted successfull",
-        });
+            const bookingIds = bookings.map((b) => b.id);
+            // Delete booking dependents
+            if (bookingIds.length) {
+                yield tx.commission.deleteMany({ where: { bookingId: { in: bookingIds } } });
+                yield tx.payment.deleteMany({ where: { bookingId: { in: bookingIds } } });
+                yield tx.activity.deleteMany({ where: { bookingId: { in: bookingIds } } });
+            }
+            yield tx.booking.deleteMany({ where: { roomId } });
+            yield tx.additionalService.deleteMany({ where: { roomId } });
+            yield tx.roomFeature.deleteMany({ where: { roomId } });
+            yield tx.roomImage.deleteMany({ where: { roomId } });
+            yield tx.favorite.deleteMany({ where: { roomId } });
+            yield tx.activity.deleteMany({ where: { roomId } });
+            yield tx.room.delete({ where: { id: roomId } });
+        }));
+        res.status(200).json({ message: "Room deleted successfully", success: true });
     })),
-    getRoomStats: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    getRoomDetailForManagement: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userId = req.user.id;
         const userRole = req.user.role;
-        const roleWhere = {};
-        // Role-based filtering — same logic as your getRoomsForAdmins
+        const roomId = req.params.roomId;
+        // Find the room with its property
+        const room = yield prisma_1.prisma.room.findUnique({
+            where: { id: roomId },
+            include: {
+                property: { include: { managers: { include: { user: true } } } },
+                features: true,
+                services: true,
+                images: true,
+                bookings: true,
+                _count: {
+                    select: { bookings: true, features: true, services: true },
+                },
+            },
+        });
+        if (!room) {
+            return res.status(404).json({ message: "Room not found" });
+        }
+        const property = room.property;
+        // Check access via ManagedProperty
+        let hasAccess = false;
+        if (userRole === "ADMIN") {
+            hasAccess = true;
+        }
+        else {
+            const managed = yield prisma_1.prisma.managedProperty.findFirst({
+                where: {
+                    userId,
+                    propertyId: property.id,
+                    role: { in: ["OWNER", "STAFF", "BROKER"] }, // roles allowed
+                },
+            });
+            hasAccess = !!managed;
+        }
+        if (!hasAccess) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+        // Prepare staffs array for consistency
+        const staffs = property.managers
+            .filter((m) => m.role === "STAFF")
+            .map((m) => m.user);
+        // Send response
+        res.json(Object.assign(Object.assign({}, room), { property: Object.assign(Object.assign({}, property), { staffs }) }));
+    })),
+    getRoomStatsForManagement: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        // Determine properties the user can access
+        let propertyIds = [];
         switch (userRole) {
             case "ADMIN":
-                // Can see all stats
+                // Admin can access all properties
                 break;
             case "OWNER":
-                roleWhere.property = { ownerId: userId };
-                break;
             case "STAFF":
-                const staffHouse = yield prisma_1.prisma.user.findUnique({
-                    where: { id: userId },
-                    select: { staffPropertyId: true },
-                });
-                if (!(staffHouse === null || staffHouse === void 0 ? void 0 : staffHouse.staffPropertyId)) {
-                    return res
-                        .status(403)
-                        .json({ message: "Access denied. No assigned property." });
-                }
-                roleWhere.propertyId = staffHouse.staffPropertyId;
-                break;
             case "BROKER":
-                roleWhere.property = { brokerId: userId };
+                const managed = yield prisma_1.prisma.managedProperty.findMany({
+                    where: { userId, role: userRole },
+                    select: { propertyId: true },
+                });
+                propertyIds = managed.map((m) => m.propertyId);
+                if (!propertyIds.length) {
+                    return res.json({
+                        totalRooms: 0,
+                        availableRooms: 0,
+                        bookedRooms: 0,
+                        pendingRooms: 0,
+                        roomsByType: 0,
+                    });
+                }
                 break;
             default:
-                return res.status(403).json({ message: "Access denied" });
+                return res.json({
+                    totalRooms: 0,
+                    availableRooms: 0,
+                    bookedRooms: 0,
+                    pendingRooms: 0,
+                    roomsByType: 0,
+                });
         }
-        // Get total rooms
-        const totalRooms = yield prisma_1.prisma.room.count({
-            where: roleWhere,
-        });
-        // Example: if your Room model has "status" or "availability" field
+        const where = propertyIds.length
+            ? { propertyId: { in: propertyIds } }
+            : {};
+        // Total rooms
+        const totalRooms = yield prisma_1.prisma.room.count({ where });
+        // Example fields — adjust according to your schema
         const availableRooms = yield prisma_1.prisma.room.count({
-            where: Object.assign(Object.assign({}, roleWhere), { status: "AVAILABLE" }),
+            where: Object.assign(Object.assign({}, where), { availability: true }),
         });
         const bookedRooms = yield prisma_1.prisma.room.count({
-            where: Object.assign(Object.assign({}, roleWhere), { bookings: {
-                    some: {
-                        status: "CONFIRMED", // adjust depending on your Booking model
-                    },
-                } }),
+            where: Object.assign(Object.assign({}, where), { bookings: { some: { status: "APPROVED" } } }),
         });
         const pendingRooms = yield prisma_1.prisma.room.count({
-            where: Object.assign(Object.assign({}, roleWhere), { bookings: {
-                    some: {
-                        status: "PENDING",
-                    },
-                } }),
+            where: Object.assign(Object.assign({}, where), { bookings: { some: { status: "PENDING" } } }),
         });
-        // Optional: group by type (e.g., SINGLE, DOUBLE, SUITE)
+        // Optional: group by type
         const roomsByType = yield prisma_1.prisma.room.groupBy({
             by: ["type"],
             _count: { type: true },
-            where: roleWhere,
+            where,
         });
-        // Send response
         res.json({
             totalRooms,
             availableRooms,
             bookedRooms,
             pendingRooms,
+            roomsByType,
         });
     })),
-    updateRoom: (0, async_handler_1.tryCatch)(() => __awaiter(void 0, void 0, void 0, function* () { })),
+    updateRoom: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const roomId = req.params.id;
+        const { name, type, price, description, maxOccupancy, squareMeters, availability } = req.body;
+        const room = yield prisma_1.prisma.room.findUnique({ where: { id: roomId } });
+        if (!room)
+            return res.status(404).json({ message: "Room not found" });
+        const updated = yield prisma_1.prisma.room.update({
+            where: { id: roomId },
+            data: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, (name !== undefined && { name })), (type !== undefined && { type })), (price !== undefined && { price: Number(price) })), (description !== undefined && { description })), (maxOccupancy !== undefined && { maxOccupancy: Number(maxOccupancy) })), (squareMeters !== undefined && { squareMeters: Number(squareMeters) })), (availability !== undefined && { availability: Boolean(availability) })),
+        });
+        res.json({ success: true, message: "Room updated successfully", data: updated });
+    })),
+    addRoomImage: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const roomId = req.params.id;
+        const { url, name } = req.body;
+        if (!url)
+            return res.status(400).json({ message: "url is required" });
+        const image = yield prisma_1.prisma.roomImage.create({ data: { url, name: name || "", roomId } });
+        res.status(201).json({ success: true, message: "Image added", data: image });
+    })),
+    deleteRoomImage: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { imageId } = req.params;
+        yield prisma_1.prisma.roomImage.delete({ where: { id: imageId } });
+        res.json({ success: true, message: "Image deleted" });
+    })),
     addServices: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { roomId } = req.params;
         // Ensure room exists
@@ -403,5 +503,68 @@ exports.default = {
             },
         });
         res.json(roomServices);
+    })),
+    createDummyRoom: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const propertyId = "17703781-ab43-4801-911a-3f68f63f655a";
+        const property = yield prisma_1.prisma.property.findUnique({
+            where: { id: propertyId },
+        });
+        if (!property) {
+            throw new Error("Property not found");
+        }
+        // Generate dummy data
+        const dummyRoomData = {
+            name: `Room ${Math.floor(Math.random() * 1000)}`,
+            roomId: `R-${Math.floor(Math.random() * 10000)}`,
+            type: "SINGLE", // or "DOUBLE", etc.
+            price: Math.floor(Math.random() * 5000) + 1000, // random price
+            description: "This is a dummy room created for testing purposes.",
+            availability: true,
+            squareMeters: Math.floor(Math.random() * 50) + 10,
+            maxOccupancy: Math.floor(Math.random() * 4) + 1,
+            propertyId,
+            features: {
+                create: [
+                    { category: "Comfort", name: "Air Conditioning", value: "Yes" },
+                    { category: "Entertainment", name: "Smart TV", value: "Yes" },
+                ],
+            },
+            images: {
+                create: [
+                    {
+                        url: "https://expressinnindia.com/wp-content/uploads/2024/07/Freesia-God-23.jpg",
+                        name: "Room Image 1",
+                    },
+                    {
+                        url: "https://expressinnindia.com/wp-content/uploads/2024/07/Freesia-God-23.jpg",
+                        name: "Room Image 2",
+                    },
+                ],
+            },
+            services: {
+                create: [
+                    {
+                        name: "Breakfast",
+                        description: "Buffet breakfast included",
+                        price: 500,
+                    },
+                    {
+                        name: "Laundry",
+                        description: "Laundry service available",
+                        price: 200,
+                    },
+                ],
+            },
+        };
+        // Create room
+        const newRoom = yield prisma_1.prisma.room.create({
+            data: dummyRoomData,
+            include: {
+                features: true,
+                images: true,
+                services: true,
+            },
+        });
+        res.json("success");
     })),
 };

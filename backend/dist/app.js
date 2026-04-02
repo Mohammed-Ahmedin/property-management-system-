@@ -1,4 +1,46 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -11,19 +53,38 @@ const node_1 = require("better-auth/node");
 const auth_1 = require("./lib/auth");
 const routes_1 = __importDefault(require("./routes"));
 const error_handler_1 = __importDefault(require("./middleware/error-handler"));
-// import { Server } from "socket.io";
-// import registerSocketHandlers from "./sockets";
 const swaggerOutput = require("../swagger-output.json");
 const app = (0, express_1.default)();
 // ---------- Middleware ----------
+app.set("trust proxy", 1);
+const CLIENT_FRONTEND_URL = process.env.CLIENT_FRONTEND_URL;
+const ADMIN_FRONTEND_URL = process.env.ADMIN_FRONTEND_URL;
+const allowedOriginPatterns = [
+    /^https:\/\/property-management-system[\w-]*\.vercel\.app$/,
+    /^https:\/\/property-management-system[\w-]*-mohammed-ahmedins-projects\.vercel\.app$/,
+    /^https:\/\/solomongetnet\.pro\.et$/,
+    /^http:\/\/localhost:(4000|5173|3000)$/,
+];
+const staticOrigins = [
+    CLIENT_FRONTEND_URL,
+    ADMIN_FRONTEND_URL,
+].filter(Boolean);
+app.use((0, cors_1.default)({
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true);
+        if (staticOrigins.includes(origin))
+            return callback(null, true);
+        if (allowedOriginPatterns.some((p) => p.test(origin)))
+            return callback(null, true);
+        callback(new Error(`CORS blocked: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+}));
 app.use((0, express_fileupload_1.default)({
     useTempFiles: true,
     tempFileDir: "/tmp/",
-}));
-app.use((0, cors_1.default)({
-    origin: ["http://localhost:4000"], // Allow all origins
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allowed HTTP methods
-    credentials: true,
 }));
 app.all("/api/auth/*splat", (0, node_1.toNodeHandler)(auth_1.auth));
 app.use(express_1.default.json());
@@ -46,8 +107,33 @@ app.use(error_handler_1.default);
 // ---------- Register Socket Handlers ----------
 // registerSocketHandlers(io);
 const PORT = process.env.PORT || 3000;
+// Auto-approve all PENDING properties on startup
+function autoApproveProperties() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { prisma } = yield Promise.resolve().then(() => __importStar(require("./lib/prisma")));
+            const result = yield prisma.property.updateMany({
+                where: { status: "PENDING" },
+                data: { status: "APPROVED", visibility: true },
+            });
+            if (result.count > 0) {
+                console.log(`✅ Auto-approved ${result.count} pending properties`);
+            }
+        }
+        catch (e) {
+            console.error("Auto-approve failed:", e);
+        }
+    });
+}
 // ---------- Start Server ----------
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 The new version is running`);
     console.log(`📖 Swagger Docs in here http://localhost:${PORT}/api-docs`);
-});
+    yield autoApproveProperties();
+}));
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on http://localhost:${PORT}`);
+//   console.log(`🚀 The new version is running`);
+//   console.log(`📖 Swagger Docs in here http://localhost:${PORT}/api-docs`);
+// });
