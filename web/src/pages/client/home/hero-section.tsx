@@ -25,8 +25,21 @@ const HeroSection = () => {
         </p>
       </div>
 
-      {/* Search card */}
-      <div className="relative z-10 w-[95%] md:w-[780px] lg:w-[860px]">
+      {/* Search card — gentle left-to-right float */}
+      <style>{`
+        @keyframes float-lr {
+          0%   { transform: translateX(-6px); }
+          50%  { transform: translateX(6px); }
+          100% { transform: translateX(-6px); }
+        }
+        .search-float {
+          animation: float-lr 4s ease-in-out infinite;
+        }
+        .search-float:hover, .search-float:focus-within {
+          animation-play-state: paused;
+        }
+      `}</style>
+      <div className="relative z-10 w-[95%] md:w-[780px] lg:w-[860px] search-float">
         <FilterTab />
       </div>
     </div>
