@@ -2,30 +2,62 @@ import { useGetTrendingProperties } from "@/hooks/api/use-properties";
 import SectionHeader from "./_components/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyCard } from "@/components/shared/property-card";
+import { useEffect, useRef } from "react";
 
 const PropertiesSection = () => {
   const dataQuery = useGetTrendingProperties();
+  const trackRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number>(0);
+  const posRef = useRef(0);
+  const pausedRef = useRef(false);
+
+  const properties = dataQuery.data?.data || [];
+  const doubled = properties.length > 0 ? [...properties, ...properties] : [];
+
+  useEffect(() => {
+    if (doubled.length === 0) return;
+    const speed = 0.4;
+    const track = trackRef.current;
+    if (!track) return;
+
+    const animate = () => {
+      if (!pausedRef.current) {
+        posRef.current += speed;
+        const half = track.scrollWidth / 2;
+        if (posRef.current >= half) posRef.current = 0;
+        track.style.transform = `translateX(-${posRef.current}px)`;
+      }
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [doubled.length]);
+
   return (
-    <section className="c-px">
+    <section className="c-px pb-10 overflow-hidden">
       <SectionHeader title="Trending Properties" />
 
       {dataQuery.isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-          <Skeleton className="w-full h-[300px] rounded-" />
-          <Skeleton className="w-full h-[300px] rounded-" />
-          <Skeleton className="w-full h-[300px] rounded-lg" />
+        <div className="flex gap-4">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="w-[300px] h-[300px] rounded-2xl shrink-0" />)}
         </div>
-      ) : dataQuery.isError ? (
-        ""
+      ) : dataQuery.isError || doubled.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No trending properties yet.</p>
       ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-            {dataQuery.data?.data &&
-              dataQuery.data?.data.map((d: any) => {
-                return <PropertyCard data={d} key={d.id} view="vertical" />;
-              })}
+        <div
+          className="relative overflow-hidden"
+          onMouseEnter={() => { pausedRef.current = true; }}
+          onMouseLeave={() => { pausedRef.current = false; }}
+        >
+          <div ref={trackRef} className="flex gap-4 w-max will-change-transform">
+            {doubled.map((d: any, i: number) => (
+              <div key={`${d.id}-${i}`} className="shrink-0 w-[300px]">
+                <PropertyCard data={d} view="vertical" />
+              </div>
+            ))}
           </div>
-        </>
+        </div>
       )}
     </section>
   );
