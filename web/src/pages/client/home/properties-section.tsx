@@ -16,15 +16,16 @@ const TrendingCard = ({ data }: { data: any }) => {
   const avgRating = data.reviews?.length
     ? data.reviews.reduce((s: number, r: any) => s + (r.rating ?? 0), 0) / data.reviews.length
     : 0;
-  const minPrice = Math.min(...(data.rooms || []).map((r: any) => r.price).filter((p: number) => p > 0));
+  const prices = (data.rooms || []).map((r: any) => r.price).filter((p: number) => p > 0);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
 
   return (
     <div
       onClick={() => navigate(`/properties/${data.id}`)}
-      className="cursor-pointer rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow duration-300 shrink-0"
-      style={{ width: `${CARD_W}px` }}
+      className="cursor-pointer rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow duration-300"
+      style={{ width: `${CARD_W}px`, flexShrink: 0 }}
     >
-      <div className="relative h-48 bg-muted overflow-hidden">
+      <div className="relative bg-muted overflow-hidden" style={{ height: "180px" }}>
         {img ? (
           <img src={img} alt={data.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
         ) : (
@@ -53,7 +54,7 @@ const TrendingCard = ({ data }: { data: any }) => {
               </div>
             </div>
           )}
-          {!isNaN(minPrice) && minPrice > 0 && (
+          {minPrice > 0 && (
             <span className="text-xs font-bold text-red-500">ETB {minPrice.toLocaleString()}/night</span>
           )}
         </div>
@@ -65,23 +66,32 @@ const TrendingCard = ({ data }: { data: any }) => {
 const PropertiesSection = () => {
   const dataQuery = useGetTrendingProperties();
   const properties: any[] = dataQuery.data?.data || [];
-  const doubled = properties.length > 0 ? [...properties, ...properties] : [];
-  const oneSetWidth = properties.length * ITEM_W;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const posRef = useRef(0);
   const rafRef = useRef(0);
   const pausedRef = useRef(false);
+  // Use a ref for oneSetWidth so the tick closure always reads the latest value
+  const oneSetWidthRef = useRef(0);
 
   useEffect(() => {
     if (properties.length === 0) return;
+    // Update the ref — no closure stale value issue
+    oneSetWidthRef.current = properties.length * ITEM_W;
+    // Reset position when data changes so we always start from prop1
+    posRef.current = 0;
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translateX(0px)`;
+    }
+
+    // Cancel any existing animation
+    cancelAnimationFrame(rafRef.current);
 
     const tick = () => {
       if (!pausedRef.current) {
         posRef.current += 0.6;
-        // Reset when we've scrolled exactly one full set
-        if (posRef.current >= oneSetWidth) {
-          posRef.current -= oneSetWidth; // subtract instead of reset to 0
+        if (posRef.current >= oneSetWidthRef.current) {
+          posRef.current -= oneSetWidthRef.current;
         }
         if (trackRef.current) {
           trackRef.current.style.transform = `translateX(-${posRef.current}px)`;
@@ -92,7 +102,13 @@ const PropertiesSection = () => {
 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [properties.length, oneSetWidth]);
+  }, [properties.length]);
+
+  // Enough copies to fill viewport with no gaps
+  const copies = properties.length > 0 ? Math.max(Math.ceil(1600 / (properties.length * ITEM_W)) + 1, 2) : 0;
+  const repeated = properties.length > 0
+    ? Array.from({ length: copies }, () => properties).flat()
+    : [];
 
   return (
     <section className="c-px pb-10 overflow-hidden">
@@ -100,7 +116,7 @@ const PropertiesSection = () => {
 
       {dataQuery.isLoading ? (
         <div className="flex gap-4">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="w-[300px] h-[300px] rounded-2xl shrink-0" />)}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="w-[280px] h-[260px] rounded-2xl shrink-0" />)}
         </div>
       ) : dataQuery.isError || properties.length === 0 ? (
         <p className="text-muted-foreground text-sm">No trending properties yet.</p>
@@ -115,7 +131,7 @@ const PropertiesSection = () => {
             className="flex will-change-transform"
             style={{ gap: `${GAP}px`, width: "max-content" }}
           >
-            {doubled.map((d: any, i: number) => (
+            {repeated.map((d: any, i: number) => (
               <TrendingCard key={`${d.id}-${i}`} data={d} />
             ))}
           </div>
