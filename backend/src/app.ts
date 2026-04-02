@@ -77,13 +77,28 @@ app.use(errorHandlerMiddleware);
 // registerSocketHandlers(io);
 const PORT = process.env.PORT || 3000;
 
-// export default app
+// Auto-approve all PENDING properties on startup
+async function autoApproveProperties() {
+  try {
+    const { prisma } = await import("./lib/prisma");
+    const result = await prisma.property.updateMany({
+      where: { status: "PENDING" },
+      data: { status: "APPROVED", visibility: true },
+    });
+    if (result.count > 0) {
+      console.log(`✅ Auto-approved ${result.count} pending properties`);
+    }
+  } catch (e) {
+    console.error("Auto-approve failed:", e);
+  }
+}
+
 // ---------- Start Server ----------
-app.listen(PORT as any, "0.0.0.0", () => {
+app.listen(PORT as any, "0.0.0.0", async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`🚀 The new version is running`);
-  console.log(`🚀 Friday 13 - hmmmm`);
   console.log(`📖 Swagger Docs in here http://localhost:${PORT}/api-docs`);
+  await autoApproveProperties();
 });
 
 // app.listen(PORT, () => {

@@ -7,13 +7,16 @@ import FormatedAmount from "@/components/shared/formatted-amount";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BedDouble, Users, Maximize2, CheckCircle2, Shield, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface Props {
   data: RoomResponse;
   setIsDialogOpen: any;
   isDialogOpen: any;
 }
+
 const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
   const roomData = data.data;
   const { isAuthenticated } = useClientAuth();
@@ -21,35 +24,67 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
 
   const handleOpenBookingModal = () => {
     if (!isAuthenticated) {
-      navigate(`/auth/signin?callBackUrl=/rooms/${data.data.id}`, {
-        state: "booking",
-      });
+      navigate(`/auth/signin?callBackUrl=/rooms/${data.data.id}`, { state: "booking" });
     } else {
       setIsDialogOpen(true);
     }
   };
+
   return (
     <>
       <main className="mx-auto max-w-7xl px-4 py-6 md:py-8 lg:px-6">
-        <header className="py-4 ">
-          <Button
-            className=""
-            onClick={() => {
-              navigate(-1);
-            }}
-          >
-            <ArrowLeft />
-            Back
-          </Button>
-        </header>
+        {/* Back */}
+        <div className="mb-5">
+          <button onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+        </div>
+
+        {/* Hero strip */}
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="secondary" className="text-xs uppercase">{roomData.type}</Badge>
+              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", roomData.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
+                {roomData.availability ? "Available" : "Unavailable"}
+              </span>
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold">{roomData.name}</h1>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-xs text-muted-foreground">per night</p>
+            <FormatedAmount amount={roomData.price} className="text-2xl font-bold text-primary" />
+          </div>
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Left side - Room details (2 columns on lg) */}
-          <div className="lg:col-span-2">
+          {/* Left */}
+          <div className="lg:col-span-2 space-y-6">
             <RoomGallery images={roomData?.images} roomName={roomData.name} />
+
+            {/* Quick stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { icon: <BedDouble className="w-4 h-4 text-primary" />, label: "Type", value: roomData.type },
+                { icon: <Users className="w-4 h-4 text-primary" />, label: "Max guests", value: `${roomData.maxOccupancy} guests` },
+                { icon: <Maximize2 className="w-4 h-4 text-primary" />, label: "Size", value: roomData.squareMeters ? `${roomData.squareMeters} sqm` : "—" },
+                { icon: <Shield className="w-4 h-4 text-primary" />, label: "Cancellation", value: "Free" },
+              ].map(({ icon, label, value }) => (
+                <div key={label} className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/40 border border-border">
+                  <div className="shrink-0">{icon}</div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-xs font-semibold">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <RoomDetails room={roomData} />
           </div>
 
-          {/* Right side - Booking card (sticky on lg) */}
+          {/* Right sticky */}
           <div className="hidden lg:block">
             <BookingCard
               room={roomData}
@@ -60,13 +95,18 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card p-4 lg:hidden">
-        <button
-          onClick={() => handleOpenBookingModal()}
-          className="w-full rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all flex justify-center items-center"
-        >
-          <p className="text-base font-bold">Book Now</p>
-        </button>
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card/95 backdrop-blur-sm p-4 lg:hidden">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <p className="text-xs text-muted-foreground">per night</p>
+            <FormatedAmount amount={roomData.price} className="font-bold text-lg text-primary" />
+          </div>
+          <Button onClick={handleOpenBookingModal} className="rounded-full px-8 font-bold">
+            Book Now
+          </Button>
+        </div>
+        <p className="text-center text-xs text-muted-foreground">You won't be charged yet</p>
       </div>
 
       <BookingDialog
