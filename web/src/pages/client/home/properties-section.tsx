@@ -17,7 +17,7 @@ const TrendingCard = ({ data }: { data: any }) => {
     ? data.reviews.reduce((s: number, r: any) => s + (r.rating ?? 0), 0) / data.reviews.length
     : 0;
   const prices = (data.rooms || []).map((r: any) => r.price).filter((p: number) => p > 0);
-  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const avgPrice = prices.length ? Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length) : 0;
 
   return (
     <div
@@ -54,8 +54,8 @@ const TrendingCard = ({ data }: { data: any }) => {
               </div>
             </div>
           )}
-          {minPrice > 0 && (
-            <span className="text-xs font-bold text-red-500">ETB {minPrice.toLocaleString()}/night</span>
+          {avgPrice > 0 && (
+            <span className="text-xs font-bold text-red-500">Avg ETB {avgPrice.toLocaleString()}/night</span>
           )}
         </div>
       </div>
@@ -74,17 +74,20 @@ const PropertiesSection = () => {
   // Use a ref for oneSetWidth so the tick closure always reads the latest value
   const oneSetWidthRef = useRef(0);
 
+  // Need enough copies so the track is wider than the viewport
+  // doubled = 2 copies; if 2 copies < viewport width, use more
+  const minCopies = properties.length > 0
+    ? Math.max(2, Math.ceil(1200 / (properties.length * ITEM_W)) + 1)
+    : 0;
+  const repeated = properties.length > 0
+    ? Array.from({ length: minCopies }, () => properties).flat()
+    : [];
+
   useEffect(() => {
     if (properties.length === 0) return;
-    // Update the ref — no closure stale value issue
     oneSetWidthRef.current = properties.length * ITEM_W;
-    // Reset position when data changes so we always start from prop1
     posRef.current = 0;
-    if (trackRef.current) {
-      trackRef.current.style.transform = `translateX(0px)`;
-    }
-
-    // Cancel any existing animation
+    if (trackRef.current) trackRef.current.style.transform = `translateX(0px)`;
     cancelAnimationFrame(rafRef.current);
 
     const tick = () => {
@@ -99,16 +102,9 @@ const PropertiesSection = () => {
       }
       rafRef.current = requestAnimationFrame(tick);
     };
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [properties.length]);
-
-  // Enough copies to fill viewport with no gaps
-  const copies = properties.length > 0 ? Math.max(Math.ceil(1600 / (properties.length * ITEM_W)) + 1, 2) : 0;
-  const repeated = properties.length > 0
-    ? Array.from({ length: copies }, () => properties).flat()
-    : [];
 
   return (
     <section className="c-px pb-10 overflow-hidden">

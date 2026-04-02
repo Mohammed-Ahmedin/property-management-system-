@@ -384,6 +384,7 @@ export default {
         about: true,
         images: true,
         facilities: true,
+        reviews: { select: { rating: true } },
         rooms: {
           select: {
             id: true,
@@ -397,7 +398,7 @@ export default {
           select: { rooms: true, facilities: true, bookings: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
       take: 10,
       where: { status: "APPROVED", visibility: true },
     });
