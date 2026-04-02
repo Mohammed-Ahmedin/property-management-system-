@@ -361,7 +361,7 @@ export default {
   }),
 
   getLocationStats: tryCatch(async (req, res) => {
-    const cities = ["Addis Ababa", "Bahir Dar", "Hawassa", "Gondar", "Lalibela", "Dire Dawa"];
+    const cities = ["Addis Ababa", "Bahir Dar", "Hawassa", "Gondar", "Adama", "Mekelle", "Dire Dawa"];
     const counts = await Promise.all(
       cities.map(async (city) => {
         const count = await prisma.property.count({

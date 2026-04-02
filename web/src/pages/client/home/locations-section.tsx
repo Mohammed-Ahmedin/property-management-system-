@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/hooks/api";
 import SectionHeader from "./_components/section-header";
 
@@ -22,8 +21,12 @@ const locationDefs = [
     image: "https://imgix.brilliant-ethiopia.com/fasil-ghebbi-royal-enclosure-gondar.jpg?auto=format,enhance,compress&fit=crop&crop=entropy,faces,focalpoint&w=1880&h=740&q=30",
   },
   {
-    title: "Lalibela",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Bete_Giyorgis%2C_Lalibela.jpg/1200px-Bete_Giyorgis%2C_Lalibela.jpg",
+    title: "Adama",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Adama_city.jpg/1200px-Adama_city.jpg",
+  },
+  {
+    title: "Mekelle",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mekelle_city.jpg/1200px-Mekelle_city.jpg",
   },
   {
     title: "Dire Dawa",
@@ -31,29 +34,30 @@ const locationDefs = [
   },
 ];
 
+const FALLBACK = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=600&fit=crop";
+
 const LocationsSection = () => {
   const navigate = useNavigate();
   const trackRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number>(0);
   const posRef = useRef(0);
   const pausedRef = useRef(false);
+  const [countMap, setCountMap] = useState<Record<string, number>>({});
 
-  const { data: statsData } = useQuery({
-    queryKey: ["location_stats"],
-    retry: false,
-    queryFn: async () => {
-      const res = await api.get("/properties/location-stats");
-      return res.data;
-    },
-  });
+  // Fetch real counts
+  useEffect(() => {
+    api.get("/properties/location-stats")
+      .then((res) => {
+        const map: Record<string, number> = {};
+        (res.data?.data || []).forEach((s: { city: string; count: number }) => {
+          map[s.city] = s.count;
+        });
+        setCountMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
-  const countMap: Record<string, number> = {};
-  (statsData?.data || []).forEach((s: { city: string; count: number }) => {
-    countMap[s.city] = s.count;
-  });
-
-  const doubled = [...locationDefs, ...locationDefs];
-
+  // Auto-scroll
   useEffect(() => {
     const speed = 0.5;
     const track = trackRef.current;
@@ -72,6 +76,8 @@ const LocationsSection = () => {
     animRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animRef.current);
   }, []);
+
+  const doubled = [...locationDefs, ...locationDefs];
 
   return (
     <section className="c-px pt-20 md:pt-24 pb-10 overflow-hidden">
@@ -94,9 +100,7 @@ const LocationsSection = () => {
                   src={loc.image}
                   alt={loc.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=600&fit=crop";
-                  }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK; }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
