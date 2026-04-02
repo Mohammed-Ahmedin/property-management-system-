@@ -3,13 +3,13 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Heart, Star } from "lucide-react";
+import { MapPin, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { PropertyDataResponse } from "@/hooks/api/use-properties";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { FaStar } from "react-icons/fa";
+import { useFavorites } from "@/hooks/use-favorites";
 
 interface PropertyCardProps {
   data: PropertyDataResponse;
@@ -20,7 +20,8 @@ interface PropertyCardProps {
 export function PropertyCard({ data, view = "horizontal", distance }: PropertyCardProps) {
   const { about, address, name, type, images, facilities, averageRating, reviewCount } = data;
   const navigate = useNavigate();
-  const [saved, setSaved] = useState(false);
+  const { isFavorited, toggle } = useFavorites();
+  const saved = isFavorited(data.id);
 
   const ratingLabel =
     !averageRating ? null
@@ -46,7 +47,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
         <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 bg-white/80 hover:bg-white border-0 shadow" />
       </Carousel>
       <button
-        onClick={(e) => { e.stopPropagation(); setSaved((s) => !s); }}
+        onClick={(e) => { e.stopPropagation(); toggle(data.id); }}
         className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow transition-colors"
         aria-label="Save property"
       >
@@ -131,7 +132,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
             </div>
           )}
           <button
-            onClick={(e) => { e.stopPropagation(); setSaved((s) => !s); }}
+            onClick={(e) => { e.stopPropagation(); toggle(data.id); }}
             className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow"
             aria-label="Save"
           >

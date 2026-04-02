@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { StarIcon, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { PropertyFilters } from "@/types/property.types";
 import CitySubcityFilter from "./city-filter";
 import { FaStar } from "react-icons/fa";
@@ -58,7 +59,22 @@ export function PropertyFilter({
 }: PropertyFilterProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<PropertyFilters>({});
+
+  // Sync filters from URL when dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      const f: any = {};
+      searchParams.forEach((value, key) => {
+        if (key === "facilityNames") { try { f[key] = JSON.parse(value); } catch { f[key] = []; } }
+        else if (["minRating","maxRating","minPrice","maxPrice"].includes(key)) f[key] = Number(value);
+        else if (key === "hasRoomsAvailable") f[key] = value === "true";
+        else f[key] = value;
+      });
+      setFilters(f);
+    }
+  }, [isOpen]);
 
   const handleFilterChange = useCallback(
     (key: keyof PropertyFilters, value: any) => {
@@ -72,23 +88,30 @@ export function PropertyFilter({
 
   const handleClearFilters = () => {
     setFilters({});
-    navigate("/properties");
+    // Preserve only location params
+    const p = new URLSearchParams();
+    if (searchParams.get("city")) p.set("city", searchParams.get("city")!);
+    if (searchParams.get("search")) p.set("search", searchParams.get("search")!);
+    navigate(`/properties?${p.toString()}`);
   };
 
   const handleSearch = () => {
-    const params = new URLSearchParams();
+    // Start from current URL params to preserve location/search
+    const params = new URLSearchParams(searchParams);
 
-    // Add filters to search params
+    // Clear old filter params before applying new ones
+    ["minPrice","maxPrice","minRating","maxRating","type","categoryId","facilityNames","hasRoomsAvailable","country","subcity"].forEach(k => params.delete(k));
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
         if (Array.isArray(value)) {
-          params.append(key, JSON.stringify(value));
+          if (value.length > 0) params.set(key, JSON.stringify(value));
         } else if (typeof value === "number") {
-          params.append(key, value.toString());
+          params.set(key, value.toString());
         } else if (typeof value === "boolean") {
-          params.append(key, value.toString());
+          if (value) params.set(key, value.toString());
         } else {
-          params.append(key, value);
+          params.set(key, value as string);
         }
       }
     });

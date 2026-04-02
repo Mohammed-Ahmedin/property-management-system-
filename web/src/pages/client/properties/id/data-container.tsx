@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { cn } from "@/lib/utils";
+import { useFavorites } from "@/hooks/use-favorites";
 
 interface Props { data: GuestDetailHouseResponse; }
 
@@ -29,7 +30,8 @@ const facilityIcons: Record<string, React.ReactNode> = {
 const DataContainer = ({ data }: Props) => {
   const property = data.data;
   const navigate = useNavigate();
-  const [saved, setSaved] = useState(false);
+  const { isFavorited, toggle } = useFavorites();
+  const saved = isFavorited(property.id);
   const [activeTab, setActiveTab] = useState("Overview");
   const [stickyNav, setStickyNav] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -209,7 +211,7 @@ const DataContainer = ({ data }: Props) => {
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <button onClick={(e) => { e.stopPropagation(); setSaved(s => !s); }}
+            <button onClick={(e) => { e.stopPropagation(); toggle(property.id); }}
               className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 hover:bg-white shadow-md transition-all">
               <Heart className={cn("w-5 h-5 transition-colors", saved ? "fill-red-500 text-red-500" : "text-gray-600")} />
             </button>

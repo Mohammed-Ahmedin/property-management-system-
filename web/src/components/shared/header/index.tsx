@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Calendar, Globe, LogOut, Menu, Settings, User, Heart, HelpCircle } from "lucide-react";
+import { Calendar, LogOut, Menu, Settings, User, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ModeToggle } from "../mode-toggle";
 import { cn } from "@/lib/utils";
@@ -79,11 +79,6 @@ export function Header() {
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-1">
-            <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-muted transition-colors">
-              <HelpCircle className="w-4 h-4" />
-              Support
-            </button>
-
             <ModeToggle />
 
             {isPending ? null : data?.user ? (

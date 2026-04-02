@@ -53,15 +53,13 @@ const FilterTab = () => {
         const parts = location.split(", ");
         params.set("subcity", parts[0].trim());
         params.set("city", parts[1].trim());
-        // Don't set location param — city+subcity are more precise
       } else {
-        params.set("city", location.trim());
-        // Also set location for display purposes only (not used as filter when city is set)
+        params.set("search", location.trim());
       }
     }
     if (checkIn) params.set("checkIn", checkIn.toISOString());
     if (checkOut) params.set("checkOut", checkOut.toISOString());
-    if (guests) params.set("guests", String(guests));
+    if (guests > 1) params.set("guests", String(guests));
     if (activeTab === "longstay") params.set("longstay", "true");
     navigate(`/properties?${params.toString()}`);
   };
