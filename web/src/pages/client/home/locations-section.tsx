@@ -6,31 +6,31 @@ import SectionHeader from "./_components/section-header";
 const locationDefs = [
   {
     title: "Addis Ababa",
-    image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/2b/7d/7c/caption.jpg?w=1200&h=-1&s=1",
+    image: "https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=400&h=600&fit=crop",
   },
   {
     title: "Bahir Dar",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Blue_Nile_Falls%2C_Ethiopia.jpg/1200px-Blue_Nile_Falls%2C_Ethiopia.jpg",
+    image: "https://images.unsplash.com/photo-1605640840605-14ac1855827b?w=400&h=600&fit=crop",
   },
   {
     title: "Hawassa",
-    image: "https://imgix.brilliant-ethiopia.com/lake-awasa-2.jpg?auto=format,enhance,compress&fit=crop&w=800&h=600&q=60",
+    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=600&fit=crop",
   },
   {
     title: "Gondar",
-    image: "https://imgix.brilliant-ethiopia.com/fasil-ghebbi-royal-enclosure-gondar.jpg?auto=format,enhance,compress&fit=crop&crop=entropy,faces,focalpoint&w=1880&h=740&q=30",
+    image: "https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?w=400&h=600&fit=crop",
   },
   {
     title: "Adama",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Adama_Nazret_Ethiopia.jpg/1200px-Adama_Nazret_Ethiopia.jpg",
+    image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=600&fit=crop",
   },
   {
     title: "Mekelle",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Mekelle_University_Main_Campus.jpg/1200px-Mekelle_University_Main_Campus.jpg",
+    image: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&h=600&fit=crop",
   },
   {
     title: "Dire Dawa",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Dire_Dawa_Railway_Station.jpg/1200px-Dire_Dawa_Railway_Station.jpg",
+    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=600&fit=crop",
   },
 ];
 

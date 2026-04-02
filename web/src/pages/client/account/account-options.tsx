@@ -26,8 +26,7 @@ export function AccountOptions({ user }: AccountOptionsProps) {
   const [openAppearance, setOpenAppearance] = useState(false);
 
   const handleNavigateBookings = () => {
-    // Navigate to bookings page
-    window.location.href = "/bookings";
+    window.location.href = "/account/bookings";
   };
 
   return (
