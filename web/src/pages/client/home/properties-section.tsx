@@ -11,11 +11,7 @@ const ITEM_W = CARD_W + GAP;
 const PropertiesSection = () => {
   const dataQuery = useGetTrendingProperties();
   const properties: any[] = dataQuery.data?.data || [];
-  // Repeat enough times to fill viewport (1200px) + one extra set for seamless loop
-  const minCopies = properties.length > 0 ? Math.ceil(2400 / (properties.length * ITEM_W)) + 1 : 0;
-  const repeated = properties.length > 0
-    ? Array.from({ length: Math.max(minCopies, 3) }, () => properties).flat()
-    : [];
+  const doubled = properties.length > 0 ? [...properties, ...properties] : [];
   const oneSetWidth = properties.length * ITEM_W;
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -29,8 +25,9 @@ const PropertiesSection = () => {
     const tick = () => {
       if (!pausedRef.current) {
         posRef.current += 0.6;
+        // Reset when we've scrolled exactly one full set
         if (posRef.current >= oneSetWidth) {
-          posRef.current -= oneSetWidth;
+          posRef.current -= oneSetWidth; // subtract instead of reset to 0
         }
         if (trackRef.current) {
           trackRef.current.style.transform = `translateX(-${posRef.current}px)`;
@@ -56,7 +53,6 @@ const PropertiesSection = () => {
       ) : (
         <div
           className="relative overflow-hidden"
-          style={{ maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)" }}
           onMouseEnter={() => { pausedRef.current = true; }}
           onMouseLeave={() => { pausedRef.current = false; }}
         >
@@ -65,7 +61,7 @@ const PropertiesSection = () => {
             className="flex will-change-transform"
             style={{ gap: `${GAP}px`, width: "max-content" }}
           >
-            {repeated.map((d: any, i: number) => (
+            {doubled.map((d: any, i: number) => (
               <div key={`${d.id}-${i}`} className="shrink-0" style={{ width: `${CARD_W}px` }}>
                 <PropertyCard data={d} view="vertical" />
               </div>
