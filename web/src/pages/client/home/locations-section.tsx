@@ -56,7 +56,8 @@ const LocationsSection = () => {
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  const doubled = [...locationDefs, ...locationDefs];
+  const minCopies = Math.ceil(2400 / ONE_SET) + 1;
+  const repeated = Array.from({ length: Math.max(minCopies, 3) }, () => locationDefs).flat();
 
   return (
     <section className="c-px pt-20 md:pt-24 pb-10 overflow-hidden">
@@ -72,7 +73,7 @@ const LocationsSection = () => {
           className="flex will-change-transform"
           style={{ gap: `${GAP}px`, width: "max-content" }}
         >
-          {doubled.map((loc, i) => {
+          {repeated.map((loc, i) => {
             const count = countMap[loc.title];
             return (
               <div

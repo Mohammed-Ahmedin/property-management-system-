@@ -11,23 +11,26 @@ const ITEM_W = CARD_W + GAP;
 const PropertiesSection = () => {
   const dataQuery = useGetTrendingProperties();
   const properties: any[] = dataQuery.data?.data || [];
-  const doubled = properties.length > 0 ? [...properties, ...properties] : [];
+  // Repeat enough times to fill viewport (1200px) + one extra set for seamless loop
+  const minCopies = properties.length > 0 ? Math.ceil(2400 / (properties.length * ITEM_W)) + 1 : 0;
+  const repeated = properties.length > 0
+    ? Array.from({ length: Math.max(minCopies, 3) }, () => properties).flat()
+    : [];
+  const oneSetWidth = properties.length * ITEM_W;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const posRef = useRef(0);
   const rafRef = useRef(0);
   const pausedRef = useRef(false);
-  const oneSetRef = useRef(0);
 
   useEffect(() => {
     if (properties.length === 0) return;
-    oneSetRef.current = properties.length * ITEM_W;
 
     const tick = () => {
       if (!pausedRef.current) {
         posRef.current += 0.6;
-        if (posRef.current >= oneSetRef.current) {
-          posRef.current -= oneSetRef.current; // seamless reset
+        if (posRef.current >= oneSetWidth) {
+          posRef.current -= oneSetWidth;
         }
         if (trackRef.current) {
           trackRef.current.style.transform = `translateX(-${posRef.current}px)`;
@@ -38,7 +41,7 @@ const PropertiesSection = () => {
 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [properties.length]);
+  }, [properties.length, oneSetWidth]);
 
   return (
     <section className="c-px pb-10 overflow-hidden">
@@ -62,7 +65,7 @@ const PropertiesSection = () => {
             className="flex will-change-transform"
             style={{ gap: `${GAP}px`, width: "max-content" }}
           >
-            {doubled.map((d: any, i: number) => (
+            {repeated.map((d: any, i: number) => (
               <div key={`${d.id}-${i}`} className="shrink-0" style={{ width: `${CARD_W}px` }}>
                 <PropertyCard data={d} view="vertical" />
               </div>
