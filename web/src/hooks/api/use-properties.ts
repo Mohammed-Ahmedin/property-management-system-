@@ -70,11 +70,12 @@ export type PaginatedPropertyDataResponse =
 export const useGetTrendingProperties = () => {
   return useQuery<{ data: any; success: boolean }>({
     queryKey: ["trending_properties"],
+    staleTime: 0,
+    retry: false,
     queryFn: async () => {
       const res = await api.get<{ data: any; success: boolean }>(
         "/properties/trendings"
       );
-
       return res.data;
     },
   });
