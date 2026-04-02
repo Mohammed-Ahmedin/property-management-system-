@@ -28,12 +28,12 @@ const HeroSection = () => {
       {/* Search card — gentle left-to-right float */}
       <style>{`
         @keyframes float-lr {
-          0%   { transform: translateX(-6px); }
-          50%  { transform: translateX(6px); }
-          100% { transform: translateX(-6px); }
+          0%   { transform: translateX(calc(-50vw + 50%)); }
+          50%  { transform: translateX(calc(50vw - 50%)); }
+          100% { transform: translateX(calc(-50vw + 50%)); }
         }
         .search-float {
-          animation: float-lr 4s ease-in-out infinite;
+          animation: float-lr 6s ease-in-out infinite;
         }
         .search-float:hover, .search-float:focus-within {
           animation-play-state: paused;
