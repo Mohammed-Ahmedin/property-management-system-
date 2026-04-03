@@ -19,7 +19,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 interface Props { data: GuestDetailHouseResponse; }
 
 const NAV_TABS = ["Overview", "Rooms", "Trip recommendations", "Facilities", "Reviews", "Location", "Policies"];
-const PANEL_TABS = ["Facilities", "Reviews", "Location", "Policies"];
+const PANEL_TABS = ["Facilities", "Reviews", "Location", "Policies", "Trip"];
 
 const facilityIcons: Record<string, React.ReactNode> = {
   wifi: <Wifi className="w-4 h-4" />,
@@ -87,6 +87,10 @@ const DataContainer = ({ data }: Props) => {
     setActiveTab(tab);
     if (PANEL_TABS.includes(tab)) {
       setPanelTab(tab);
+    } else if (tab === "Rooms") {
+      scrollTo("rooms");
+    } else if (tab === "Trip recommendations") {
+      setPanelTab("Trip");
     } else {
       scrollTo(tab.toLowerCase().replace(/ /g, "-"));
     }
@@ -551,10 +555,21 @@ const DataContainer = ({ data }: Props) => {
             {/* Price header */}
             <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-5">
               <p className="text-xs opacity-70 mb-1">Avg price per night</p>
-              {avgPrice
-                ? <p className="text-3xl font-bold">ETB {avgPrice.toLocaleString()}</p>
-                : <p className="text-lg font-semibold opacity-80">Contact for price</p>
-              }
+              {avgPrice ? (
+                (() => {
+                  const propDiscount = (property as any).discountPercent ?? 0;
+                  const discountedPrice = propDiscount > 0 ? Math.round(avgPrice * (1 - propDiscount / 100)) : null;
+                  return discountedPrice ? (
+                    <div>
+                      <p className="text-lg line-through opacity-60">ETB {avgPrice.toLocaleString()}</p>
+                      <p className="text-3xl font-bold">ETB {discountedPrice.toLocaleString()}</p>
+                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">{propDiscount}% off</span>
+                    </div>
+                  ) : (
+                    <p className="text-3xl font-bold">ETB {avgPrice.toLocaleString()}</p>
+                  );
+                })()
+              ) : <p className="text-lg font-semibold opacity-80">Contact for price</p>}
               {avgRating > 0 && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded">{avgRating.toFixed(1)}</div>
@@ -698,6 +713,29 @@ const DataContainer = ({ data }: Props) => {
                 <div>
                   <h3 className="text-lg font-bold mb-4">Location</h3>
                   <PropertyDetails contact={property.contact} facilities={property.facilities as any} location={property.location} />
+                </div>
+              )}
+              {panelTab === "Trip" && (
+                <div>
+                  <h3 className="text-lg font-bold mb-4">Plan your journey</h3>
+                  <p className="text-sm text-muted-foreground mb-5">Book your ride in advance for a hassle-free trip</p>
+                  <div className="space-y-4">
+                    {[
+                      { icon: <Plane className="w-8 h-8 text-primary" />, title: "Book your airport transfer", desc: "Get to your hotel easily and securely", url: "https://www.ethiopianairlines.com/en-ke/", label: "Search flights" },
+                      { icon: <CarFront className="w-8 h-8 text-primary" />, title: "Rent a car", desc: "Find an ideal ride for your trip", url: "https://ride8294.com/", label: "Search cars" },
+                    ].map(({ icon, title, desc, url, label }) => (
+                      <div key={title} className="border border-border rounded-2xl p-5 flex flex-col justify-between hover:shadow-md transition-all bg-card">
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">{icon}</div>
+                          <div>
+                            <p className="font-semibold text-sm">{title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full rounded-full" onClick={() => window.open(url, "_blank")}>{label}</Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               {panelTab === "Policies" && (

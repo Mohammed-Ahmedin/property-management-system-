@@ -6,6 +6,7 @@ model Room {
   type   RoomType @default(SINGLE)
 
   price Int
+  discountPercent Float @default(0) // e.g. 15 = 15% off individual room
 
   description  String?
   availability Boolean @default(false)

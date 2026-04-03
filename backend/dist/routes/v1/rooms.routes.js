@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoomsRouter = void 0;
 const express_1 = require("express");
 const rooms_controller_1 = __importDefault(require("../../controllers/rooms.controller"));
+const properties_controller_1 = __importDefault(require("../../controllers/properties.controller"));
 const auth_middleware_1 = require("../../middleware/auth-middleware");
 const router = (0, express_1.Router)();
 exports.RoomsRouter = router;
@@ -29,3 +30,5 @@ router.delete("/:id", rooms_controller_1.default.deleteRoom);
 // room images
 router.post("/:id/images", rooms_controller_1.default.addRoomImage);
 router.delete("/:id/images/:imageId", rooms_controller_1.default.deleteRoomImage);
+// room discount
+router.post("/:id/discount", (0, auth_middleware_1.authGuard)({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), properties_controller_1.default.setRoomDiscount);

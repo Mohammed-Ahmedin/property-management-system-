@@ -53,6 +53,15 @@ const roleSidebarLinks: Record<
     { title: "Bookings", url: "/admin/bookings", icon: Calendar },
     { title: "Users", url: "/admin/users", icon: Users },
     { title: "Registrations", url: "/admin/registration-requests", icon: HomeIcon },
+    { title: "Activities", url: "/admin/activities", icon: Activity },
+    {
+      title: "Finance",
+      icon: DollarSign,
+      items: [
+        { title: "Payments", url: "/admin/payments", icon: CreditCard },
+        { title: "Commissions", url: "/admin/income", icon: Banknote },
+      ],
+    },
   ],
   OWNER: [
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
@@ -61,6 +70,14 @@ const roleSidebarLinks: Record<
     { title: "Rooms", url: "/admin/rooms", icon: Bed },
     { title: "Staffs", url: "/admin/staffs", icon: Users2 },
     { title: "Activities", url: "/admin/activities", icon: Activity },
+    {
+      title: "Finance",
+      icon: DollarSign,
+      items: [
+        { title: "Payments", url: "/admin/payments", icon: CreditCard },
+        { title: "Commissions", url: "/admin/income", icon: Banknote },
+      ],
+    },
   ],
   STAFF: [
     { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
@@ -72,6 +89,14 @@ const roleSidebarLinks: Record<
     { title: "Clients", url: "/admin/clients", icon: Users },
     { title: "Bookings", url: "/admin/bookings", icon: Calendar },
     { title: "Activities", url: "/admin/activities", icon: Activity },
+    {
+      title: "Finance",
+      icon: DollarSign,
+      items: [
+        { title: "Payments", url: "/admin/payments", icon: CreditCard },
+        { title: "Commissions", url: "/admin/income", icon: Banknote },
+      ],
+    },
   ],
 };
 

@@ -30,12 +30,14 @@ interface DataPaginationProps {
   pagination: PaginationData;
   onPageChange?: (page: number) => void;
   onLimitChange?: (limit: number) => void;
+  hidePerPage?: boolean;
 }
 
 export function DataPagination({
   pagination,
   onPageChange,
   onLimitChange,
+  hidePerPage = false,
 }: DataPaginationProps) {
   const { setQueryParams, getQueryParam } = useQueryParams();
   const { currentPage, totalPages, totalItems, limit } = pagination;
@@ -96,6 +98,7 @@ export function DataPagination({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       {/* Items per page */}
+      {!hidePerPage && (
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Items per page</span>
         <Select value={String(limit)} onValueChange={handleLimitChange}>
@@ -111,6 +114,7 @@ export function DataPagination({
           </SelectContent>
         </Select>
       </div>
+      )}
 
       {/* Page info and navigation */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">

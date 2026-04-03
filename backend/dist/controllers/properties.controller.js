@@ -423,7 +423,8 @@ exports.default = {
                         type: "HOTEL",
                         accessType: "SHARED",
                         visibility: true,
-                        status: "PENDING",
+                        // Admin-created properties are auto-approved
+                        status: user.role === "ADMIN" ? "APPROVED" : "PENDING",
                         // Nested relations
                         about: validatedData.about
                             ? { create: validatedData.about }
@@ -935,5 +936,27 @@ exports.default = {
                 status: "PENDING",
             },
         });
+    })),
+    // Set discount on a property
+    setPropertyDiscount: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: propertyId } = req.params;
+        const { discountPercent } = req.body;
+        const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+        const updated = yield prisma_1.prisma.property.update({
+            where: { id: propertyId },
+            data: { discountPercent: pct },
+        });
+        res.json({ success: true, message: "Discount updated", data: updated });
+    })),
+    // Set discount on a room
+    setRoomDiscount: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: roomId } = req.params;
+        const { discountPercent } = req.body;
+        const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+        const updated = yield prisma_1.prisma.room.update({
+            where: { id: roomId },
+            data: { discountPercent: pct },
+        });
+        res.json({ success: true, message: "Room discount updated", data: updated });
     })),
 };

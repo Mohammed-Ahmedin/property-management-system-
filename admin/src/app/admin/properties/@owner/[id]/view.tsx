@@ -1,8 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ import ImagesTab from "./images-tab";
 import { DashboardCard } from "@/components/shared/dashboard-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import Link from "next/link";
-import { useUpdatePropertyMutation, useVoidPropertyMutation } from "@/hooks/api/use-property";
+import { useUpdatePropertyMutation, useVoidPropertyMutation, useSetPropertyDiscountMutation, useSetRoomDiscountMutation } from "@/hooks/api/use-property";
 import { useAddBrokerToPropertyMutation, useRemoveStaffFromGHMutation, useGetGhStaffsQuery } from "@/hooks/api/use-staff";
 import { Avatar } from "@/components/shared/avatar";
 import { Spinner } from "@/components/ui/spinner";
@@ -69,6 +68,10 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   const [addFacilityName, setAddFacilityName] = useState("");
   const [addFacilityOpen, setAddFacilityOpen] = useState(false);
   const [addingFacility, setAddingFacility] = useState(false);
+  const setPropertyDiscount = useSetPropertyDiscountMutation();
+  const setRoomDiscount = useSetRoomDiscountMutation();
+  const [propertyDiscountInput, setPropertyDiscountInput] = useState(String((data as any).discountPercent ?? 0));
+  const [roomDiscountInputs, setRoomDiscountInputs] = useState<Record<string, string>>({});
 
   // Use live query for staffs so broker shows immediately after add
   const { data: liveStaffs } = useGetGhStaffsQuery({ propertyId: data.id });
@@ -210,6 +213,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="facilities">Facilities</TabsTrigger>
+          <TabsTrigger value="discounts">Discounts</TabsTrigger>
           <TabsTrigger value="images">Images</TabsTrigger>
         </TabsList>
 
@@ -370,6 +374,70 @@ export default function PropertyView({ data }: { data: PropertyData }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Discounts */}
+        <TabsContent value="discounts">
+          <Card>
+            <CardHeader><CardTitle>Discounts</CardTitle><CardDescription>Set discount percentages for the property or individual rooms</CardDescription></CardHeader>
+            <CardContent className="space-y-6">
+              {/* Property-wide discount */}
+              <div className="p-4 border border-border rounded-xl">
+                <p className="font-semibold mb-1">Property-wide discount</p>
+                <p className="text-sm text-muted-foreground mb-3">Applies to the average price shown on the client page</p>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-32">
+                    <Input
+                      type="number" min={0} max={100}
+                      value={propertyDiscountInput}
+                      onChange={e => setPropertyDiscountInput(e.target.value)}
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                  </div>
+                  <Button size="sm" onClick={() => setPropertyDiscount.mutate({ id: data.id, discountPercent: Number(propertyDiscountInput) })} disabled={setPropertyDiscount.isPending}>
+                    {setPropertyDiscount.isPending ? "Saving..." : "Save"}
+                  </Button>
+                  {(data as any).discountPercent > 0 && (
+                    <span className="text-sm text-emerald-600 font-medium">Active: {(data as any).discountPercent}% off</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Per-room discounts */}
+              <div>
+                <p className="font-semibold mb-3">Per-room discounts</p>
+                <div className="space-y-3">
+                  {data.rooms.map((room: any) => (
+                    <div key={room.id} className="flex items-center justify-between p-3 border border-border rounded-xl">
+                      <div>
+                        <p className="font-medium text-sm">{room.name}</p>
+                        <p className="text-xs text-muted-foreground">ETB {room.price?.toLocaleString()}/night</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="relative w-24">
+                          <Input
+                            type="number" min={0} max={100}
+                            value={roomDiscountInputs[room.id] ?? String(room.discountPercent ?? 0)}
+                            onChange={e => setRoomDiscountInputs(prev => ({ ...prev, [room.id]: e.target.value }))}
+                            className="pr-7 text-sm h-8"
+                          />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
+                        </div>
+                        <Button size="sm" className="h-8 text-xs" onClick={() => setRoomDiscount.mutate({ roomId: room.id, discountPercent: Number(roomDiscountInputs[room.id] ?? room.discountPercent ?? 0), propertyId: data.id })} disabled={setRoomDiscount.isPending}>
+                          Save
+                        </Button>
+                        {(room.discountPercent ?? 0) > 0 && (
+                          <span className="text-xs text-emerald-600">{room.discountPercent}% off</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {data.rooms.length === 0 && <p className="text-sm text-muted-foreground">No rooms added yet.</p>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <ImagesTab images={data.images} propertyId={data.id} />
       </Tabs>

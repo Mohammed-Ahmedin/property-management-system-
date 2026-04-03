@@ -231,7 +231,23 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
         <div className="text-right mt-4">
           <p className="text-xs text-muted-foreground mb-0.5">Avg price per night</p>
           {avgPrice ? (
-            <p className="text-lg font-bold text-red-500">ETB {avgPrice.toLocaleString()}</p>
+            (() => {
+              const propDiscount = (data as any).discountPercent ?? 0;
+              const discountedPrice = propDiscount > 0 ? Math.round(avgPrice * (1 - propDiscount / 100)) : null;
+              return (
+                <div>
+                  {discountedPrice ? (
+                    <>
+                      <p className="text-xs line-through text-muted-foreground">ETB {avgPrice.toLocaleString()}</p>
+                      <p className="text-lg font-bold text-red-500">ETB {discountedPrice.toLocaleString()}</p>
+                      <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium">{propDiscount}% off</span>
+                    </>
+                  ) : (
+                    <p className="text-lg font-bold text-red-500">ETB {avgPrice.toLocaleString()}</p>
+                  )}
+                </div>
+              );
+            })()
           ) : (
             <p className="text-sm text-muted-foreground">Contact for price</p>
           )}

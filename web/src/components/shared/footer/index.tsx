@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Hotel, MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-zinc-900 text-zinc-300 mt-8">
+    <footer className="bg-zinc-900 text-zinc-300 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
@@ -30,16 +30,9 @@ export function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Property Types</h3>
             <ul className="space-y-2 text-sm">
-              {[
-                { label: "Hotels", value: "HOTEL" },
-                { label: "Guest Houses", value: "GUEST_HOUSE" },
-                { label: "Apartments", value: "APARTMENT" },
-                { label: "Resorts", value: "RESORT" },
-                { label: "Villas", value: "VILLA" },
-                { label: "Hostels", value: "HOSTEL" },
-              ].map((t) => (
-                <li key={t.value}>
-                  <Link to={`/properties?type=${t.value}`} className="hover:text-primary transition-colors">{t.label}</Link>
+              {["Hotels", "Guest Houses", "Apartments", "Resorts", "Villas", "Hostels"].map((t) => (
+                <li key={t}>
+                  <Link to={`/properties?type=${t.toUpperCase().replace(" ", "_")}`} className="hover:text-primary transition-colors">{t}</Link>
                 </li>
               ))}
             </ul>

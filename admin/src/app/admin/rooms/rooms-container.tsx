@@ -232,6 +232,7 @@ const RoomsContainer = () => {
 
       <div className="py-6">
         <DataPagination
+          hidePerPage
           pagination={{
             currentPage,
             hasMore: currentPage < totalPages,

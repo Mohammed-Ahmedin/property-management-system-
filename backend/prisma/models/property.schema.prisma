@@ -7,6 +7,9 @@ model Property {
   type       PropertyType @default(HOTEL)
   visibility Boolean      @default(true)
 
+  // Discount
+  discountPercent Float @default(0) // e.g. 20 = 20% off
+
   // Relations
   images     PropertyImage[]
   about      About?

@@ -159,3 +159,38 @@ export const useVoidPropertyMutation = () => {
     },
   });
 };
+
+export const useSetPropertyDiscountMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { id: string; discountPercent: number }>({
+    mutationFn: async ({ id, discountPercent }) => {
+      const response = await api.post(`/properties/${id}/discount`, { discountPercent });
+      return response.data;
+    },
+    onSuccess: ({ message }, { id }) => {
+      toast.success(message || "Discount updated");
+      queryClient.invalidateQueries({ queryKey: ["guest_houses", id] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update discount");
+    },
+  });
+};
+
+export const useSetRoomDiscountMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { roomId: string; discountPercent: number; propertyId?: string }>({
+    mutationFn: async ({ roomId, discountPercent }) => {
+      const response = await api.post(`/rooms/${roomId}/discount`, { discountPercent });
+      return response.data;
+    },
+    onSuccess: ({ message }, { propertyId }) => {
+      toast.success(message || "Room discount updated");
+      if (propertyId) queryClient.invalidateQueries({ queryKey: ["guest_houses", propertyId] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update room discount");
+    },
+  });
+};

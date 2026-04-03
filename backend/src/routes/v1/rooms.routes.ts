@@ -1,5 +1,6 @@
 import { Router } from "express";
 import roomsController from "../../controllers/rooms.controller";
+import propertiesController from "../../controllers/properties.controller";
 import { authGuard } from "../../middleware/auth-middleware";
 
 const router = Router();
@@ -44,6 +45,8 @@ router.delete("/:id", roomsController.deleteRoom);
 // room images
 router.post("/:id/images", roomsController.addRoomImage);
 router.delete("/:id/images/:imageId", roomsController.deleteRoomImage);
+// room discount
+router.post("/:id/discount", authGuard({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), propertiesController.setRoomDiscount);
 // router.post("/dummy", roomsController.createDummyRoom);
 
 export { router as RoomsRouter };

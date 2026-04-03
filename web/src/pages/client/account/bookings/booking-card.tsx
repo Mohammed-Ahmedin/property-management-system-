@@ -36,15 +36,14 @@ export function BookingCard(data: BookingCardProps) {
             </div>
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <StatusBadge status={booking.status} />
-            {booking.payment?.status && (
+            <StatusBadge status={booking.status} paymentStatus={booking.payment?.status} />
+            {booking.payment?.status && booking.payment.status !== "SUCCESS" && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
-                booking.payment.status === "SUCCESS" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
                 booking.payment.status === "PENDING" ? "bg-amber-50 text-amber-700 border-amber-200" :
                 booking.payment.status === "REFUNDED" ? "bg-blue-50 text-blue-700 border-blue-200" :
                 "bg-gray-50 text-gray-600 border-gray-200"
               }`}>
-                {booking.payment.status}
+                Payment: {booking.payment.status}
               </span>
             )}
           </div>

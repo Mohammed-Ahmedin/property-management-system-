@@ -36,6 +36,7 @@ router.post("/:id/void", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUES
 router.post("/:id/facilities", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.addFacility);
 router.post("/:id/images", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.addPropertyImage);
 router.delete("/:id/images", properties_controller_1.default.deletePropertyImage);
+router.post("/:id/discount", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.setPropertyDiscount);
 router.delete("/:id", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.deleteProperty);
 router.post("/", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.createProperty);
 router.post("/dummy", properties_controller_1.default.createDummyProperty);
