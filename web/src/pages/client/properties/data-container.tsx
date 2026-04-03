@@ -16,15 +16,15 @@ interface Props {
 }
 
 const SORT_TABS = [
-  { label: "Our top picks", sortField: "createdAt", sortDirection: "desc" },
+  { label: "Our top picks", sortField: "top_picks", sortDirection: "desc" },
   { label: "Lowest price first", sortField: "price", sortDirection: "asc" },
-  { label: "Nearest to", sortField: "createdAt", sortDirection: "asc" },
+  { label: "Nearest to", sortField: "nearest", sortDirection: "asc" },
   { label: "Best reviewed", sortField: "rating", sortDirection: "desc" },
 ];
 
 const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }: Props) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeSort = searchParams.get("sortField") || "createdAt";
+  const activeSort = searchParams.get("sortField") || "top_picks";
 
   // Client-side price sort (backend can't sort by min room price easily)
   const safeData = Array.isArray(data) ? data : [];
@@ -43,11 +43,14 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
     const p = new URLSearchParams(searchParams);
     p.set("page", newPage.toString());
     setSearchParams(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const handleRowsPerPageChange = (value: number) => {
     const p = new URLSearchParams(searchParams);
     p.set("limit", value.toString());
+    p.set("page", "1");
     setSearchParams(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSort = (sortField: string, sortDirection: string) => {
@@ -66,9 +69,22 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
       {/* Right content */}
       <div className="flex-1 min-w-0">
         {/* Heading */}
-        <h2 className="text-2xl font-bold mb-4">
-          {locationParam ? `Hotels in ${locationParam}` : "All Properties"}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold">
+              {locationParam ? `Hotels in ${locationParam}` : "All Properties"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {totalItems || safeData.length} properties found{locationParam ? ` in ${locationParam}` : ""}
+            </p>
+          </div>
+          {totalItems > 0 && (
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-full px-3 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              {totalItems} available
+            </div>
+          )}
+        </div>
 
         {/* Info panel — only when location is set */}
         {locationParam && (
@@ -92,27 +108,22 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
         )}
 
         {/* Sort tabs */}
-        <div className="flex border-b border-border mb-4 overflow-x-auto">
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
           {SORT_TABS.map((tab) => (
             <button
               key={tab.label}
               onClick={() => handleSort(tab.sortField, tab.sortDirection)}
               className={cn(
-                "px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors shrink-0",
+                "px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full transition-all border shrink-0",
                 activeSort === tab.sortField
-                  ? "bg-primary text-white"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
+                  : "text-muted-foreground border-border hover:text-foreground hover:border-primary/50 hover:bg-muted/50"
               )}
             >
               {tab.label}
             </button>
           ))}
         </div>
-
-        {/* Count */}
-        <p className="text-sm text-muted-foreground mb-4">
-          {totalItems || safeData.length} properties found{locationParam ? ` in ${locationParam}` : ""}
-        </p>
 
         {/* Cards */}
         <div className="flex flex-col gap-4">
