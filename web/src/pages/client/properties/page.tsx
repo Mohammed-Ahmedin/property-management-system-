@@ -198,7 +198,6 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
         >
           SEARCH
         </button>
-      </div>
       </div>{/* end desktop */}
 
       {/* Suggestions dropdown */}
