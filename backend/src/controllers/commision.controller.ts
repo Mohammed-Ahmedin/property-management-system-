@@ -16,67 +16,63 @@ export default {
   }),
   createPlatformCommision: tryCatch(async (req, res) => {
     const data = req.body;
+    const userId = (req as any).user?.id;
+
     const platformCommision = await prisma.commissionSetting.findFirst({
       where: { type: "PLATFORM" },
     });
 
     if (platformCommision) {
-      res.status(409).json({
-        message: "Platform commision is already added before",
-      });
+      res.status(409).json({ message: "Platform commission is already added" });
       return;
     }
 
-    // Upsert platform commission (only one allowed)
     const commission = await prisma.commissionSetting.create({
       data: {
         type: "PLATFORM",
+        name: data.name || "Platform Commission",
+        role: data.role || "PLATFORM",
         platformPercent: data.platformPercent,
         brokerPercent: data.brokerPercent,
         isActive: data.isActive ?? true,
-        description:
-          data.type === "PLATFORM"
-            ? "Commission applied for the platform."
-            : "Specific commission for a particular property.",
+        description: "Commission applied for the platform.",
       },
     });
 
-    res.json({
-      success: true,
-      message: "Platform commison added successfully",
-    });
+    // Log to activities
+    if (userId) {
+      await prisma.activity.create({
+        data: {
+          action: "CREATE_COMMISSION",
+          description: `Commission "${commission.name}" (${commission.role}) created. Platform: ${commission.platformPercent}%, Broker: ${commission.brokerPercent ?? 0}%`,
+          userId,
+          status: "SUCCESS",
+        } as any,
+      }).catch(() => {});
+    }
+
+    res.json({ success: true, message: "Platform commission added successfully" });
   }),
   createPropertyCommision: tryCatch(async (req, res) => {
     const data = req.body;
+    const userId = (req as any).user?.id;
 
-    // Optional: validate property exists
-    const property = await prisma.property.findUnique({
-      where: { id: data.propertyId },
+    const property = await prisma.property.findUnique({ where: { id: data.propertyId } });
+    if (!property) return res.status(404).json({ error: "Property not found" });
+
+    const existing = await prisma.commissionSetting.findFirst({
+      where: { AND: { type: "PROPERTY", propertyId: property.id } },
     });
-
-    if (!property)
-      return res.status(404).json({ error: "Property not found" });
-
-    const haveAlreadyCommision = await prisma.commissionSetting.findFirst({
-      where: {
-        AND: {
-          type: "PROPERTY",
-          propertyId: property.id,
-        },
-      },
-    });
-
-    if (haveAlreadyCommision) {
-      res.status(409).json({
-        message: "This property already have a own commsion",
-        success: false,
-      });
+    if (existing) {
+      res.status(409).json({ message: "This property already has a commission", success: false });
       return;
     }
 
-    await prisma.commissionSetting.create({
+    const commission = await prisma.commissionSetting.create({
       data: {
         type: "PROPERTY",
+        name: data.name || `${property.name} Commission`,
+        role: data.role || "OWNER",
         propertyId: data.propertyId,
         platformPercent: data.platformPercent,
         brokerPercent: data.brokerPercent,
@@ -84,34 +80,32 @@ export default {
       },
     });
 
-    res.json({
-      message: "Added successfull",
-      success: true,
-    });
+    if (userId) {
+      await prisma.activity.create({
+        data: {
+          action: "CREATE_COMMISSION",
+          description: `Commission "${commission.name}" (${commission.role}) created for property "${property.name}". Platform: ${commission.platformPercent}%, Broker: ${commission.brokerPercent ?? 0}%`,
+          userId,
+          status: "SUCCESS",
+        } as any,
+      }).catch(() => {});
+    }
+
+    res.json({ message: "Commission added successfully", success: true });
   }),
   updateCommision: tryCatch(async (req, res) => {
     const { id } = req.params;
     const data = req.body;
+    const userId = (req as any).user?.id;
 
-    // --------------------
-    // Find existing commission
-    // --------------------
-    const commission = await prisma.commissionSetting.findUnique({
-      where: { id },
-    });
+    const commission = await prisma.commissionSetting.findUnique({ where: { id } });
+    if (!commission) return res.status(404).json({ success: false, message: "Commission not found" });
 
-    if (!commission)
-      return res.status(404).json({
-        success: false,
-        message: "Commission not found",
-      });
-
-    // --------------------
-    // Update commission
-    // --------------------
     const updated = await prisma.commissionSetting.update({
       where: { id },
       data: {
+        name: data.name ?? commission.name,
+        role: data.role ?? commission.role,
         platformPercent: data.platformPercent,
         brokerPercent: data.brokerPercent ?? null,
         isActive: data.isActive ?? commission.isActive,
@@ -119,10 +113,17 @@ export default {
       },
     });
 
-    res.json({
-      success: true,
-      message: "Commission updated successfully",
-      commission: updated,
-    });
+    if (userId) {
+      await prisma.activity.create({
+        data: {
+          action: "UPDATE_COMMISSION",
+          description: `Commission "${updated.name}" (${updated.role}) updated. Platform: ${updated.platformPercent}%, Broker: ${updated.brokerPercent ?? 0}%`,
+          userId,
+          status: "SUCCESS",
+        } as any,
+      }).catch(() => {});
+    }
+
+    res.json({ success: true, message: "Commission updated successfully", commission: updated });
   }),
 };

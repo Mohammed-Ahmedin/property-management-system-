@@ -971,9 +971,30 @@ export function BookingDetailModal({
               </Button>
             )}
 
-            {/* Admin: view only */}
-            {isAdmin && (
-              <Badge variant="outline" className="px-3 py-1.5 text-muted-foreground">View only</Badge>
+            {/* Admin: full authority — can approve, reject, or cancel any booking */}
+            {isAdmin && booking.status === BookingStatus.PENDING && (
+              <>
+                <Button
+                  variant="default"
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => handleApproveBooking(booking.id)}
+                  disabled={disableAllButtons}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" /> Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setRejectDialogOpen(true)}
+                  disabled={disableAllButtons}
+                >
+                  <XCircle className="h-4 w-4 mr-2" /> Reject
+                </Button>
+              </>
+            )}
+            {isAdmin && booking.status === BookingStatus.APPROVED && (
+              <Button variant="destructive" onClick={() => handleCancelBooking(booking.id)} disabled={disableAllButtons}>
+                <XCircle className="h-4 w-4 mr-2" /> Cancel Booking
+              </Button>
             )}
           </div>
         </div>

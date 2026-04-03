@@ -33,43 +33,34 @@ export const BookingCommissionsTable: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Id</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Platform commision</TableHead>
-              <TableHead className="text-right">Broker commision</TableHead>
+              <TableHead className="text-right">Platform %</TableHead>
+              <TableHead className="text-right">Broker %</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {data?.map((commission) => (
-              <TableRow key={commission.id} className={`${commission.type =='PLATFORM'&& 'bg-purple-400/20 rounded-b-lg overflow-hidden'}`}>
-                <TableCell className="font-medium">
-                  {commission.id.slice(0, 7)}...
-                </TableCell>
+              <TableRow key={commission.id} className={`${commission.type === 'PLATFORM' && 'bg-purple-400/20 rounded-b-lg overflow-hidden'}`}>
+                <TableCell className="font-medium">{commission.id.slice(0, 7)}...</TableCell>
+                <TableCell className="font-medium">{(commission as any).name || "—"}</TableCell>
+                <TableCell><span className="text-xs bg-muted px-2 py-0.5 rounded font-medium">{(commission as any).role || "—"}</span></TableCell>
                 <TableCell>{commission.type}</TableCell>
+                <TableCell>{new Date(commission.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  {new Date(commission.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={commission.isActive ? "default" : "destructive"}
-                  >
+                  <Badge variant={commission.isActive ? "default" : "destructive"}>
                     {commission.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right font-medium">
-                  {commission.platformPercent || 0}%
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {commission.brokerPercent || 0}%
-                </TableCell>
+                <TableCell className="text-right font-medium">{commission.platformPercent || 0}%</TableCell>
+                <TableCell className="text-right font-medium">{commission.brokerPercent || 0}%</TableCell>
                 <TableCell className="text-right">
-                  <UpdateCommissionModal
-                    commissionId={commission.id}
-                    initialData={commission as any}
-                  />
+                  <UpdateCommissionModal commissionId={commission.id} initialData={commission as any} />
                 </TableCell>
               </TableRow>
             ))}

@@ -55,6 +55,8 @@ const DUMMY_GUEST_HOUSES = [
 ];
 
 const commissionSchema = yup.object({
+  name: yup.string().required("Name is required").min(2, "Name must be at least 2 characters"),
+  role: yup.string().oneOf(["PLATFORM", "BROKER", "OWNER", "STAFF"], "Invalid role").required("Role is required"),
   platformPercent: yup
     .number()
     .required("Platform percentage is required")
@@ -104,6 +106,8 @@ export function CreateCommissionModal({
   } = useForm<CommissionFormData>({
     resolver: yupResolver(commissionSchema as any),
     defaultValues: {
+      name: "",
+      role: "PLATFORM",
       brokerPercent: null,
       type: "PLATFORM",
       propertyId: null,
@@ -162,6 +166,45 @@ export function CreateCommissionModal({
           onSubmit={handleSubmit(handleFormSubmit as any)}
           className="space-y-6"
         >
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">
+              Commission Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="name"
+              placeholder="e.g., Platform Standard Commission"
+              {...register("name")}
+            />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Role */}
+          <div className="space-y-2">
+            <Label htmlFor="role">
+              Applies to Role <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={watch("role")}
+              onValueChange={(value) => setValue("role", value as any, { shouldValidate: true })}
+            >
+              <SelectTrigger id="role">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PLATFORM">Platform</SelectItem>
+                <SelectItem value="BROKER">Broker</SelectItem>
+                <SelectItem value="OWNER">Owner</SelectItem>
+                <SelectItem value="STAFF">Staff</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.role && (
+              <p className="text-sm text-destructive">{errors.role.message}</p>
+            )}
+          </div>
+
           {/* Commission Type */}
           <div className="space-y-2">
             <Label htmlFor="type">

@@ -170,11 +170,15 @@ export function UpdateCommissionModal({
               <div className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm">
                 {initialData.property?.name}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Property assignment cannot be changed
-              </p>
+              <p className="text-xs text-muted-foreground">Property assignment cannot be changed</p>
             </div>
           )}
+
+          {/* Name (editable) */}
+          <div className="space-y-2">
+            <Label htmlFor="update-name">Commission Name</Label>
+            <Input id="update-name" placeholder="e.g., Platform Standard Commission" defaultValue={(initialData as any).name || ""} onChange={(e) => (initialData as any)._nameOverride = e.target.value} />
+          </div>
 
           {/* Platform Percent */}
           <div className="space-y-2">

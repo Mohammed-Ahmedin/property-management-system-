@@ -54,7 +54,7 @@ export function RoomCard({ room }: RoomCardProps) {
   const deleteMutation = useDeleteRoomMutation();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const isAdminOrStaff = role === "ADMIN" || role === "STAFF";
+  const isAdminOrStaff = role === "STAFF";
 
   // Compute real availability from bookings
   const today = new Date();

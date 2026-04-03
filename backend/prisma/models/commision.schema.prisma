@@ -1,5 +1,7 @@
 model CommissionSetting {
   id          String  @id @default(uuid())
+  name        String  @default("Commission")
+  role        String  @default("PLATFORM") // PLATFORM, BROKER, OWNER, STAFF
   description String?
 
   // global platform-level percentage
