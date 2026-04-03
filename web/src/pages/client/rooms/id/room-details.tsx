@@ -1,118 +1,180 @@
-import type React from "react";
-import { Users, Maximize2, Wifi, Wind, Tv, Droplet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Maximize2, Wifi, Wind, Tv, Droplet, BedDouble, Bath, Coffee, Car, Utensils, Dumbbell, CheckCircle2, XCircle, Calendar, AlertCircle } from "lucide-react";
 import FormatedAmount from "@/components/shared/formatted-amount";
 import RoomFeatures from "./room-features";
 import { format, addDays } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-interface Feature {
-  id: string;
-  name: string;
-  category: string | null;
-  value: string | null;
-}
-
-interface BookedRange {
-  checkIn: string | Date;
-  checkOut: string | Date;
-}
-
+interface Feature { id: string; name: string; category: string | null; value: string | null; }
+interface BookedRange { checkIn: string | Date; checkOut: string | Date; }
 interface Room {
-  name: string;
-  description: string | null;
-  type: string;
-  squareMeters: number;
-  maxOccupancy: number;
-  features: Feature[];
-  price: any;
-  availability: boolean;
-  bookings?: BookedRange[];
+  name: string; description: string | null; type: string;
+  squareMeters: number; maxOccupancy: number; features: Feature[];
+  price: any; availability: boolean; bookings?: BookedRange[];
 }
 
-const categoryIcons: Record<string, React.ReactNode> = {
-  connectivity: <Wifi className="h-5 w-5" />,
-  climate: <Wind className="h-5 w-5" />,
-  entertainment: <Tv className="h-5 w-5" />,
-  comfort: <Droplet className="h-5 w-5" />,
+const featureIcons: Record<string, React.ReactNode> = {
+  wifi: <Wifi className="w-4 h-4" />, climate: <Wind className="w-4 h-4" />,
+  tv: <Tv className="w-4 h-4" />, bathroom: <Droplet className="w-4 h-4" />,
+  bedroom: <BedDouble className="w-4 h-4" />, kitchen: <Utensils className="w-4 h-4" />,
+  parking: <Car className="w-4 h-4" />, gym: <Dumbbell className="w-4 h-4" />,
+  breakfast: <Coffee className="w-4 h-4" />,
 };
 
 export default function RoomDetails({ room }: { room: Room }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Find the next available date after all booked ranges
   const activeBookings = (room.bookings || []).filter(
     (b) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today
   );
-
-  // Sort by checkOut descending to find the latest checkout
   const latestCheckout = activeBookings.reduce<Date | null>((latest, b) => {
     const co = new Date(b.checkOut);
     return !latest || co > latest ? co : latest;
   }, null);
-
   const nextAvailableDate = latestCheckout ? addDays(latestCheckout, 1) : null;
-
-  // Collect all booked ranges for display
   const bookedRangesDisplay = activeBookings.map((b) => ({
     from: format(new Date(b.checkIn), "MMM d"),
     to: format(new Date(b.checkOut), "MMM d, yyyy"),
   }));
 
+  // Group features by category
+  const featuresByCategory = (room.features || []).reduce<Record<string, Feature[]>>((acc, f) => {
+    const cat = f.category || "other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(f);
+    return acc;
+  }, {});
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Room header */}
       <div>
-        <div className="mb-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-          {room.type}
-        </div>
-        <h1 className="text-2xl font-bold text-foreground lg:text-4xl">
-          {room.name}
-        </h1>
-        <FormatedAmount amount={room.price} suffix="/night" className="text-xl" />
-        <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Maximize2 className="h-4 w-4" />
-            <span>{room.squareMeters} sqm</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span>Up to {room.maxOccupancy} guests</span>
-          </div>
-          <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 ${
+        <div className="flex items-center gap-2 mb-3">
+          <Badge variant="secondary" className="text-xs uppercase tracking-wide font-semibold">{room.type}</Badge>
+          <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full",
             room.availability
-              ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200"
-              : "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
-          }`}>
-            <span className={`h-2 w-2 rounded-full ${room.availability ? "bg-green-600" : "bg-red-600"}`} />
-            {room.availability ? "Available" : "Not Available"}
-          </div>
+              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+          )}>
+            <span className={cn("w-1.5 h-1.5 rounded-full", room.availability ? "bg-green-500" : "bg-red-500")} />
+            {room.availability ? "Available now" : "Currently unavailable"}
+          </span>
         </div>
 
-        {/* Availability details */}
-        {!room.availability && bookedRangesDisplay.length > 0 && (
-          <div className="mt-3 space-y-1">
-            {bookedRangesDisplay.map((r, i) => (
-              <p key={i} className="text-sm text-red-600 dark:text-red-400 font-medium">
-                Not available: {r.from} – {r.to}
-              </p>
-            ))}
-            {nextAvailableDate && (
-              <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                Available from {format(nextAvailableDate, "MMM d, yyyy")} onwards
-              </p>
-            )}
-          </div>
-        )}
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">{room.name}</h1>
+
+        <div className="flex items-baseline gap-1.5 mb-4">
+          <FormatedAmount amount={room.price} className="text-2xl font-bold text-primary" />
+          <span className="text-sm text-muted-foreground">/ night</span>
+        </div>
+
+        {/* Key stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { icon: <Maximize2 className="w-4 h-4 text-primary" />, label: "Room size", value: `${room.squareMeters} sqm` },
+            { icon: <Users className="w-4 h-4 text-primary" />, label: "Max guests", value: `${room.maxOccupancy} guests` },
+            { icon: <BedDouble className="w-4 h-4 text-primary" />, label: "Room type", value: room.type },
+            { icon: <CheckCircle2 className="w-4 h-4 text-primary" />, label: "Cancellation", value: "Free" },
+          ].map(({ icon, label, value }) => (
+            <div key={label} className="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-muted/40 border border-border hover:bg-muted/60 transition-colors">
+              <div className="flex items-center gap-1.5">
+                {icon}
+                <span className="text-xs text-muted-foreground">{label}</span>
+              </div>
+              <span className="text-sm font-semibold">{value}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Availability status */}
+      {!room.availability && bookedRangesDisplay.length > 0 && (
+        <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <p className="text-sm font-semibold text-red-700 dark:text-red-400">Booked dates</p>
+          </div>
+          <div className="space-y-1.5">
+            {bookedRangesDisplay.map((r, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <Calendar className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <span className="text-red-600 dark:text-red-400">{r.from} – {r.to}</span>
+              </div>
+            ))}
+          </div>
+          {nextAvailableDate && (
+            <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800 flex items-center gap-2 text-sm">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+              <span className="text-green-600 dark:text-green-400 font-medium">
+                Available from {format(nextAvailableDate, "MMM d, yyyy")} onwards
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* About */}
       {room.description && (
-        <div className="flex flex-col gap-2">
-          <h1 className="text-lg font-semibold">About this room</h1>
+        <div className="rounded-2xl bg-muted/30 border border-border p-5">
+          <h2 className="text-base font-semibold mb-2 flex items-center gap-2">
+            <span className="w-1 h-4 bg-primary rounded-full" />
+            About this room
+          </h2>
           <p className="leading-relaxed text-muted-foreground text-sm">{room.description}</p>
         </div>
       )}
 
-      <RoomFeatures features={room.features} />
+      {/* Features by category */}
+      {Object.keys(featuresByCategory).length > 0 && (
+        <div>
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <span className="w-1 h-4 bg-primary rounded-full" />
+            Room features
+          </h2>
+          <div className="space-y-4">
+            {Object.entries(featuresByCategory).map(([category, features]) => (
+              <div key={category}>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 capitalize">{category}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {features.map((f) => (
+                    <div key={f.id} className="flex items-center gap-2.5 p-3 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-primary/5 transition-all">
+                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">
+                        {featureIcons[category] || <CheckCircle2 className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate">{f.name}</p>
+                        {f.value && f.value !== "true" && (
+                          <p className="text-xs text-muted-foreground truncate">{f.value}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Policies */}
+      <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="px-5 py-3 bg-muted/30 border-b border-border">
+          <h2 className="text-sm font-semibold">Room policies</h2>
+        </div>
+        {[
+          { label: "Check-in", value: "From 15:00" },
+          { label: "Check-out", value: "Until 12:00" },
+          { label: "Cancellation", value: "Free cancellation", green: true },
+          { label: "Smoking", value: "Not allowed" },
+          { label: "Pets", value: "Not allowed" },
+        ].map(({ label, value, green }: any, i, arr) => (
+          <div key={label} className={cn("flex justify-between items-center px-5 py-3 text-sm", i < arr.length - 1 ? "border-b border-border/50" : "")}>
+            <span className="text-muted-foreground">{label}</span>
+            <span className={cn("font-medium", green && "text-green-600 dark:text-green-400")}>{value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
