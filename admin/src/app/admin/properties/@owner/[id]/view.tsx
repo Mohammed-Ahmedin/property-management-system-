@@ -19,6 +19,7 @@ import { DashboardCard } from "@/components/shared/dashboard-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import Link from "next/link";
 import { useUpdatePropertyMutation, useVoidPropertyMutation, useSetPropertyDiscountMutation, useSetRoomDiscountMutation } from "@/hooks/api/use-property";
+import { CoordinateInput } from "@/components/shared/coordinate-input";
 import { useAddBrokerToPropertyMutation, useRemoveStaffFromGHMutation, useGetGhStaffsQuery } from "@/hooks/api/use-staff";
 import { Avatar } from "@/components/shared/avatar";
 import { Spinner } from "@/components/ui/spinner";
@@ -161,8 +162,12 @@ export default function PropertyView({ data }: { data: PropertyData }) {
             <div className="space-y-1"><Label>Subcity</Label><Input value={form.subcity} onChange={e => setForm(f => ({ ...f, subcity: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Country</Label><Input value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Nearby</Label><Input value={form.nearby} onChange={e => setForm(f => ({ ...f, nearby: e.target.value }))} /></div>
-            <div className="space-y-1"><Label>Latitude</Label><Input placeholder="e.g. 9.0054" value={form.latitude} onChange={e => setForm(f => ({ ...f, latitude: e.target.value }))} /></div>
-            <div className="space-y-1"><Label>Longitude</Label><Input placeholder="e.g. 38.7636" value={form.longitude} onChange={e => setForm(f => ({ ...f, longitude: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>Latitude</Label>
+              <CoordinateInput type="latitude" value={form.latitude} onChange={v => setForm(f => ({ ...f, latitude: v }))} />
+            </div>
+            <div className="space-y-1"><Label>Longitude</Label>
+              <CoordinateInput type="longitude" value={form.longitude} onChange={v => setForm(f => ({ ...f, longitude: v }))} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>

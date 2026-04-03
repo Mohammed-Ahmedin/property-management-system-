@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CoordinateInput } from "@/components/shared/coordinate-input";
 
 interface LocationSelectorProps {
   register: any;
@@ -284,66 +285,24 @@ export default function LocationSelector({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label>Coordinates</Label>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleAutoFillLocation}
-              disabled={loadingLocation}
-            >
-              {loadingLocation ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Detecting...
-                </>
-              ) : (
-                <>
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Auto-fill Current Location
-                </>
-              )}
+            <Button variant="secondary" size="sm" onClick={handleAutoFillLocation} disabled={loadingLocation}>
+              {loadingLocation ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Detecting...</> : <><MapPin className="w-4 h-4 mr-2" />Auto-fill Current Location</>}
             </Button>
           </div>
-
+          <p className="text-xs text-muted-foreground">Enter degrees and select direction (N/S for latitude, E/W for longitude)</p>
           <div className="grid gap-4 md:grid-cols-2 mt-2">
-            <div className="space-y-2">
-              <Label htmlFor="latitude">Latitude</Label>
-              <Input
-                id="latitude"
-                type="text"
-                step="any"
-                placeholder="e.g., 9.0108"
-                value={watch("latitude")}
-                onChange={(e) => {
-                  setValue("latitude", e.target.value);
-                }}
-                {...register("location.latitude")}
-              />
-              {errors.location?.latitude && (
-                <p className="text-sm text-destructive">
-                  {errors.location.latitude.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="longitude">Longitude</Label>
-              <Input
-                id="longitude"
-                type="text"
-                step="any"
-                placeholder="e.g., 38.7613"
-                value={watch("longitude")}
-                onChange={(e) => {
-                  setValue("location.longitude", e.target.value);
-                }}
-                {...register("location.longitude")}
-              />
-              {errors.location?.longitude && (
-                <p className="text-sm text-destructive">
-                  {errors.location.longitude.message}
-                </p>
-              )}
-            </div>
+            <CoordinateInput
+              type="latitude"
+              label="Latitude"
+              value={watch("location.latitude") || ""}
+              onChange={(val) => setValue("location.latitude", val)}
+            />
+            <CoordinateInput
+              type="longitude"
+              label="Longitude"
+              value={watch("location.longitude") || ""}
+              onChange={(val) => setValue("location.longitude", val)}
+            />
           </div>
         </div>
       </CardContent>
