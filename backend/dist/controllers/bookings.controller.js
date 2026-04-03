@@ -138,8 +138,8 @@ exports.default = {
                 message: "Payment initialization failed. Please try again.",
             });
         }
-        // Create booking
-        yield prisma_1.prisma.booking.create({
+        // Create booking and log activity
+        const newBooking = yield prisma_1.prisma.booking.create({
             data: {
                 checkIn: checkInDate,
                 checkOut: checkOutDate,
@@ -167,6 +167,18 @@ exports.default = {
                 },
             },
         });
+        // Log BOOKED activity so it appears in admin activities tab
+        yield prisma_1.prisma.activity.create({
+            data: {
+                action: "BOOKED",
+                description: `New booking by user ${userDoc.name} (${userDoc.email}) for room "${roomDoc.name}". Check-in: ${checkInDate.toLocaleDateString()}, Check-out: ${checkOutDate.toLocaleDateString()}. Total: ETB ${totalAmount}`,
+                userId: validated.userId,
+                bookingId: newBooking.id,
+                roomId: validated.roomId,
+                propertyId: roomDoc.propertyId,
+                status: "INFO",
+            },
+        }).catch(() => { });
         return res.status(201).json({
             success: true,
             checkoutUrl: (_d = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.checkout_url) !== null && _d !== void 0 ? _d : (_e = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.data) === null || _e === void 0 ? void 0 : _e.checkout_url,
@@ -358,6 +370,18 @@ exports.default = {
                         },
                     },
                     include: { payment: true, room: true },
+                });
+                // Log manual booking activity
+                yield tx.activity.create({
+                    data: {
+                        action: "BOOKED",
+                        description: `Manual booking by ${userRole} for guest "${validated.guestName}" in room "${room.name}". Check-in: ${checkInDate.toLocaleDateString()}, Check-out: ${checkOutDate.toLocaleDateString()}. Total: ETB ${validated.totalAmount}`,
+                        userId,
+                        bookingId: created.id,
+                        roomId: validated.roomId,
+                        propertyId: validated.propertyId || room.propertyId,
+                        status: "INFO",
+                    },
                 });
                 return created;
             }));

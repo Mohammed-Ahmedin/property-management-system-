@@ -85,7 +85,30 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
 
   return (
     <div ref={wrapRef} className="relative w-full">
-      <div className="flex w-full bg-white rounded-lg shadow-2xl border border-gray-100">
+      {/* Mobile: simple search input */}
+      <div className="flex md:hidden w-full bg-white rounded-lg shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="flex-1 flex items-center gap-2 px-4 py-3 min-w-0">
+          <Search className="w-4 h-4 text-gray-400 shrink-0" />
+          <input
+            autoComplete="off"
+            className="flex-1 text-sm text-gray-900 bg-transparent outline-none placeholder:text-gray-400 min-w-0"
+            placeholder="Destination or property"
+            value={q}
+            onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={(e) => { if (e.key === "Enter") { onSearch(q, checkIn, checkOut, adults); setOpen(false); } }}
+          />
+        </div>
+        <button
+          onClick={() => { onSearch(q, checkIn, checkOut, adults); setOpen(false); }}
+          className="bg-primary hover:bg-primary/90 text-white px-5 text-sm font-bold transition-colors shrink-0"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Desktop: full search bar */}
+      <div className="hidden md:flex w-full bg-white rounded-lg shadow-2xl border border-gray-100">
         {/* Destination */}
         <div className="flex-1 flex items-center gap-3 px-5 py-4 border-r border-gray-200 min-w-0">
           <Search className="w-5 h-5 text-gray-400 shrink-0" />
@@ -176,6 +199,7 @@ function SearchBar({ location, onSearch }: { location: string; onSearch: (q: str
           SEARCH
         </button>
       </div>
+      </div>{/* end desktop */}
 
       {/* Suggestions dropdown */}
       {open && (filtered.length > 0 || (q.length >= 2)) && (
@@ -325,17 +349,17 @@ export default function PropertiesPage() {
       </div>
 
       {/* Hero */}
-      <div ref={heroRef} className="relative w-full h-[380px] md:h-[460px]">
+      <div ref={heroRef} className="relative w-full h-[280px] sm:h-[380px] md:h-[460px] overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${heroImage}')` }} />
         <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-5" style={{ overflow: "visible", zIndex: 10 }}>
-          <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 gap-4" style={{ overflow: "visible", zIndex: 10 }}>
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white drop-shadow-lg leading-tight">
             {locationParam ? `${locationParam} hotels & places to stay` : "Find your perfect stay"}
           </h1>
-          <p className="text-white/80 text-sm md:text-base">
+          <p className="text-white/80 text-xs sm:text-sm md:text-base hidden sm:block">
             Search to compare prices and discover great deals with free cancellation
           </p>
-          <div className="w-full max-w-5xl" style={{ position: "relative", zIndex: 100 }}>
+          <div className="w-full max-w-5xl px-2 sm:px-4" style={{ position: "relative", zIndex: 100 }}>
             <SearchBar location={locationParam} onSearch={handleSearch} />
           </div>
         </div>

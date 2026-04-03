@@ -115,7 +115,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
       {/* ── Left: image block ── */}
       <div className="sm:w-[260px] w-full shrink-0 flex flex-col cursor-pointer" onClick={() => navigate(`/properties/${data.id}`)}>
         {/* Main image */}
-        <div className="relative h-[180px] overflow-hidden bg-muted">
+        <div className="relative h-[200px] sm:h-[180px] overflow-hidden bg-muted">
           {mainImage ? (
             <img
               src={mainImage.url}
@@ -210,7 +210,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
 
       {/* ── Right: rating + price + CTA ── */}
       <div
-        className="sm:w-[200px] shrink-0 p-4 flex flex-col items-end justify-between"
+        className="sm:w-[200px] shrink-0 p-4 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between border-t sm:border-t-0 sm:border-l border-border"
         onClick={() => navigate(`/properties/${data.id}`)}
       >
         <div className="text-right">

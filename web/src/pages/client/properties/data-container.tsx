@@ -62,8 +62,8 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
   };
 
   return (
-    <div className="flex gap-6 isolate">
-      {/* Left sidebar */}
+    <div className="flex flex-col lg:flex-row gap-6 isolate">
+      {/* Left sidebar — hidden on mobile, shown on lg+ */}
       <FilterSidebar />
 
       {/* Right content */}

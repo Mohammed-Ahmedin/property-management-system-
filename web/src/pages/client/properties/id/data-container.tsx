@@ -295,9 +295,9 @@ const DataContainer = ({ data }: Props) => {
         </button>
       </div>
 
-      {/* Photo grid */}
-      <div ref={heroRef} className="px-4 mb-0">
-        <div className="flex gap-2 rounded-3xl overflow-hidden h-[360px] md:h-[460px] shadow-xl">
+      {/* Photo grid — responsive: single image on mobile, grid on md+ */}
+      <div ref={heroRef} className="px-2 sm:px-4 mb-0">
+        <div className="flex gap-1.5 rounded-2xl overflow-hidden h-[220px] sm:h-[300px] md:h-[400px] lg:h-[460px] shadow-xl">
           {/* Main large image */}
           <div className="flex-[2] relative bg-muted cursor-pointer group overflow-hidden" onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}>
             {mainImg ? (
@@ -307,31 +307,26 @@ const DataContainer = ({ data }: Props) => {
                 <ImageIcon className="w-16 h-16 opacity-20" />
               </div>
             )}
-            {/* Gradient overlays */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            {/* Property name overlay */}
-            <div className="absolute bottom-4 left-4 right-16">
-              <p className="text-white font-bold text-lg md:text-xl drop-shadow-lg line-clamp-1">{property.name}</p>
+            <div className="absolute bottom-3 left-3 right-14">
+              <p className="text-white font-bold text-sm sm:text-base md:text-xl drop-shadow-lg line-clamp-1">{property.name}</p>
               {property.location?.city && (
                 <p className="text-white/70 text-xs flex items-center gap-1 mt-0.5">
                   <MapPin className="w-3 h-3" />{property.location.city}
                 </p>
               )}
             </div>
-            {/* Heart button */}
             <button onClick={(e) => { e.stopPropagation(); toggle(property.id); }}
-              className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 hover:bg-white shadow-lg transition-all hover:scale-110">
-              <Heart className={cn("w-5 h-5 transition-colors", saved ? "fill-red-500 text-red-500" : "text-gray-600")} />
+              className="absolute top-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-all hover:scale-110">
+              <Heart className={cn("w-4 h-4 transition-colors", saved ? "fill-red-500 text-red-500" : "text-gray-600")} />
             </button>
-            {/* Photo count badge */}
-            <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5">
+            <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
               <ImageIcon className="w-3 h-3" />
-              {lightboxImages.length} photos
+              {lightboxImages.length}
             </div>
           </div>
-          {/* 2x2 thumbnail grid */}
-          <div className="flex-1 grid grid-cols-2 gap-2">
+          {/* 2x2 thumbnail grid — hidden on mobile */}
+          <div className="hidden sm:grid flex-1 grid-cols-2 gap-1.5">
             {thumbs.map((img, i) => {
               const isLast = i === 3;
               const totalExtra = gridSources.length - 4;
@@ -345,13 +340,13 @@ const DataContainer = ({ data }: Props) => {
                       {isLast && totalExtra > 0 && (
                         <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center">
                           <span className="text-white text-lg font-bold">+{totalExtra}</span>
-                          <span className="text-white/70 text-xs">more photos</span>
+                          <span className="text-white/70 text-xs">more</span>
                         </div>
                       )}
                     </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted">
-                      <ImageIcon className="w-8 h-8 text-muted-foreground opacity-20" />
+                      <ImageIcon className="w-6 h-6 text-muted-foreground opacity-20" />
                     </div>
                   )}
                 </div>
@@ -359,22 +354,21 @@ const DataContainer = ({ data }: Props) => {
             })}
           </div>
         </div>
-        {/* See all photos button */}
-        <div className="flex items-center justify-between mt-3 px-1">
+        <div className="flex items-center justify-between mt-2 px-1">
           <button onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}
-            className="flex items-center gap-2 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 border border-border px-4 py-2 rounded-full transition-all hover:shadow-sm">
-            <ImageIcon className="w-4 h-4 text-primary" />
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-foreground bg-muted hover:bg-muted/80 border border-border px-3 py-1.5 rounded-full transition-all">
+            <ImageIcon className="w-3.5 h-3.5 text-primary" />
             See all {lightboxImages.length} photos
           </button>
           {avgRating > 0 && (
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm">
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: Math.min(starCount, 5) }).map((_, i) => (
-                  <FaStar key={i} className="w-3.5 h-3.5 text-yellow-400" />
+                  <FaStar key={i} className="w-3 h-3 text-yellow-400" />
                 ))}
               </div>
               <span className="font-semibold">{avgRating.toFixed(1)}</span>
-              <span className="text-muted-foreground">· {property.reviews?.length ?? 0} reviews</span>
+              <span className="text-muted-foreground hidden sm:inline">· {property.reviews?.length ?? 0} reviews</span>
             </div>
           )}
         </div>
@@ -400,7 +394,7 @@ const DataContainer = ({ data }: Props) => {
       {stickyNav && <div className="h-[49px]" />}
 
       {/* Main layout */}
-      <div className="flex flex-col lg:flex-row gap-8 px-4 py-6">
+      <div className="flex flex-col lg:flex-row gap-6 px-2 sm:px-4 py-4 sm:py-6">
         {/* Left column */}
         <div className="flex-1 min-w-0">
 
@@ -667,7 +661,7 @@ const DataContainer = ({ data }: Props) => {
         </div>
 
         {/* Right sticky card */}
-        <div className="lg:w-[300px] shrink-0">
+        <div className="lg:w-[300px] w-full shrink-0">
           <div className="sticky top-24 rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
             {/* Price header */}
             <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-5">

@@ -162,8 +162,8 @@ export default {
       });
     }
 
-    // Create booking
-    await prisma.booking.create({
+    // Create booking and log activity
+    const newBooking = await prisma.booking.create({
       data: {
         checkIn: checkInDate,
         checkOut: checkOutDate,
@@ -191,6 +191,19 @@ export default {
         },
       },
     });
+
+    // Log BOOKED activity so it appears in admin activities tab
+    await prisma.activity.create({
+      data: {
+        action: "BOOKED",
+        description: `New booking by user ${userDoc.name} (${userDoc.email}) for room "${roomDoc.name}". Check-in: ${checkInDate.toLocaleDateString()}, Check-out: ${checkOutDate.toLocaleDateString()}. Total: ETB ${totalAmount}`,
+        userId: validated.userId,
+        bookingId: newBooking.id,
+        roomId: validated.roomId,
+        propertyId: roomDoc.propertyId,
+        status: "INFO",
+      },
+    }).catch(() => {});
 
     return res.status(201).json({
       success: true,
@@ -400,6 +413,20 @@ export default {
           },
           include: { payment: true, room: true },
         });
+
+        // Log manual booking activity
+        await tx.activity.create({
+          data: {
+            action: "BOOKED",
+            description: `Manual booking by ${userRole} for guest "${validated.guestName}" in room "${room.name}". Check-in: ${checkInDate.toLocaleDateString()}, Check-out: ${checkOutDate.toLocaleDateString()}. Total: ETB ${validated.totalAmount}`,
+            userId,
+            bookingId: created.id,
+            roomId: validated.roomId,
+            propertyId: validated.propertyId || room.propertyId,
+            status: "INFO",
+          },
+        });
+
         return created;
       });
 
