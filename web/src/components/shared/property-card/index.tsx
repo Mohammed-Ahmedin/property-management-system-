@@ -109,7 +109,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
 
   return (
     <div
-      className="rounded-xl overflow-hidden border border-border bg-card hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row cursor-pointer"
+      className="rounded-2xl overflow-hidden border border-border bg-card hover:shadow-2xl hover:shadow-black/10 hover:-translate-y-0.5 transition-all duration-300 flex flex-col sm:flex-row cursor-pointer group"
       onClick={() => navigate(`/properties/${data.id}`)}
     >
       {/* ── Left: image block ── */}
@@ -120,7 +120,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
             <img
               src={mainImage.url}
               alt={name}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
