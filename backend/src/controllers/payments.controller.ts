@@ -258,6 +258,18 @@ export default {
         }
       });
 
+      // Log PAYMENT_SUCCESS activity when webhook fires
+      if (dbStatus === "SUCCESS") {
+        await prisma.activity.create({
+          data: {
+            action: "PAYMENT_SUCCESS",
+            description: `Payment successful for booking. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}`,
+            bookingId: payment.bookingId,
+            status: "INFO",
+          },
+        }).catch(() => {});
+      }
+
       // Return success response
       return res.json({
         message: "Payment status updated successfully",

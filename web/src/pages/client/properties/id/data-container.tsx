@@ -102,32 +102,32 @@ const DataContainer = ({ data }: Props) => {
 
       {/* Gallery Modal */}
       {galleryOpen && lightboxImages.length > 0 && (
-        <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-8 px-4" onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); setGalleryFilter("all"); }}>
+        <div className="fixed inset-0 z-[9998] flex items-start justify-center sm:pt-8 sm:px-4" onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); setGalleryFilter("all"); }}>
           <div className="absolute inset-0 bg-black/70" />
-          <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex w-full max-w-5xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-white dark:bg-zinc-900 rounded-none sm:rounded-2xl shadow-2xl flex w-full max-w-5xl h-full sm:max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-zinc-700 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-zinc-700 shrink-0">
                 {galleryStartIdx > 0 && (
                   <button onClick={() => setGalleryStartIdx(0)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full">
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 )}
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-primary text-primary text-sm font-medium">
-                  <ImageIcon className="w-4 h-4" /> Property Images
+                <button className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border-2 border-primary text-primary text-xs sm:text-sm font-medium">
+                  <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Property Images</span><span className="sm:hidden">Photos</span>
                 </button>
                 <button onClick={() => { setGalleryOpen(false); setGalleryStartIdx(0); setGalleryFilter("all"); }} className="ml-auto p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full">
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
-              <div className="flex gap-0 px-4 border-b border-gray-100 dark:border-zinc-700 shrink-0 overflow-x-auto">
+              <div className="flex gap-0 px-3 sm:px-4 border-b border-gray-100 dark:border-zinc-700 shrink-0 overflow-x-auto">
                 {[
                   { label: `All (${lightboxImages.length})`, key: "all" as const },
                   ...(roomImgs.length > 0 ? [{ label: `Rooms (${roomImgs.length})`, key: "rooms" as const }] : []),
-                  ...(allImages.length > 0 ? [{ label: `Property views (${allImages.length})`, key: "property" as const }] : []),
-                  ...(nearbyImgs.length > 0 ? [{ label: `Nearby attractions (${nearbyImgs.length})`, key: "nearby" as const }] : []),
+                  ...(allImages.length > 0 ? [{ label: `Views (${allImages.length})`, key: "property" as const }] : []),
+                  ...(nearbyImgs.length > 0 ? [{ label: `Nearby (${nearbyImgs.length})`, key: "nearby" as const }] : []),
                 ].map((tab) => (
                   <button key={tab.key} onClick={() => { setGalleryFilter(tab.key); setGalleryStartIdx(0); }}
-                    className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${galleryFilter === tab.key ? "border-primary text-primary" : "border-transparent text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white"}`}>
+                    className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${galleryFilter === tab.key ? "border-primary text-primary" : "border-transparent text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white"}`}>
                     {tab.label}
                   </button>
                 ))}
@@ -135,30 +135,30 @@ const DataContainer = ({ data }: Props) => {
               {galleryStartIdx > 0 ? (
                 <div className="flex-1 flex flex-col overflow-hidden">
                   <div className="flex-1 relative bg-black flex items-center justify-center min-h-0">
-                    <button className="absolute left-3 top-1/2 -translate-y-1/2 text-white p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10" onClick={() => setGalleryStartIdx(i => Math.max(1, i - 1))}>
-                      <ChevronLeft className="w-5 h-5" />
+                    <button className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-white p-2 sm:p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10" onClick={() => setGalleryStartIdx(i => Math.max(1, i - 1))}>
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <img src={(filteredGalleryImages[galleryStartIdx - 1] as any)?.url} alt="" className="max-h-full max-w-full object-contain" />
-                    <button className="absolute right-3 top-1/2 -translate-y-1/2 text-white p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10" onClick={() => setGalleryStartIdx(i => Math.min(filteredGalleryImages.length, i + 1))}>
-                      <ChevronRight className="w-5 h-5" />
+                    <button className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-white p-2 sm:p-2.5 bg-black/40 hover:bg-black/60 rounded-full z-10" onClick={() => setGalleryStartIdx(i => Math.min(filteredGalleryImages.length, i + 1))}>
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
-                  <div className="h-[72px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
+                  <div className="h-[60px] sm:h-[72px] bg-black flex items-center gap-1 px-2 overflow-x-auto shrink-0">
                     <button onClick={() => setGalleryStartIdx(0)} className="flex flex-col items-center gap-0.5 px-2 py-1 text-white text-xs shrink-0">
-                      <div className="w-7 h-7 bg-white/20 rounded flex items-center justify-center"><ImageIcon className="w-3.5 h-3.5" /></div>
-                      Gallery
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/20 rounded flex items-center justify-center"><ImageIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" /></div>
+                      <span className="hidden sm:block">Gallery</span>
                     </button>
                     {filteredGalleryImages.map((img, i) => (
                       <button key={i} onClick={() => setGalleryStartIdx(i + 1)}
-                        className={`shrink-0 h-[56px] w-[72px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
+                        className={`shrink-0 h-[44px] w-[60px] sm:h-[56px] sm:w-[72px] rounded overflow-hidden border-2 transition-colors ${galleryStartIdx === i + 1 ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"}`}>
                         <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto p-3">
-                  <div className="grid grid-cols-3 gap-1.5">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 sm:gap-1.5">
                     {filteredGalleryImages.map((img, i) => (
                       <button key={i} onClick={() => setGalleryStartIdx(i + 1)} className="aspect-video rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
                         <img src={(img as any).url} alt="" className="w-full h-full object-cover" />
@@ -174,7 +174,8 @@ const DataContainer = ({ data }: Props) => {
                 </div>
               )}
             </div>
-            <div className="w-[220px] shrink-0 border-l border-gray-200 dark:border-zinc-700 flex flex-col p-4 overflow-y-auto">
+            {/* Right sidebar — hidden on mobile */}
+            <div className="hidden sm:flex w-[200px] lg:w-[220px] shrink-0 border-l border-gray-200 dark:border-zinc-700 flex-col p-4 overflow-y-auto">
               <h3 className="font-bold text-sm mb-3">Things you'll love</h3>
               <ul className="space-y-2 mb-6 flex-1">
                 {property.facilities?.slice(0, 4).map((f: any) => (

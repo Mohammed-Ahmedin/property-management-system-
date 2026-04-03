@@ -108,21 +108,24 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
         )}
 
         {/* Sort tabs */}
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-          {SORT_TABS.map((tab) => (
-            <button
-              key={tab.label}
-              onClick={() => handleSort(tab.sortField, tab.sortDirection)}
-              className={cn(
-                "px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full transition-all border shrink-0",
-                activeSort === tab.sortField
-                  ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
-                  : "text-muted-foreground border-border hover:text-foreground hover:border-primary/50 hover:bg-muted/50"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1 scrollbar-hide">
+          {SORT_TABS.map((tab) => {
+            const icons: Record<string, string> = { "Our top picks": "⭐", "Lowest price first": "💰", "Nearest to": "📍", "Best reviewed": "🏆" };
+            return (
+              <button
+                key={tab.label}
+                onClick={() => handleSort(tab.sortField, tab.sortDirection)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium whitespace-nowrap rounded-full transition-all border shrink-0 flex items-center gap-1.5",
+                  activeSort === tab.sortField
+                    ? "bg-primary text-white border-primary shadow-sm shadow-primary/20 scale-[1.02]"
+                    : "text-muted-foreground border-border hover:text-foreground hover:border-primary/50 hover:bg-muted/50"
+                )}
+              >
+                <span>{icons[tab.label]}</span>{tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Cards */}
