@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube, ArrowRight, Hotel, Home, Building2, TreePine, Tent, Warehouse } from "lucide-react";
+import { useState } from "react";
 
 const PROPERTY_TYPES = [
   { label: "Hotels", value: "HOTEL", icon: <Hotel className="w-3.5 h-3.5" /> },
@@ -11,6 +12,16 @@ const PROPERTY_TYPES = [
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = () => {
+    if (email && email.includes("@")) {
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 3000);
+    }
+  };
   return (
     <footer className="bg-zinc-950 text-zinc-400 mt-8">
       {/* Top accent */}
@@ -111,13 +122,28 @@ export function Footer() {
             {/* Mini newsletter */}
             <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800">
               <p className="text-xs text-zinc-400 mb-2">Get travel deals in your inbox</p>
-              <div className="flex gap-2">
-                <input type="email" placeholder="your@email.com"
-                  className="flex-1 bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 outline-none border border-zinc-700 focus:border-primary transition-colors placeholder:text-zinc-600" />
-                <button className="bg-primary hover:bg-primary/90 text-white text-xs px-3 py-2 rounded-lg transition-colors font-medium">
-                  Go
-                </button>
-              </div>
+              {subscribed ? (
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-medium py-2">
+                  <span className="text-lg">✓</span> Subscribed! Check your inbox.
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
+                    placeholder="your@email.com"
+                    className="flex-1 bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 outline-none border border-zinc-700 focus:border-primary transition-colors placeholder:text-zinc-600"
+                  />
+                  <button
+                    onClick={handleSubscribe}
+                    className="bg-primary hover:bg-primary/90 text-white text-xs px-3 py-2 rounded-lg transition-colors font-medium"
+                  >
+                    Go
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
   Building2, MapPin, Phone, Mail, Edit, Users,
@@ -72,6 +73,14 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   const setRoomDiscount = useSetRoomDiscountMutation();
   const [propertyDiscountInput, setPropertyDiscountInput] = useState(String((data as any).discountPercent ?? 0));
   const [roomDiscountInputs, setRoomDiscountInputs] = useState<Record<string, string>>({});
+  const [policies, setPolicies] = useState({
+    checkIn: (data as any).policies?.checkIn || "15:00",
+    checkOut: (data as any).policies?.checkOut || "12:00",
+    cancellation: (data as any).policies?.cancellation || "Free cancellation available",
+    children: (data as any).policies?.children || "All children welcome",
+    pets: (data as any).policies?.pets || "Not allowed",
+  });
+  const [savingPolicies, setSavingPolicies] = useState(false);
 
   // Use live query for staffs so broker shows immediately after add
   const { data: liveStaffs } = useGetGhStaffsQuery({ propertyId: data.id });
@@ -214,6 +223,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="facilities">Facilities</TabsTrigger>
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
+          <TabsTrigger value="policies">Policies</TabsTrigger>
           <TabsTrigger value="images">Images</TabsTrigger>
         </TabsList>
 
@@ -435,6 +445,53 @@ export default function PropertyView({ data }: { data: PropertyData }) {
                   {data.rooms.length === 0 && <p className="text-sm text-muted-foreground">No rooms added yet.</p>}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Policies */}
+        <TabsContent value="policies">
+          <Card>
+            <CardHeader>
+              <CardTitle>Property Policies</CardTitle>
+              <CardDescription>Set check-in/out times and house rules shown to guests</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Check-in time</Label>
+                  <Input value={policies.checkIn} onChange={e => setPolicies(p => ({ ...p, checkIn: e.target.value }))} placeholder="e.g. 15:00" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Check-out time</Label>
+                  <Input value={policies.checkOut} onChange={e => setPolicies(p => ({ ...p, checkOut: e.target.value }))} placeholder="e.g. 12:00" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Cancellation policy</Label>
+                  <Input value={policies.cancellation} onChange={e => setPolicies(p => ({ ...p, cancellation: e.target.value }))} placeholder="e.g. Free cancellation available" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Children policy</Label>
+                  <Input value={policies.children} onChange={e => setPolicies(p => ({ ...p, children: e.target.value }))} placeholder="e.g. All children welcome" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Pets policy</Label>
+                  <Input value={policies.pets} onChange={e => setPolicies(p => ({ ...p, pets: e.target.value }))} placeholder="e.g. Not allowed" />
+                </div>
+              </div>
+              <Button
+                onClick={async () => {
+                  setSavingPolicies(true);
+                  try {
+                    await updateMutation.mutateAsync({ id: data.id, data: { policies } });
+                    toast.success("Policies saved");
+                  } catch { toast.error("Failed to save policies"); }
+                  finally { setSavingPolicies(false); }
+                }}
+                disabled={savingPolicies}
+              >
+                {savingPolicies ? "Saving..." : "Save Policies"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

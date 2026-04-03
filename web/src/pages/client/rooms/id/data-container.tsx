@@ -61,7 +61,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Left */}
           <div className="lg:col-span-2 space-y-6">
-            <RoomGallery images={roomData?.images} roomName={roomData.name} />
+            <RoomGallery images={roomData?.images} roomName={roomData.name} services={roomData.services} />
 
             {/* Quick stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

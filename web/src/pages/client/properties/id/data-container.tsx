@@ -205,22 +205,41 @@ const DataContainer = ({ data }: Props) => {
 
       {/* Photo grid */}
       <div ref={heroRef} className="px-4 mb-0">
-        <div className="flex gap-1.5 rounded-2xl overflow-hidden h-[340px] md:h-[440px]">
-          <div className="flex-[2] relative bg-muted cursor-pointer group" onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}>
+        <div className="flex gap-2 rounded-3xl overflow-hidden h-[360px] md:h-[460px] shadow-xl">
+          {/* Main large image */}
+          <div className="flex-[2] relative bg-muted cursor-pointer group overflow-hidden" onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}>
             {mainImg ? (
-              <img src={mainImg} alt={property.name} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
+              <img src={mainImg} alt={property.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                 <ImageIcon className="w-16 h-16 opacity-20" />
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Gradient overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {/* Property name overlay */}
+            <div className="absolute bottom-4 left-4 right-16">
+              <p className="text-white font-bold text-lg md:text-xl drop-shadow-lg line-clamp-1">{property.name}</p>
+              {property.location?.city && (
+                <p className="text-white/70 text-xs flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3 h-3" />{property.location.city}
+                </p>
+              )}
+            </div>
+            {/* Heart button */}
             <button onClick={(e) => { e.stopPropagation(); toggle(property.id); }}
-              className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 hover:bg-white shadow-md transition-all">
+              className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 hover:bg-white shadow-lg transition-all hover:scale-110">
               <Heart className={cn("w-5 h-5 transition-colors", saved ? "fill-red-500 text-red-500" : "text-gray-600")} />
             </button>
+            {/* Photo count badge */}
+            <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5">
+              <ImageIcon className="w-3 h-3" />
+              {lightboxImages.length} photos
+            </div>
           </div>
-          <div className="flex-1 grid grid-cols-2 gap-1.5">
+          {/* 2x2 thumbnail grid */}
+          <div className="flex-1 grid grid-cols-2 gap-2">
             {thumbs.map((img, i) => {
               const isLast = i === 3;
               const totalExtra = gridSources.length - 4;
@@ -229,10 +248,12 @@ const DataContainer = ({ data }: Props) => {
                   onClick={() => { if (img) { setGalleryStartIdx(i + 1); setGalleryOpen(true); } }}>
                   {img ? (
                     <>
-                      <img src={(img as any).url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={(img as any).url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
                       {isLast && totalExtra > 0 && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">+{totalExtra} photos</span>
+                        <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center">
+                          <span className="text-white text-lg font-bold">+{totalExtra}</span>
+                          <span className="text-white/70 text-xs">more photos</span>
                         </div>
                       )}
                     </>
@@ -246,10 +267,25 @@ const DataContainer = ({ data }: Props) => {
             })}
           </div>
         </div>
-        <button onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}
-          className="mt-2 text-xs text-primary hover:underline flex items-center gap-1">
-          See all photos <ChevronRight className="w-3 h-3" />
-        </button>
+        {/* See all photos button */}
+        <div className="flex items-center justify-between mt-3 px-1">
+          <button onClick={() => { setGalleryStartIdx(0); setGalleryOpen(true); }}
+            className="flex items-center gap-2 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 border border-border px-4 py-2 rounded-full transition-all hover:shadow-sm">
+            <ImageIcon className="w-4 h-4 text-primary" />
+            See all {lightboxImages.length} photos
+          </button>
+          {avgRating > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: Math.min(starCount, 5) }).map((_, i) => (
+                  <FaStar key={i} className="w-3.5 h-3.5 text-yellow-400" />
+                ))}
+              </div>
+              <span className="font-semibold">{avgRating.toFixed(1)}</span>
+              <span className="text-muted-foreground">· {property.reviews?.length ?? 0} reviews</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Sticky nav */}
@@ -278,8 +314,8 @@ const DataContainer = ({ data }: Props) => {
 
           {/* Overview */}
           <section id="overview" className="mb-10">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
-              <div className="flex-1">
+            <div className="flex flex-col gap-3 mb-5">
+              <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="secondary" className="text-xs uppercase tracking-wide">{property.type || "Hotel"}</Badge>
                   {property.location?.city && (
@@ -302,17 +338,6 @@ const DataContainer = ({ data }: Props) => {
                   <span>{property.address}</span>
                 </div>
               </div>
-              {avgRating > 0 && (
-                <div className="flex items-center gap-3 shrink-0 bg-primary/5 border border-primary/10 rounded-2xl px-4 py-3">
-                  <div className="text-right">
-                    <p className="text-base font-bold">{ratingLabel}</p>
-                    <p className="text-xs text-muted-foreground">{property.reviews?.length ?? 0} reviews</p>
-                  </div>
-                  <div className="bg-primary text-white font-bold text-xl w-14 h-14 flex items-center justify-center rounded-xl shadow-md">
-                    {avgRating.toFixed(1)}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Quick highlights */}
