@@ -49,12 +49,37 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
               <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", roomData.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
                 {roomData.availability ? "Available" : "Unavailable"}
               </span>
+              {(() => {
+                const rd = (roomData as any).discountPercent ?? 0;
+                const pd = (roomData as any).property?.discountPercent ?? 0;
+                const total = rd + pd - (rd * pd / 100);
+                return total > 0 ? (
+                  <span className="text-xs font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full">
+                    🏷️ {Math.round(total)}% OFF
+                  </span>
+                ) : null;
+              })()}
             </div>
             <h1 className="text-xl md:text-2xl font-bold">{roomData.name}</h1>
           </div>
           <div className="text-right shrink-0">
             <p className="text-xs text-muted-foreground">per night</p>
-            <FormatedAmount amount={roomData.price} className="text-2xl font-bold text-primary" />
+            {(() => {
+              const rd = (roomData as any).discountPercent ?? 0;
+              const pd = (roomData as any).property?.discountPercent ?? 0;
+              const afterProp = pd > 0 ? roomData.price * (1 - pd / 100) : roomData.price;
+              const effective = rd > 0 ? afterProp * (1 - rd / 100) : afterProp;
+              const effectiveRounded = Math.round(effective * 100) / 100;
+              const hasDiscount = effectiveRounded < roomData.price;
+              return hasDiscount ? (
+                <div>
+                  <p className="text-sm line-through text-muted-foreground">ETB {roomData.price.toLocaleString()}</p>
+                  <FormatedAmount amount={effectiveRounded} className="text-2xl font-bold text-red-500" />
+                </div>
+              ) : (
+                <FormatedAmount amount={roomData.price} className="text-2xl font-bold text-primary" />
+              );
+            })()}
           </div>
         </div>
 

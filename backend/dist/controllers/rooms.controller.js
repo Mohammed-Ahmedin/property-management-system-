@@ -34,10 +34,11 @@ exports.default = {
                 images: true,
                 features: true,
                 services: true,
+                property: {
+                    select: { discountPercent: true, id: true, name: true },
+                },
                 bookings: {
-                    where: {
-                        status: { in: ["PENDING", "APPROVED"] },
-                    },
+                    where: { status: { in: ["PENDING", "APPROVED"] } },
                     select: { checkIn: true, checkOut: true },
                 },
             },

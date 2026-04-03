@@ -107,8 +107,28 @@ export default {
       );
     }
 
-    // Compute total price (per night * nights)
-    const perNightTotal = roomDoc.price;
+    // Compute total price with discounts applied
+    // Priority: room discount > property discount (take the higher one, or combine)
+    const roomDiscount = (roomDoc as any).discountPercent ?? 0;
+    const propertyDoc = await prisma.property.findUnique({
+      where: { id: roomDoc.propertyId },
+      select: { discountPercent: true },
+    });
+    const propertyDiscount = (propertyDoc as any)?.discountPercent ?? 0;
+
+    // Use the higher of room or property discount (or combine: property applies to base, room applies on top)
+    // Logic: apply property discount first, then room discount on top
+    const basePrice = roomDoc.price;
+    const afterPropertyDiscount = propertyDiscount > 0
+      ? basePrice * (1 - propertyDiscount / 100)
+      : basePrice;
+    const effectivePrice = roomDiscount > 0
+      ? afterPropertyDiscount * (1 - roomDiscount / 100)
+      : afterPropertyDiscount;
+    const effectivePriceRounded = Math.round(effectivePrice * 100) / 100;
+
+    const totalDiscountAmount = (basePrice - effectivePriceRounded) * totalNights;
+    const perNightTotal = effectivePriceRounded;
     const totalAmount = perNightTotal * totalNights + additionalServicesTotal;
     const txRef = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const CLIENT_FRONTEND_URL = process.env.CLIENT_FRONTEND_URL;
@@ -150,10 +170,10 @@ export default {
         guests: validated.guests,
         manualBooked: false,
         totalAmount,
-        subTotal: roomDoc.price * totalNights,
+        subTotal: effectivePriceRounded * totalNights,
         basePrice: roomDoc.price,
         taxAmount: 0,
-        discount: validated.discount ?? 0,
+        discount: totalDiscountAmount,
         currency: "ETB",
         user: { connect: { id: validated.userId } },
         room: { connect: { id: validated.roomId } },

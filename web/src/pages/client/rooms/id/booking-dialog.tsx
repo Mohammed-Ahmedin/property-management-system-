@@ -45,6 +45,8 @@ interface Room {
   price: number;
   availability: boolean;
   maxOccupancy: number;
+  discountPercent?: number;
+  property?: { discountPercent?: number };
 }
 
 interface BookingDialogProps {
@@ -101,7 +103,17 @@ export default function BookingDialog({
   };
 
   const nights = calculateNights();
-  const roomSubtotal = nights * room.price;
+
+  // Apply discounts: property discount first, then room discount on top
+  const propertyDiscount = room.property?.discountPercent ?? 0;
+  const roomDiscount = room.discountPercent ?? 0;
+  const afterPropertyDiscount = propertyDiscount > 0 ? room.price * (1 - propertyDiscount / 100) : room.price;
+  const effectivePrice = roomDiscount > 0 ? afterPropertyDiscount * (1 - roomDiscount / 100) : afterPropertyDiscount;
+  const effectivePriceRounded = Math.round(effectivePrice * 100) / 100;
+  const hasDiscount = effectivePriceRounded < room.price;
+  const totalDiscountPct = propertyDiscount + roomDiscount - (propertyDiscount * roomDiscount / 100);
+
+  const roomSubtotal = nights * effectivePriceRounded;
   const servicesTotal = selectedServices.reduce((total, serviceId) => {
     const service = services.find((s) => s.id === serviceId);
     return total + (service?.price || 0) * nights;
@@ -365,11 +377,21 @@ export default function BookingDialog({
               <span className="text-muted-foreground">
                 {room.name} × {nights} {nights === 1 ? "night" : "nights"}
               </span>
-              <FormatedAmount
-                amount={roomSubtotal}
-                className="font-medium text-sm "
-              />
+              <div className="text-right">
+                {hasDiscount && (
+                  <p className="text-xs line-through text-muted-foreground">ETB {(room.price * nights).toLocaleString()}</p>
+                )}
+                <FormatedAmount amount={roomSubtotal} className="font-medium text-sm" />
+              </div>
             </div>
+            {hasDiscount && (
+              <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1">
+                  🏷️ Discount ({Math.round(totalDiscountPct)}% off)
+                </span>
+                <span className="font-medium">-ETB {((room.price - effectivePriceRounded) * nights).toLocaleString()}</span>
+              </div>
+            )}
 
             {/* Selected Services with night multiplier */}
             {selectedServices.length > 0 && (

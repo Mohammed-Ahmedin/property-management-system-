@@ -15,7 +15,7 @@ const booking_validator_1 = require("./validators/booking.validator");
 const payments_service_1 = require("../services/payments.service");
 exports.default = {
     bookNow: (0, async_handler_1.tryCatch)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         const validated = req.body;
         const { checkIn, checkOut, roomId, userId, additionalServices, guests } = validated;
         const userDoc = yield prisma_1.prisma.user.findFirst({
@@ -90,8 +90,26 @@ exports.default = {
             // Sum additional service prices
             additionalServicesTotal = services.reduce((sum, s) => sum + (s.price || 0), 0);
         }
-        // Compute total price (per night * nights)
-        const perNightTotal = roomDoc.price;
+        // Compute total price with discounts applied
+        // Priority: room discount > property discount (take the higher one, or combine)
+        const roomDiscount = (_a = roomDoc.discountPercent) !== null && _a !== void 0 ? _a : 0;
+        const propertyDoc = yield prisma_1.prisma.property.findUnique({
+            where: { id: roomDoc.propertyId },
+            select: { discountPercent: true },
+        });
+        const propertyDiscount = (_b = propertyDoc === null || propertyDoc === void 0 ? void 0 : propertyDoc.discountPercent) !== null && _b !== void 0 ? _b : 0;
+        // Use the higher of room or property discount (or combine: property applies to base, room applies on top)
+        // Logic: apply property discount first, then room discount on top
+        const basePrice = roomDoc.price;
+        const afterPropertyDiscount = propertyDiscount > 0
+            ? basePrice * (1 - propertyDiscount / 100)
+            : basePrice;
+        const effectivePrice = roomDiscount > 0
+            ? afterPropertyDiscount * (1 - roomDiscount / 100)
+            : afterPropertyDiscount;
+        const effectivePriceRounded = Math.round(effectivePrice * 100) / 100;
+        const totalDiscountAmount = (basePrice - effectivePriceRounded) * totalNights;
+        const perNightTotal = effectivePriceRounded;
         const totalAmount = perNightTotal * totalNights + additionalServicesTotal;
         const txRef = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         const CLIENT_FRONTEND_URL = process.env.CLIENT_FRONTEND_URL;
@@ -114,7 +132,7 @@ exports.default = {
             propertyId: roomDoc.propertyId,
             brokerId,
         });
-        if (!(chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.checkout_url) && !((_a = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.data) === null || _a === void 0 ? void 0 : _a.checkout_url)) {
+        if (!(chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.checkout_url) && !((_c = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.data) === null || _c === void 0 ? void 0 : _c.checkout_url)) {
             return res.status(502).json({
                 success: false,
                 message: "Payment initialization failed. Please try again.",
@@ -128,10 +146,10 @@ exports.default = {
                 guests: validated.guests,
                 manualBooked: false,
                 totalAmount,
-                subTotal: roomDoc.price * totalNights,
+                subTotal: effectivePriceRounded * totalNights,
                 basePrice: roomDoc.price,
                 taxAmount: 0,
-                discount: (_b = validated.discount) !== null && _b !== void 0 ? _b : 0,
+                discount: totalDiscountAmount,
                 currency: "ETB",
                 user: { connect: { id: validated.userId } },
                 room: { connect: { id: validated.roomId } },
@@ -151,7 +169,7 @@ exports.default = {
         });
         return res.status(201).json({
             success: true,
-            checkoutUrl: (_c = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.checkout_url) !== null && _c !== void 0 ? _c : (_d = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.data) === null || _d === void 0 ? void 0 : _d.checkout_url,
+            checkoutUrl: (_d = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.checkout_url) !== null && _d !== void 0 ? _d : (_e = chapaResponse === null || chapaResponse === void 0 ? void 0 : chapaResponse.data) === null || _e === void 0 ? void 0 : _e.checkout_url,
         });
     })),
     getUserBookings: (0, async_handler_1.tryCatch)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

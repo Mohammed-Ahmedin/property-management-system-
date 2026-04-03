@@ -65,8 +65,34 @@ export default function RoomDetails({ room }: { room: Room }) {
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">{room.name}</h1>
 
         <div className="flex items-baseline gap-1.5 mb-4">
-          <FormatedAmount amount={room.price} className="text-2xl font-bold text-primary" />
-          <span className="text-sm text-muted-foreground">/ night</span>
+          {(() => {
+            const rd = (room as any).discountPercent ?? 0;
+            const pd = (room as any).property?.discountPercent ?? 0;
+            const afterProp = pd > 0 ? room.price * (1 - pd / 100) : room.price;
+            const effective = rd > 0 ? afterProp * (1 - rd / 100) : afterProp;
+            const effectiveRounded = Math.round(effective * 100) / 100;
+            const hasDiscount = effectiveRounded < room.price;
+            const totalPct = pd + rd - (pd * rd / 100);
+            return hasDiscount ? (
+              <div className="flex items-center gap-3">
+                <div>
+                  <p className="text-sm line-through text-muted-foreground">ETB {room.price.toLocaleString()}/night</p>
+                  <div className="flex items-baseline gap-1.5">
+                    <FormatedAmount amount={effectiveRounded} className="text-2xl font-bold text-red-500" />
+                    <span className="text-sm text-muted-foreground">/ night</span>
+                  </div>
+                </div>
+                <span className="text-xs font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2.5 py-1 rounded-full">
+                  🏷️ {Math.round(totalPct)}% OFF
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-1.5">
+                <FormatedAmount amount={room.price} className="text-2xl font-bold text-primary" />
+                <span className="text-sm text-muted-foreground">/ night</span>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Key stats */}
