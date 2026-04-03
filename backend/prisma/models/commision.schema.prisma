@@ -4,14 +4,20 @@ model CommissionSetting {
   role        String  @default("PLATFORM") // PLATFORM, BROKER, OWNER, STAFF
   description String?
 
+  // Commission calculation type
+  calcType    String  @default("PERCENTAGE") // PERCENTAGE or FLAT_AMOUNT
+
   // global platform-level percentage
   platformPercent Float
+
+  // flat amount alternative (used when calcType = FLAT_AMOUNT)
+  flatAmount  Float?
 
   // optional per-broker commission (global)
   brokerPercent Float?
 
   // Relation back to Property (1:1)
-  propertyId String?        @unique // ✅ ensures one setting per property
+  propertyId String?        @unique
   property   Property?      @relation(fields: [propertyId], references: [id])
   type       CommissionType
 

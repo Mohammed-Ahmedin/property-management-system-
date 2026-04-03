@@ -57,34 +57,38 @@ const DUMMY_GUEST_HOUSES = [
 const commissionSchema = yup.object({
   name: yup.string().required("Name is required").min(2, "Name must be at least 2 characters"),
   role: yup.string().oneOf(["PLATFORM", "BROKER", "OWNER", "STAFF"], "Invalid role").required("Role is required"),
+  calcType: yup.string().oneOf(["PERCENTAGE", "FLAT_AMOUNT"]).default("PERCENTAGE"),
   platformPercent: yup
     .number()
     .nullable()
     .transform((value, originalValue) => (originalValue === "" ? null : value))
-    .min(0, "Must be at least 0")
-    .max(100, "Must be at most 100")
-    .typeError("Must be a valid number")
-    .when("role", {
-      is: (role: string) => role !== "BROKER",
+    .min(0).max(100).typeError("Must be a valid number")
+    .when(["role", "calcType"], {
+      is: (role: string, calcType: string) => role !== "BROKER" && calcType !== "FLAT_AMOUNT",
       then: (s) => s.required("Percentage is required"),
+      otherwise: (s) => s.nullable(),
+    }),
+  flatAmount: yup
+    .number()
+    .nullable()
+    .transform((value, originalValue) => (originalValue === "" ? null : value))
+    .min(0).typeError("Must be a valid number")
+    .when("calcType", {
+      is: "FLAT_AMOUNT",
+      then: (s) => s.required("Amount is required"),
       otherwise: (s) => s.nullable(),
     }),
   brokerPercent: yup
     .number()
     .nullable()
     .transform((value, originalValue) => (originalValue === "" ? null : value))
-    .min(0, "Must be at least 0")
-    .max(100, "Must be at most 100")
-    .typeError("Must be a valid number")
-    .when("role", {
-      is: "BROKER",
+    .min(0).max(100).typeError("Must be a valid number")
+    .when(["role", "calcType"], {
+      is: (role: string, calcType: string) => role === "BROKER" && calcType !== "FLAT_AMOUNT",
       then: (s) => s.required("Broker percentage is required"),
       otherwise: (s) => s.nullable(),
     }),
-  type: yup
-    .string()
-    .oneOf(["PLATFORM", "GUESTHOUSE"], "Invalid commission type")
-    .required("Commission type is required"),
+  type: yup.string().oneOf(["PLATFORM", "GUESTHOUSE"]).required("Commission type is required"),
   propertyId: yup.string().nullable(),
   isActive: yup.boolean().required(),
 });
@@ -119,7 +123,9 @@ export function CreateCommissionModal({
     defaultValues: {
       name: "",
       role: "PLATFORM",
+      calcType: "PERCENTAGE",
       brokerPercent: null,
+      flatAmount: null,
       type: "PLATFORM",
       propertyId: null,
       isActive: true,
@@ -129,6 +135,8 @@ export function CreateCommissionModal({
   const commissionType = watch("type");
   const isActive = watch("isActive");
   const selectedPropertyId = watch("propertyId");
+  const selectedRole = watch("role");
+  const calcType = watch("calcType" as any) || "PERCENTAGE";
 
   const handleFormSubmit = async (data: CommissionFormData) => {
     try {
@@ -314,8 +322,51 @@ export function CreateCommissionModal({
             </div>
           )}
 
+          {/* Calculation Type Toggle */}
+          <div className="space-y-2">
+            <Label>Commission Calculation Type <span className="text-destructive">*</span></Label>
+            <div className="flex gap-2">
+              {[
+                { value: "PERCENTAGE", label: "By Percentage (%)" },
+                { value: "FLAT_AMOUNT", label: "Flat Amount (ETB)" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setValue("calcType" as any, opt.value, { shouldValidate: true })}
+                  className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                    calcType === opt.value
+                      ? "bg-primary text-white border-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Flat Amount — shown when calcType = FLAT_AMOUNT */}
+          {calcType === "FLAT_AMOUNT" && (
+            <div className="space-y-2">
+              <Label htmlFor="flatAmount">
+                Flat Amount (ETB) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="flatAmount"
+                type="number"
+                step="0.01"
+                placeholder="e.g., 500"
+                {...register("flatAmount" as any)}
+              />
+              {(errors as any).flatAmount && (
+                <p className="text-sm text-destructive">{(errors as any).flatAmount.message}</p>
+              )}
+            </div>
+          )}
+
           {/* Owner/Platform Percent — shown for OWNER and PLATFORM roles */}
-          {(watch("role") === "OWNER" || watch("role") === "PLATFORM" || watch("role") === "STAFF") && (
+          {calcType !== "FLAT_AMOUNT" && (watch("role") === "OWNER" || watch("role") === "PLATFORM" || watch("role") === "STAFF") && (
             <div className="space-y-2">
               <Label htmlFor="platformPercent">
                 {watch("role") === "OWNER" ? "Owner Percentage (%)" : "Platform Percentage (%)"}{" "}
@@ -335,7 +386,7 @@ export function CreateCommissionModal({
           )}
 
           {/* Broker Percent — shown for BROKER and PLATFORM roles */}
-          {(watch("role") === "BROKER" || watch("role") === "PLATFORM") && (
+          {calcType !== "FLAT_AMOUNT" && (watch("role") === "BROKER" || watch("role") === "PLATFORM") && (
             <div className="space-y-2">
               <Label htmlFor="brokerPercent">
                 Broker Percentage (%)

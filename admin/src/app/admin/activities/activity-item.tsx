@@ -29,6 +29,8 @@ const actionMeta: Record<string, { label: string; color: string; icon: any; bg: 
   DELETE_ROOM:        { label: "Room Deleted",        color: "text-red-600",     bg: "bg-red-50 dark:bg-red-900/20",         icon: Bed },
   CREATE_COMMISSION:  { label: "Commission Created",  color: "text-purple-600",  bg: "bg-purple-50 dark:bg-purple-900/20",   icon: CheckCircle2 },
   UPDATE_COMMISSION:  { label: "Commission Updated",  color: "text-purple-600",  bg: "bg-purple-50 dark:bg-purple-900/20",   icon: CheckCircle2 },
+  COMMISSION_CREATED: { label: "Commission Created",  color: "text-purple-600",  bg: "bg-purple-50 dark:bg-purple-900/20",   icon: CheckCircle2 },
+  COMMISSION_UPDATED: { label: "Commission Updated",  color: "text-purple-600",  bg: "bg-purple-50 dark:bg-purple-900/20",   icon: CheckCircle2 },
 };
 
 const defaultMeta = { label: "", color: "text-muted-foreground", bg: "bg-muted/30", icon: AlertCircle };

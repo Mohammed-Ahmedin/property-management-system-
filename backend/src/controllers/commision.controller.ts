@@ -4,26 +4,19 @@ import { prisma } from "../lib/prisma";
 export default {
   getCommisionSettings: tryCatch(async (req, res) => {
     const commisionSettings = await prisma.commissionSetting.findMany({
-      include: {
-        property: {
-          select: { name: true, id: true },
-        },
-      },
+      include: { property: { select: { name: true, id: true } } },
       orderBy: { type: "asc" },
     });
-
     res.json(commisionSettings);
   }),
+
   createPlatformCommision: tryCatch(async (req, res) => {
     const data = req.body;
     const userId = (req as any).user?.id;
 
-    const platformCommision = await prisma.commissionSetting.findFirst({
-      where: { type: "PLATFORM" },
-    });
-
-    if (platformCommision) {
-      res.status(409).json({ message: "Platform commission is already added" });
+    const existing = await prisma.commissionSetting.findFirst({ where: { type: "PLATFORM" } });
+    if (existing) {
+      res.status(409).json({ message: "Platform commission already exists" });
       return;
     }
 
@@ -32,27 +25,27 @@ export default {
         type: "PLATFORM",
         name: data.name || "Platform Commission",
         role: data.role || "PLATFORM",
-        platformPercent: data.platformPercent,
-        brokerPercent: data.brokerPercent,
+        calcType: data.calcType || "PERCENTAGE",
+        platformPercent: data.platformPercent ?? 0,
+        flatAmount: data.flatAmount ?? null,
+        brokerPercent: data.brokerPercent ?? null,
         isActive: data.isActive ?? true,
         description: "Commission applied for the platform.",
       },
     });
 
-    // Log to activities
     if (userId) {
+      const desc = commission.calcType === "FLAT_AMOUNT"
+        ? `Commission "${commission.name}" (${commission.role}) created. Flat amount: ETB ${commission.flatAmount}`
+        : `Commission "${commission.name}" (${commission.role}) created. Platform: ${commission.platformPercent}%, Broker: ${commission.brokerPercent ?? 0}%`;
       await prisma.activity.create({
-        data: {
-          action: "CREATE_COMMISSION",
-          description: `Commission "${commission.name}" (${commission.role}) created. Platform: ${commission.platformPercent}%, Broker: ${commission.brokerPercent ?? 0}%`,
-          userId,
-          status: "SUCCESS",
-        } as any,
+        data: { action: "COMMISSION_CREATED", description: desc, userId, status: "INFO" },
       }).catch(() => {});
     }
 
     res.json({ success: true, message: "Platform commission added successfully" });
   }),
+
   createPropertyCommision: tryCatch(async (req, res) => {
     const data = req.body;
     const userId = (req as any).user?.id;
@@ -73,26 +66,27 @@ export default {
         type: "PROPERTY",
         name: data.name || `${property.name} Commission`,
         role: data.role || "OWNER",
+        calcType: data.calcType || "PERCENTAGE",
         property: { connect: { id: data.propertyId } },
         platformPercent: data.platformPercent ?? 0,
-        brokerPercent: data.brokerPercent,
+        flatAmount: data.flatAmount ?? null,
+        brokerPercent: data.brokerPercent ?? null,
         isActive: data.isActive ?? true,
       },
     });
 
     if (userId) {
+      const desc = commission.calcType === "FLAT_AMOUNT"
+        ? `Commission "${commission.name}" (${commission.role}) created for "${property.name}". Flat amount: ETB ${commission.flatAmount}`
+        : `Commission "${commission.name}" (${commission.role}) created for "${property.name}". Platform: ${commission.platformPercent}%, Broker: ${commission.brokerPercent ?? 0}%`;
       await prisma.activity.create({
-        data: {
-          action: "CREATE_COMMISSION",
-          description: `Commission "${commission.name}" (${commission.role}) created for property "${property.name}". Platform: ${commission.platformPercent}%, Broker: ${commission.brokerPercent ?? 0}%`,
-          userId,
-          status: "SUCCESS",
-        } as any,
+        data: { action: "COMMISSION_CREATED", description: desc, userId, status: "INFO" },
       }).catch(() => {});
     }
 
     res.json({ message: "Commission added successfully", success: true });
   }),
+
   updateCommision: tryCatch(async (req, res) => {
     const { id } = req.params;
     const data = req.body;
@@ -106,7 +100,9 @@ export default {
       data: {
         name: data.name ?? commission.name,
         role: data.role ?? commission.role,
-        platformPercent: data.platformPercent,
+        calcType: data.calcType ?? commission.calcType,
+        platformPercent: data.platformPercent ?? commission.platformPercent,
+        flatAmount: data.flatAmount ?? null,
         brokerPercent: data.brokerPercent ?? null,
         isActive: data.isActive ?? commission.isActive,
         updatedAt: new Date(),
@@ -114,13 +110,11 @@ export default {
     });
 
     if (userId) {
+      const desc = updated.calcType === "FLAT_AMOUNT"
+        ? `Commission "${updated.name}" (${updated.role}) updated. Flat amount: ETB ${updated.flatAmount}`
+        : `Commission "${updated.name}" (${updated.role}) updated. Platform: ${updated.platformPercent}%, Broker: ${updated.brokerPercent ?? 0}%`;
       await prisma.activity.create({
-        data: {
-          action: "UPDATE_COMMISSION",
-          description: `Commission "${updated.name}" (${updated.role}) updated. Platform: ${updated.platformPercent}%, Broker: ${updated.brokerPercent ?? 0}%`,
-          userId,
-          status: "SUCCESS",
-        } as any,
+        data: { action: "COMMISSION_UPDATED", description: desc, userId, status: "INFO" },
       }).catch(() => {});
     }
 
