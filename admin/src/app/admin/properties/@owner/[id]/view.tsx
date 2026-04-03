@@ -58,6 +58,8 @@ export default function PropertyView({ data }: { data: PropertyData }) {
     subcity: data.location?.subcity || "",
     country: data.location?.country || "",
     nearby: data.location?.nearby || "",
+    latitude: data.location?.latitude || "",
+    longitude: data.location?.longitude || "",
   });
 
   const updateMutation = useUpdatePropertyMutation();
@@ -111,7 +113,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
         address: form.address,
         about: { description: form.description },
         contact: { phone: form.phone, email: form.email },
-        location: { city: form.city, subcity: form.subcity, country: form.country, nearby: form.nearby, continent: data.location?.continent || "" },
+        location: { city: form.city, subcity: form.subcity, country: form.country, nearby: form.nearby, continent: data.location?.continent || "", latitude: form.latitude, longitude: form.longitude },
       },
     }, { onSuccess: () => setEditOpen(false) });
   };
@@ -159,6 +161,8 @@ export default function PropertyView({ data }: { data: PropertyData }) {
             <div className="space-y-1"><Label>Subcity</Label><Input value={form.subcity} onChange={e => setForm(f => ({ ...f, subcity: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Country</Label><Input value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Nearby</Label><Input value={form.nearby} onChange={e => setForm(f => ({ ...f, nearby: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>Latitude</Label><Input placeholder="e.g. 9.0054" value={form.latitude} onChange={e => setForm(f => ({ ...f, latitude: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>Longitude</Label><Input placeholder="e.g. 38.7636" value={form.longitude} onChange={e => setForm(f => ({ ...f, longitude: e.target.value }))} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>

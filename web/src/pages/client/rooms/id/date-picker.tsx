@@ -111,7 +111,7 @@ export default function DateRangePicker({
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" align="center" side="bottom" avoidCollisions sideOffset={4}>
+            <PopoverContent className="w-auto p-2 z-[99999]" align="center" side="top" avoidCollisions sideOffset={8}>
               <Calendar
                 mode="single"
                 disabled={disabledCheckIn}
@@ -161,7 +161,7 @@ export default function DateRangePicker({
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" align="center" side="bottom" avoidCollisions sideOffset={4}>
+            <PopoverContent className="w-auto p-2 z-[99999]" align="center" side="top" avoidCollisions sideOffset={8}>
               <Calendar
                 mode="single"
                 disabled={disabledCheckOut}
