@@ -39,11 +39,8 @@ const LoginView = () => {
   const onSubmit = async (data: FormType) => {
     const response = await signInWithEmailMutation.mutateAsync(data);
     if (response?.user) {
-      if (callBackUrl) {
-        navigate(callBackUrl);
-      } else {
-        navigate("/");
-      }
+      // Hard reload so authClient.useSession() re-initializes with the new cookie
+      window.location.href = callBackUrl || "/";
     }
   };
   return (

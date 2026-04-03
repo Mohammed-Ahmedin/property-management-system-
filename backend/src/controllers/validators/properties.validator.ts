@@ -58,6 +58,8 @@ export const updatePropertySchema = z.object({
       city: z.string().optional().default(""),
       subcity: z.string().optional().default(""),
       nearby: z.string().optional(),
+      latitude: z.string().optional(),
+      longitude: z.string().optional(),
     })
     .optional(),
   facilities: z.array(z.object({ name: z.string() })).optional(),

@@ -59,6 +59,8 @@ exports.updatePropertySchema = zod_1.default.object({
         city: zod_1.default.string().optional().default(""),
         subcity: zod_1.default.string().optional().default(""),
         nearby: zod_1.default.string().optional(),
+        latitude: zod_1.default.string().optional(),
+        longitude: zod_1.default.string().optional(),
     })
         .optional(),
     facilities: zod_1.default.array(zod_1.default.object({ name: zod_1.default.string() })).optional(),
