@@ -336,8 +336,8 @@ export function CreateCommissionModal({
                   onClick={() => setValue("calcType" as any, opt.value, { shouldValidate: true })}
                   className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
                     calcType === opt.value
-                      ? "bg-primary text-white border-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
+                      ? "bg-primary/90 text-primary-foreground border-primary shadow-sm"
+                      : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted"
                   }`}
                 >
                   {opt.label}
