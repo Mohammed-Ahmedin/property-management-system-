@@ -16,12 +16,12 @@ interface ActivityItemProps {
 }
 
 const actionMeta: Record<string, { label: string; color: string; icon: any; bg: string }> = {
-  APPROVED_BOOKING:   { label: "Approved Booking",   color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: CheckCircle2 },
-  REJECTED_BOOKING:   { label: "Rejected Booking",   color: "text-red-600",     bg: "bg-red-50 dark:bg-red-900/20",         icon: XCircle },
-  CANCELLED_BOOKING:  { label: "Cancelled Booking",  color: "text-gray-600",    bg: "bg-gray-50 dark:bg-gray-900/20",        icon: XCircle },
+  APPROVED_BOOKING:   { label: "Booking Approved",   color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: CheckCircle2 },
+  REJECTED_BOOKING:   { label: "Booking Rejected",   color: "text-red-600",     bg: "bg-red-50 dark:bg-red-900/20",         icon: XCircle },
+  CANCELLED_BOOKING:  { label: "Booking Cancelled",  color: "text-gray-600",    bg: "bg-gray-50 dark:bg-gray-900/20",        icon: XCircle },
   BOOKED:             { label: "New Booking",         color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/20",        icon: Calendar },
   UPDATED_BOOKING:    { label: "Booking Updated",     color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-900/20",      icon: AlertCircle },
-  PAYMENT_SUCCESS:    { label: "Payment Success",     color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: CheckCircle2 },
+  PAYMENT_SUCCESS:    { label: "Payment Success — Reserved", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: CheckCircle2 },
   PAYMENT_FAILED:     { label: "Payment Failed",      color: "text-red-600",     bg: "bg-red-50 dark:bg-red-900/20",         icon: XCircle },
   CREATE_GUEST_HOUSE: { label: "Property Created",    color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/20",        icon: AlertCircle },
   CREATE_ROOM:        { label: "Room Created",        color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/20",        icon: Bed },

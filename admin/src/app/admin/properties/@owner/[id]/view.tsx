@@ -58,8 +58,8 @@ export default function PropertyView({ data }: { data: PropertyData }) {
     subcity: data.location?.subcity || "",
     country: data.location?.country || "",
     nearby: data.location?.nearby || "",
-    latitude: data.location?.latitude || "",
-    longitude: data.location?.longitude || "",
+    latitude: (data.location as any)?.latitude || "",
+    longitude: (data.location as any)?.longitude || "",
   });
 
   const updateMutation = useUpdatePropertyMutation();
