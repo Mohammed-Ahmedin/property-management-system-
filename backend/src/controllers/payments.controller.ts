@@ -258,13 +258,22 @@ export default {
         }
       });
 
-      // Log PAYMENT_SUCCESS activity when webhook fires
+      // Log activity when payment succeeds — booking is now APPROVED (Reserved)
       if (dbStatus === "SUCCESS") {
+        // Get booking details for the activity description
+        const bookingDoc = await prisma.booking.findUnique({
+          where: { id: payment.bookingId },
+          select: { propertyId: true, roomId: true, userId: true, totalAmount: true },
+        }).catch(() => null);
+
         await prisma.activity.create({
           data: {
-            action: "PAYMENT_SUCCESS",
-            description: `Payment successful for booking. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}`,
+            action: "APPROVED_BOOKING",
+            description: `Booking RESERVED after successful payment. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}. Booking is now reserved — no further approval needed.`,
             bookingId: payment.bookingId,
+            propertyId: bookingDoc?.propertyId,
+            roomId: bookingDoc?.roomId,
+            userId: bookingDoc?.userId,
             status: "INFO",
           },
         }).catch(() => {});
@@ -318,6 +327,18 @@ export default {
             data: { status: "APPROVED" },
           });
         });
+
+        // Log APPROVED_BOOKING activity so admin sees "Reserved"
+        await prisma.activity.create({
+          data: {
+            action: "APPROVED_BOOKING",
+            description: `Booking RESERVED after payment verification. Transaction: ${txRef}. Booking is now reserved — no further approval needed.`,
+            bookingId: payment.bookingId,
+            propertyId: payment.booking?.propertyId,
+            status: "INFO",
+          },
+        }).catch(() => {});
+
         return res.json({ success: true, status: "SUCCESS", bookingStatus: "APPROVED" });
       } else if (chapaStatus === "failed") {
         await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });

@@ -46,13 +46,18 @@ function parseDescription(desc: string) {
 }
 
 export function ActivityItem({ activity }: ActivityItemProps) {
-  const meta = actionMeta[activity.action] || { ...defaultMeta, label: activity.action?.replace(/_/g, " ") };
+  // If APPROVED_BOOKING came from a payment (description contains "RESERVED"), show as "Booking Reserved"
+  const isReservedByPayment = activity.action === "APPROVED_BOOKING" && activity.description?.includes("RESERVED");
+  const baseMeta = actionMeta[activity.action] || { ...defaultMeta, label: activity.action?.replace(/_/g, " ") };
+  const meta = isReservedByPayment
+    ? { ...baseMeta, label: "Booking Reserved 🔒", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" }
+    : baseMeta;
   const Icon = meta.icon;
   const parsed = parseDescription(activity.description || "");
   const [infoOpen, setInfoOpen] = useState(false);
 
   const isBookingAction = ["APPROVED_BOOKING", "REJECTED_BOOKING", "CANCELLED_BOOKING", "BOOKED", "UPDATED_BOOKING"].includes(activity.action);
-  const actionVerb = activity.action === "APPROVED_BOOKING" ? "Approved" : activity.action === "REJECTED_BOOKING" ? "Rejected" : activity.action === "CANCELLED_BOOKING" ? "Cancelled" : null;
+  const actionVerb = isReservedByPayment ? "Reserved" : activity.action === "APPROVED_BOOKING" ? "Approved" : activity.action === "REJECTED_BOOKING" ? "Rejected" : activity.action === "CANCELLED_BOOKING" ? "Cancelled" : null;
 
   return (
     <>

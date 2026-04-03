@@ -220,13 +220,21 @@ exports.default = {
                     });
                 }
             }));
-            // Log PAYMENT_SUCCESS activity when webhook fires
+            // Log activity when payment succeeds — booking is now APPROVED (Reserved)
             if (dbStatus === "SUCCESS") {
+                // Get booking details for the activity description
+                const bookingDoc = yield prisma_1.prisma.booking.findUnique({
+                    where: { id: payment.bookingId },
+                    select: { propertyId: true, roomId: true, userId: true, totalAmount: true },
+                }).catch(() => null);
                 yield prisma_1.prisma.activity.create({
                     data: {
-                        action: "PAYMENT_SUCCESS",
-                        description: `Payment successful for booking. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}`,
+                        action: "APPROVED_BOOKING",
+                        description: `Booking RESERVED after successful payment. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}. Booking is now reserved — no further approval needed.`,
                         bookingId: payment.bookingId,
+                        propertyId: bookingDoc === null || bookingDoc === void 0 ? void 0 : bookingDoc.propertyId,
+                        roomId: bookingDoc === null || bookingDoc === void 0 ? void 0 : bookingDoc.roomId,
+                        userId: bookingDoc === null || bookingDoc === void 0 ? void 0 : bookingDoc.userId,
                         status: "INFO",
                     },
                 }).catch(() => { });
@@ -245,7 +253,7 @@ exports.default = {
     })),
     // Verify payment by txRef — called by frontend on return from Chapa
     verifyPayment: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         const { txRef } = req.params;
         if (!txRef)
             return res.status(400).json({ message: "txRef required" });
@@ -278,17 +286,27 @@ exports.default = {
                         data: { status: "APPROVED" },
                     });
                 }));
+                // Log APPROVED_BOOKING activity so admin sees "Reserved"
+                yield prisma_1.prisma.activity.create({
+                    data: {
+                        action: "APPROVED_BOOKING",
+                        description: `Booking RESERVED after payment verification. Transaction: ${txRef}. Booking is now reserved — no further approval needed.`,
+                        bookingId: payment.bookingId,
+                        propertyId: (_c = payment.booking) === null || _c === void 0 ? void 0 : _c.propertyId,
+                        status: "INFO",
+                    },
+                }).catch(() => { });
                 return res.json({ success: true, status: "SUCCESS", bookingStatus: "APPROVED" });
             }
             else if (chapaStatus === "failed") {
                 yield prisma_1.prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
-                return res.json({ success: false, status: "FAILED", bookingStatus: (_c = payment.booking) === null || _c === void 0 ? void 0 : _c.status });
+                return res.json({ success: false, status: "FAILED", bookingStatus: (_d = payment.booking) === null || _d === void 0 ? void 0 : _d.status });
             }
         }
         catch (err) {
             // Chapa verify failed — fall back to current DB state
         }
-        return res.json({ success: false, status: payment.status, bookingStatus: (_d = payment.booking) === null || _d === void 0 ? void 0 : _d.status });
+        return res.json({ success: false, status: payment.status, bookingStatus: (_e = payment.booking) === null || _e === void 0 ? void 0 : _e.status });
     })),
     // payments;
     getPayments: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
