@@ -59,14 +59,14 @@ exports.default = {
         res.json({ success: true, message: "Platform commission added successfully" });
     })),
     createPropertyCommision: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const data = req.body;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         const property = yield prisma_1.prisma.property.findUnique({ where: { id: data.propertyId } });
         if (!property)
             return res.status(404).json({ error: "Property not found" });
         const existing = yield prisma_1.prisma.commissionSetting.findFirst({
-            where: { AND: { type: "PROPERTY", propertyId: property.id } },
+            where: { type: "PROPERTY", property: { id: property.id } },
         });
         if (existing) {
             res.status(409).json({ message: "This property already has a commission", success: false });
@@ -77,17 +77,17 @@ exports.default = {
                 type: "PROPERTY",
                 name: data.name || `${property.name} Commission`,
                 role: data.role || "OWNER",
-                propertyId: data.propertyId,
-                platformPercent: data.platformPercent,
+                property: { connect: { id: data.propertyId } },
+                platformPercent: (_b = data.platformPercent) !== null && _b !== void 0 ? _b : 0,
                 brokerPercent: data.brokerPercent,
-                isActive: (_b = data.isActive) !== null && _b !== void 0 ? _b : true,
+                isActive: (_c = data.isActive) !== null && _c !== void 0 ? _c : true,
             },
         });
         if (userId) {
             yield prisma_1.prisma.activity.create({
                 data: {
                     action: "CREATE_COMMISSION",
-                    description: `Commission "${commission.name}" (${commission.role}) created for property "${property.name}". Platform: ${commission.platformPercent}%, Broker: ${(_c = commission.brokerPercent) !== null && _c !== void 0 ? _c : 0}%`,
+                    description: `Commission "${commission.name}" (${commission.role}) created for property "${property.name}". Platform: ${commission.platformPercent}%, Broker: ${(_d = commission.brokerPercent) !== null && _d !== void 0 ? _d : 0}%`,
                     userId,
                     status: "SUCCESS",
                 },

@@ -61,7 +61,7 @@ export default {
     if (!property) return res.status(404).json({ error: "Property not found" });
 
     const existing = await prisma.commissionSetting.findFirst({
-      where: { AND: { type: "PROPERTY", propertyId: property.id } },
+      where: { type: "PROPERTY", property: { id: property.id } },
     });
     if (existing) {
       res.status(409).json({ message: "This property already has a commission", success: false });
@@ -73,8 +73,8 @@ export default {
         type: "PROPERTY",
         name: data.name || `${property.name} Commission`,
         role: data.role || "OWNER",
-        propertyId: data.propertyId,
-        platformPercent: data.platformPercent,
+        property: { connect: { id: data.propertyId } },
+        platformPercent: data.platformPercent ?? 0,
         brokerPercent: data.brokerPercent,
         isActive: data.isActive ?? true,
       },
