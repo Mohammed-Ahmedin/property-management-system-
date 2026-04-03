@@ -186,6 +186,7 @@ export function BookingsTable({ bookings }: { bookings: any }) {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="font-semibold">Booking ID</TableHead>
+                  <TableHead className="font-semibold">Booked At</TableHead>
                   <TableHead className="font-semibold">Booked By</TableHead>
                   <TableHead className="font-semibold">Guest</TableHead>
                   <TableHead className="font-semibold">Property</TableHead>
@@ -214,6 +215,16 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                     <TableRow key={booking.id} className="group">
                       <TableCell className="font-mono text-xs">
                         {booking.id.slice(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold text-foreground">
+                            {new Date(booking.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
+                          <span className="text-xs text-primary font-medium">
+                            {new Date(booking.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
