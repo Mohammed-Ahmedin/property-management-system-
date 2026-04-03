@@ -59,17 +59,28 @@ const commissionSchema = yup.object({
   role: yup.string().oneOf(["PLATFORM", "BROKER", "OWNER", "STAFF"], "Invalid role").required("Role is required"),
   platformPercent: yup
     .number()
-    .required("Platform percentage is required")
+    .nullable()
+    .transform((value, originalValue) => (originalValue === "" ? null : value))
     .min(0, "Must be at least 0")
     .max(100, "Must be at most 100")
-    .typeError("Must be a valid number"),
+    .typeError("Must be a valid number")
+    .when("role", {
+      is: (role: string) => role !== "BROKER",
+      then: (s) => s.required("Percentage is required"),
+      otherwise: (s) => s.nullable(),
+    }),
   brokerPercent: yup
     .number()
     .nullable()
     .transform((value, originalValue) => (originalValue === "" ? null : value))
     .min(0, "Must be at least 0")
     .max(100, "Must be at most 100")
-    .typeError("Must be a valid number"),
+    .typeError("Must be a valid number")
+    .when("role", {
+      is: "BROKER",
+      then: (s) => s.required("Broker percentage is required"),
+      otherwise: (s) => s.nullable(),
+    }),
   type: yup
     .string()
     .oneOf(["PLATFORM", "GUESTHOUSE"], "Invalid commission type")
@@ -303,45 +314,48 @@ export function CreateCommissionModal({
             </div>
           )}
 
-          {/* Platform Percent */}
-          <div className="space-y-2">
-            <Label htmlFor="platformPercent">
-              Platform Percentage (%){" "}
-              <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="platformPercent"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 15.5"
-              {...register("platformPercent")}
-            />
-            {errors.platformPercent && (
-              <p className="text-sm text-destructive">
-                {errors.platformPercent.message}
-              </p>
-            )}
-          </div>
+          {/* Owner/Platform Percent — shown for OWNER and PLATFORM roles */}
+          {(watch("role") === "OWNER" || watch("role") === "PLATFORM" || watch("role") === "STAFF") && (
+            <div className="space-y-2">
+              <Label htmlFor="platformPercent">
+                {watch("role") === "OWNER" ? "Owner Percentage (%)" : "Platform Percentage (%)"}{" "}
+                <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="platformPercent"
+                type="number"
+                step="0.01"
+                placeholder="e.g., 15.5"
+                {...register("platformPercent")}
+              />
+              {errors.platformPercent && (
+                <p className="text-sm text-destructive">{errors.platformPercent.message}</p>
+              )}
+            </div>
+          )}
 
-          {/* Broker Percent */}
-          <div className="space-y-2">
-            <Label htmlFor="brokerPercent">Broker Percentage (%)</Label>
-            <Input
-              id="brokerPercent"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 5.0 (optional)"
-              {...register("brokerPercent")}
-            />
-            {errors.brokerPercent && (
-              <p className="text-sm text-destructive">
-                {errors.brokerPercent.message}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Optional commission for brokers
-            </p>
-          </div>
+          {/* Broker Percent — shown for BROKER and PLATFORM roles */}
+          {(watch("role") === "BROKER" || watch("role") === "PLATFORM") && (
+            <div className="space-y-2">
+              <Label htmlFor="brokerPercent">
+                Broker Percentage (%)
+                {watch("role") === "BROKER" && <span className="text-destructive"> *</span>}
+              </Label>
+              <Input
+                id="brokerPercent"
+                type="number"
+                step="0.01"
+                placeholder="e.g., 5.0"
+                {...register("brokerPercent")}
+              />
+              {errors.brokerPercent && (
+                <p className="text-sm text-destructive">{errors.brokerPercent.message}</p>
+              )}
+              {watch("role") === "PLATFORM" && (
+                <p className="text-xs text-muted-foreground">Optional broker commission for platform-level setting</p>
+              )}
+            </div>
+          )}
 
           {/* Is Active */}
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-4">

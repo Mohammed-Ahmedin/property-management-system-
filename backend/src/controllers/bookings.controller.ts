@@ -734,11 +734,6 @@ export default {
       return res.status(400).json({ message: "Invalid status update.", success: false });
     }
 
-    // ADMIN cannot approve/reject bookings
-    if (userRole === "ADMIN" && ["APPROVED", "REJECTED", "PENDING_OWNER_APPROVAL", "PENDING_OWNER_REJECTION"].includes(status)) {
-      return res.status(403).json({ message: "Admins cannot approve or reject bookings.", success: false });
-    }
-
     // BROKER cannot cancel bookings
     if (userRole === "BROKER" && status === "CANCELLED") {
       return res.status(403).json({ message: "Brokers cannot cancel bookings.", success: false });

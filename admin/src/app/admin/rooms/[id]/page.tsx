@@ -57,10 +57,9 @@ export default function RoomPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="booking">Booking</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
             <TabsTrigger value="features">Features</TabsTrigger>
           </TabsList>
@@ -71,10 +70,6 @@ export default function RoomPage() {
 
           <TabsContent value="services">
             <ServicesTab roomId={roomData.id} />
-          </TabsContent>
-
-          <TabsContent value="booking">
-            <BookingTab bookings={roomData.bookings} room={roomData} />
           </TabsContent>
 
           <TabsContent value="images">
