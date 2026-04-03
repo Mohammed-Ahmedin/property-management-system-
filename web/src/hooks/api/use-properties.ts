@@ -161,8 +161,7 @@ export const useGetProperties = (
 ) => {
   return useQuery<PaginatedPropertyDataResponse>({
     queryKey: ["properties", JSON.stringify(input.filters), input.page, input.limit, input.sortDirection],
-    retry: 2,
-    retryDelay: 3000,
+    retry: false,
     queryFn: async () => {
       const res = await api.get<PaginatedPropertyDataResponse>(
         "/properties",

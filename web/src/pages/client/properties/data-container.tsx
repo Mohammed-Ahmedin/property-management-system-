@@ -27,13 +27,16 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
   const activeSort = searchParams.get("sortField") || "createdAt";
 
   // Client-side price sort (backend can't sort by min room price easily)
-  const sortedData = [...data].sort((a, b) => {
+  const safeData = Array.isArray(data) ? data : [];
+  const sortedData = [...safeData].sort((a, b) => {
     if (activeSort === "price") {
-      const aPrice = Math.min(...(a.rooms?.map(r => r.price) || [Infinity]));
-      const bPrice = Math.min(...(b.rooms?.map(r => r.price) || [Infinity]));
-      return aPrice - bPrice; // lowest first
+      const aRooms = a.rooms?.map((r: any) => r.price).filter((p: number) => p > 0) || [];
+      const bRooms = b.rooms?.map((r: any) => r.price).filter((p: number) => p > 0) || [];
+      const aPrice = aRooms.length ? Math.min(...aRooms) : Infinity;
+      const bPrice = bRooms.length ? Math.min(...bRooms) : Infinity;
+      return aPrice - bPrice;
     }
-    return 0; // backend handles other sorts
+    return 0;
   });
 
   const handlePageChange = (newPage: number) => {
@@ -108,7 +111,7 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
 
         {/* Count */}
         <p className="text-sm text-muted-foreground mb-4">
-          {totalItems || data.length} properties found{locationParam ? ` in ${locationParam}` : ""}
+          {totalItems || safeData.length} properties found{locationParam ? ` in ${locationParam}` : ""}
         </p>
 
         {/* Cards */}
