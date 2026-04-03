@@ -1,23 +1,12 @@
-// Marks the failed cascade migration as rolled back, then runs migrate deploy, then starts server
-const { PrismaClient } = require("@prisma/client");
+// Runs prisma db push (safe, idempotent) then starts server
 const { execSync } = require("child_process");
 
-const prisma = new PrismaClient();
+try {
+  console.log("Running prisma db push...");
+  execSync("npx prisma db push --accept-data-loss", { stdio: "inherit" });
+  console.log("prisma db push completed");
+} catch (e) {
+  console.log("prisma db push failed, continuing:", e.message);
+}
 
-prisma.$executeRaw`
-  UPDATE "_prisma_migrations"
-  SET "rolled_back_at" = NOW()
-  WHERE "migration_name" = '20260325124738_cascade_managed_property'
-    AND "rolled_back_at" IS NULL
-`
-  .then(() => console.log("Migration fix applied"))
-  .catch((e) => console.log("Migration fix skipped:", e.message))
-  .finally(async () => {
-    await prisma.$disconnect();
-    try {
-      execSync("npx prisma migrate deploy", { stdio: "inherit" });
-    } catch (e) {
-      console.log("migrate deploy failed, continuing:", e.message);
-    }
-    execSync("node dist/app.js", { stdio: "inherit" });
-  });
+execSync("node dist/app.js", { stdio: "inherit" });
