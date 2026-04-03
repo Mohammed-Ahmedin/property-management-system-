@@ -17,6 +17,7 @@ router.get("/subaccount/get-all", (0, auth_middleware_1.authGuard)({ accessedBy:
 router.get("/", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN", "BROKER", "OWNER"] }), payments_controller_1.default.getPayments);
 router.get("/stats", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN", "BROKER", "OWNER"] }), payments_controller_1.default.getPaymentStats);
 router.post("/webhook", payments_controller_1.default.chapaWebhook);
+router.get("/verify/:txRef", payments_controller_1.default.verifyPayment);
 router.post("/init", 
 //   authGuard({ accessedBy: ["ADMIN", "BROKER", "OWNER"] }),
 payments_controller_1.default.init);

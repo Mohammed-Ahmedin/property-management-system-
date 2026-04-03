@@ -238,28 +238,24 @@ export default {
           break;
       }
 
-      prisma.$transaction(async (prisma) => {
-        // Update the payment's payment status based on the webhook's status
-        const paymentDoc = await prisma.payment.update({
-          where: {
-            id: payment.id,
-          },
+      // ✅ AWAITED — was missing before, causing silent failure
+      await prisma.$transaction(async (tx) => {
+        const paymentDoc = await tx.payment.update({
+          where: { id: payment.id },
           data: {
-            status: dbStatus,
+            status: dbStatus as any,
             transactionId: transaction_id,
             amount: Number(amount),
             phoneNumber: mobile,
           },
         });
 
-        await prisma.booking.update({
-          where: {
-            id: paymentDoc.bookingId,
-          },
-          data: {
-            status: "APPROVED",
-          },
-        });
+        if (dbStatus === "SUCCESS") {
+          await tx.booking.update({
+            where: { id: paymentDoc.bookingId },
+            data: { status: "APPROVED" },
+          });
+        }
       });
 
       // Return success response
@@ -272,6 +268,54 @@ export default {
         message: "Some error occured please try again",
       });
     }
+  }),
+
+  // Verify payment by txRef — called by frontend on return from Chapa
+  verifyPayment: tryCatch(async (req, res) => {
+    const { txRef } = req.params;
+    if (!txRef) return res.status(400).json({ message: "txRef required" });
+
+    const payment = await prisma.payment.findFirst({
+      where: { transactionRef: txRef },
+      include: { booking: true },
+    });
+
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    // If already SUCCESS, just return current state
+    if (payment.status === "SUCCESS") {
+      return res.json({ success: true, status: "SUCCESS", bookingStatus: payment.booking?.status });
+    }
+
+    // Verify with Chapa API
+    try {
+      const verifyRes = await chapaConfig.verify({ tx_ref: txRef });
+      const chapaStatus = (verifyRes as any)?.data?.status || (verifyRes as any)?.status;
+
+      if (chapaStatus === "success") {
+        await prisma.$transaction(async (tx) => {
+          await tx.payment.update({
+            where: { id: payment.id },
+            data: {
+              status: "SUCCESS",
+              amount: Number((verifyRes as any)?.data?.amount || payment.amount),
+            },
+          });
+          await tx.booking.update({
+            where: { id: payment.bookingId },
+            data: { status: "APPROVED" },
+          });
+        });
+        return res.json({ success: true, status: "SUCCESS", bookingStatus: "APPROVED" });
+      } else if (chapaStatus === "failed") {
+        await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
+        return res.json({ success: false, status: "FAILED", bookingStatus: payment.booking?.status });
+      }
+    } catch (err) {
+      // Chapa verify failed — fall back to current DB state
+    }
+
+    return res.json({ success: false, status: payment.status, bookingStatus: payment.booking?.status });
   }),
 
   // payments;

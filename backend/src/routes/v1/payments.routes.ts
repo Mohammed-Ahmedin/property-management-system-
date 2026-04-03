@@ -31,6 +31,7 @@ router.get(
   paymentController.getPaymentStats
 );
 router.post("/webhook", paymentController.chapaWebhook);
+router.get("/verify/:txRef", paymentController.verifyPayment);
 router.post(
   "/init",
   //   authGuard({ accessedBy: ["ADMIN", "BROKER", "OWNER"] }),

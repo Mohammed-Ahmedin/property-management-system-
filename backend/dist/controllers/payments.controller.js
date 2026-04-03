@@ -202,12 +202,10 @@ exports.default = {
                     dbStatus = "REFUNDED";
                     break;
             }
-            prisma_1.prisma.$transaction((prisma) => __awaiter(void 0, void 0, void 0, function* () {
-                // Update the payment's payment status based on the webhook's status
-                const paymentDoc = yield prisma.payment.update({
-                    where: {
-                        id: payment.id,
-                    },
+            // ✅ AWAITED — was missing before, causing silent failure
+            yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+                const paymentDoc = yield tx.payment.update({
+                    where: { id: payment.id },
                     data: {
                         status: dbStatus,
                         transactionId: transaction_id,
@@ -215,14 +213,12 @@ exports.default = {
                         phoneNumber: mobile,
                     },
                 });
-                yield prisma.booking.update({
-                    where: {
-                        id: paymentDoc.bookingId,
-                    },
-                    data: {
-                        status: "APPROVED",
-                    },
-                });
+                if (dbStatus === "SUCCESS") {
+                    yield tx.booking.update({
+                        where: { id: paymentDoc.bookingId },
+                        data: { status: "APPROVED" },
+                    });
+                }
             }));
             // Return success response
             return res.json({
@@ -235,6 +231,53 @@ exports.default = {
                 message: "Some error occured please try again",
             });
         }
+    })),
+    // Verify payment by txRef — called by frontend on return from Chapa
+    verifyPayment: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c, _d;
+        const { txRef } = req.params;
+        if (!txRef)
+            return res.status(400).json({ message: "txRef required" });
+        const payment = yield prisma_1.prisma.payment.findFirst({
+            where: { transactionRef: txRef },
+            include: { booking: true },
+        });
+        if (!payment)
+            return res.status(404).json({ message: "Payment not found" });
+        // If already SUCCESS, just return current state
+        if (payment.status === "SUCCESS") {
+            return res.json({ success: true, status: "SUCCESS", bookingStatus: (_a = payment.booking) === null || _a === void 0 ? void 0 : _a.status });
+        }
+        // Verify with Chapa API
+        try {
+            const verifyRes = yield chapa_1.chapaConfig.verify({ tx_ref: txRef });
+            const chapaStatus = ((_b = verifyRes === null || verifyRes === void 0 ? void 0 : verifyRes.data) === null || _b === void 0 ? void 0 : _b.status) || (verifyRes === null || verifyRes === void 0 ? void 0 : verifyRes.status);
+            if (chapaStatus === "success") {
+                yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+                    var _a;
+                    yield tx.payment.update({
+                        where: { id: payment.id },
+                        data: {
+                            status: "SUCCESS",
+                            amount: Number(((_a = verifyRes === null || verifyRes === void 0 ? void 0 : verifyRes.data) === null || _a === void 0 ? void 0 : _a.amount) || payment.amount),
+                        },
+                    });
+                    yield tx.booking.update({
+                        where: { id: payment.bookingId },
+                        data: { status: "APPROVED" },
+                    });
+                }));
+                return res.json({ success: true, status: "SUCCESS", bookingStatus: "APPROVED" });
+            }
+            else if (chapaStatus === "failed") {
+                yield prisma_1.prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
+                return res.json({ success: false, status: "FAILED", bookingStatus: (_c = payment.booking) === null || _c === void 0 ? void 0 : _c.status });
+            }
+        }
+        catch (err) {
+            // Chapa verify failed — fall back to current DB state
+        }
+        return res.json({ success: false, status: payment.status, bookingStatus: (_d = payment.booking) === null || _d === void 0 ? void 0 : _d.status });
     })),
     // payments;
     getPayments: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {

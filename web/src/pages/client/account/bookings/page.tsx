@@ -4,9 +4,10 @@ import { BookingCard } from "./booking-card";
 import { useGetUserBookings } from "@/hooks/api/use-bookings";
 import { Button } from "@/components/ui/button";
 import { Loader2, Calendar, CheckCircle2, Clock, XCircle, Hotel } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/hooks/api";
 
 const FILTERS = [
   { label: "All", value: "all" },
@@ -18,6 +19,20 @@ const FILTERS = [
 
 export default function BookingsPage() {
   const dataQuery = useGetUserBookings();
+  const [searchParams] = useSearchParams();
+  const [verifying, setVerifying] = useState(false);
+
+  // When Chapa redirects back, verify the payment automatically
+  useEffect(() => {
+    const txRef = searchParams.get("trx_ref") || searchParams.get("tx_ref") || searchParams.get("txRef");
+    if (!txRef) return;
+    setVerifying(true);
+    api.get(`/payments/verify/${txRef}`)
+      .then(() => dataQuery.refetch())
+      .catch(() => {})
+      .finally(() => setVerifying(false));
+  }, []);
+
   const [filter, setFilter] = useState("all");
 
   const allBookings: any[] = dataQuery.data?.data || [];
@@ -32,6 +47,13 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-muted/20">
+      {/* Payment verification banner */}
+      {verifying && (
+        <div className="bg-amber-500 text-white text-sm font-medium px-4 py-2.5 flex items-center justify-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Verifying your payment, please wait...
+        </div>
+      )}
       {/* Hero header */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 py-8 md:py-10">
