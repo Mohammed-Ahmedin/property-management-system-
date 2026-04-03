@@ -91,7 +91,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav — full width spread */}
-          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center px-8">
+          <nav className="hidden md:flex items-center flex-1 justify-between px-6 lg:px-16">
             <Link to="/"
               className={cn("px-5 py-2 rounded-full text-sm font-medium transition-all",
                 isActive("/") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
