@@ -10,6 +10,9 @@ model Property {
   // Discount
   discountPercent Float @default(0) // e.g. 20 = 20% off
 
+  // Policies (stored as JSON array of {key, value} objects)
+  policies Json?
+
   // Relations
   images     PropertyImage[]
   about      About?
