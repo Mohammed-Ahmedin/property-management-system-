@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { auth } from "../lib/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { UserRoleType } from "../types/user-roles.type";
+import { prisma } from "../lib/prisma";
 
 export type RoleGuardProps = {
   accessedBy?: UserRoleType[];
@@ -14,41 +15,46 @@ export type RoleGuardProps = {
 export const authGuard = (options?: RoleGuardProps) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
+      let sessionUser: any = null;
+
+      // 1. Try cookie-based session (desktop/same-origin)
       const authSession = await auth.api.getSession({
         headers: fromNodeHeaders(req.headers),
       });
 
-      if (!authSession?.user?.id) {
+      if (authSession?.user?.id) {
+        sessionUser = authSession.user;
+      } else {
+        // 2. Fallback: Bearer token (mobile / cross-origin)
+        const authHeader = req.headers["authorization"];
+        const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+        if (token) {
+          const sessionDoc = await prisma.session.findFirst({
+            where: { token },
+            include: { user: true },
+          });
+          if (sessionDoc?.user) {
+            sessionUser = sessionDoc.user;
+          }
+        }
+      }
+
+      if (!sessionUser?.id) {
         return res.status(401).json({ message: "User not logged in" });
       }
 
-      const sessionUser = authSession.user;
-      const userRole = sessionUser.role;
+      (req as any).user = { ...sessionUser };
 
-      (req as any).user = { ...sessionUser }; // assign user to req.user safely
-
-      // If no role, just check login
       if (!options) return next();
 
-      // Role-based checks
-      if (
-        options.cantAccessBy &&
-        userRole &&
-        options.cantAccessBy.includes(userRole)
-      ) {
-        return res
-          .status(403)
-          .json({ message: "You are not allowed to access this resource" });
+      const userRole = sessionUser.role;
+
+      if (options.cantAccessBy && userRole && options.cantAccessBy.includes(userRole)) {
+        return res.status(403).json({ message: "You are not allowed to access this resource" });
       }
 
-      if (
-        options.accessedBy &&
-        userRole &&
-        !options.accessedBy.includes(userRole)
-      ) {
-        return res.status(403).json({
-          message: "You don't have permission to access this resource",
-        });
+      if (options.accessedBy && userRole && !options.accessedBy.includes(userRole)) {
+        return res.status(403).json({ message: "You don't have permission to access this resource" });
       }
 
       next();

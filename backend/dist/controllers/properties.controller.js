@@ -509,41 +509,32 @@ exports.default = {
         // 3️⃣ Update nested relations safely
         const updatedProperty = yield prisma_1.prisma.property.update({
             where: { id: propertyId },
-            data: {
-                name: validatedData.name,
-                address: validatedData.address,
-                type: validatedData.type,
-                about: validatedData.about
+            data: Object.assign(Object.assign({ name: validatedData.name, address: validatedData.address, type: validatedData.type }, (validatedData.policies !== undefined ? { policies: validatedData.policies } : {})), { about: validatedData.about
                     ? {
                         upsert: {
                             create: validatedData.about,
                             update: validatedData.about,
                         },
                     }
-                    : undefined,
-                location: validatedData.location
+                    : undefined, location: validatedData.location
                     ? {
                         upsert: {
                             create: validatedData.location,
                             update: validatedData.location,
                         },
                     }
-                    : undefined,
-                facilities: validatedData.facilities
+                    : undefined, facilities: validatedData.facilities
                     ? { deleteMany: {}, create: validatedData.facilities }
-                    : undefined,
-                contact: validatedData.contact
+                    : undefined, contact: validatedData.contact
                     ? {
                         upsert: {
                             create: validatedData.contact,
                             update: validatedData.contact,
                         },
                     }
-                    : undefined,
-                images: validatedData.images
+                    : undefined, images: validatedData.images
                     ? { deleteMany: {}, create: validatedData.images }
-                    : undefined,
-            },
+                    : undefined }),
             include: {
                 about: true,
                 location: true,

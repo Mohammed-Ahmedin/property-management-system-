@@ -76,4 +76,5 @@ exports.updatePropertySchema = zod_1.default.object({
         name: zod_1.default.string(),
     }))
         .optional(),
+    policies: zod_1.default.any().optional(),
 });

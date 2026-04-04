@@ -77,4 +77,5 @@ export const updatePropertySchema = z.object({
       })
     )
     .optional(),
+  policies: z.any().optional(),
 });

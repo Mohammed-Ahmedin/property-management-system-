@@ -587,6 +587,7 @@ export default {
         name: validatedData.name,
         address: validatedData.address,
         type: validatedData.type,
+        ...(validatedData.policies !== undefined ? { policies: validatedData.policies } : {}),
         about: validatedData.about
           ? {
               upsert: {

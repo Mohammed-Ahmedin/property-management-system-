@@ -13,13 +13,14 @@ export function PropertyStats() {
   });
 
   useEffect(() => {
-    api.get("/properties/management/stats").then(res => {
+    // Use public property list endpoint — no auth required
+    api.get("/properties?limit=1").then(res => {
       const d = res.data;
       setStats({
-        totalProperties: d.totalProperties || 0,
-        totalBookings: d.totalBookings || 0,
-        totalReviews: d.totalReviews || 0,
-        cities: 7, // Ethiopia cities we support
+        totalProperties: d.pagination?.totalItems || 0,
+        totalBookings: 0,
+        totalReviews: 0,
+        cities: 7,
       });
     }).catch(() => {});
   }, []);
