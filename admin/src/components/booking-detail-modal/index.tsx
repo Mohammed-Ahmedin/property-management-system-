@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import {
   Dialog,
   DialogContent,
@@ -119,7 +119,7 @@ export function BookingDetailModal({
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[90vw] md:min-w-[100vw] max-h-[1000vh]">
+        <DialogContent className="w-full max-w-2xl max-h-[90vh]">
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="text-lg font-medium">Loading booking details...</p>
@@ -135,7 +135,7 @@ export function BookingDetailModal({
   if (isError) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[90vw] md:min-w-[100vw] max-h-[1000vh]">
+        <DialogContent className="w-full max-w-2xl max-h-[90vh]">
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <XCircle className="h-12 w-12 text-destructive" />
             <p className="text-lg font-medium">Failed to load booking</p>
@@ -156,7 +156,7 @@ export function BookingDetailModal({
   if (!booking) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[90vw] md:min-w-[100vw] max-h-[1000vh]">
+        <DialogContent className="w-full max-w-2xl max-h-[90vh]">
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <AlertCircle className="h-12 w-12 text-muted-foreground" />
             <p className="text-lg font-medium">No booking found</p>
@@ -194,7 +194,7 @@ export function BookingDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[90vw] md:min-w-[100vw] min-h-[100vh] p-0 gap-0 overflow-hidden"
+        className="w-full max-w-4xl max-h-[95vh] p-0 gap-0 overflow-hidden"
       >
         <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/30">
           <div className="flex items-start justify-between gap-4">
@@ -232,10 +232,10 @@ export function BookingDetailModal({
                   <h1>${booking.property?.name || "Booking Receipt"}</h1>
                   <div class="sub">Booking ID: ${booking.id.slice(0,8)} | ${format(new Date(booking.createdAt), "PPP")} | Status: ${booking.status}</div>
                   <div class="divider"></div>
-                  <div class="two-col"><div><div class="section-title">Booking</div><table><tr><td>Room</td><td>${booking.room?.name || "—"}</td></tr><tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}</td></tr><tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}</td></tr><tr><td>Guests</td><td>${booking.guests}</td></tr></table></div>
-                  <div><div class="section-title">Guest</div><table><tr><td>Name</td><td>${booking.user?.name || booking.guestName || "—"}</td></tr><tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "—"}</td></tr><tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "—"}</td></tr></table></div></div>
+                  <div class="two-col"><div><div class="section-title">Booking</div><table><tr><td>Room</td><td>${booking.room?.name || "â€”"}</td></tr><tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "â€”"}</td></tr><tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "â€”"}</td></tr><tr><td>Guests</td><td>${booking.guests}</td></tr></table></div>
+                  <div><div class="section-title">Guest</div><table><tr><td>Name</td><td>${booking.user?.name || booking.guestName || "â€”"}</td></tr><tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "â€”"}</td></tr><tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "â€”"}</td></tr></table></div></div>
                   <div class="divider"></div><div class="section-title">Payment</div>
-                  <table><tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "—"}</td></tr><tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "—"}</td></tr><tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td><td></td><td></td></tr><tr class="total-row"><td>Total</td><td>${booking.currency} ${booking.totalAmount}</td><td></td><td></td></tr></table>
+                  <table><tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "â€”"}</td></tr><tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "â€”"}</td></tr><tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td><td></td><td></td></tr><tr class="total-row"><td>Total</td><td>${booking.currency} ${booking.totalAmount}</td><td></td><td></td></tr></table>
                   </body></html>`);
                 w.document.close();
                 w.focus();
@@ -268,18 +268,18 @@ export function BookingDetailModal({
                     <div>
                       <div class="section-title">Booking</div>
                       <table>
-                        <tr><td>Room</td><td>${booking.room?.name || "—"}</td></tr>
-                        <tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}</td></tr>
-                        <tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}</td></tr>
+                        <tr><td>Room</td><td>${booking.room?.name || "â€”"}</td></tr>
+                        <tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "â€”"}</td></tr>
+                        <tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "â€”"}</td></tr>
                         <tr><td>Guests</td><td>${booking.guests}</td></tr>
                       </table>
                     </div>
                     <div>
                       <div class="section-title">Guest</div>
                       <table>
-                        <tr><td>Name</td><td>${booking.user?.name || booking.guestName || "—"}</td></tr>
-                        <tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "—"}</td></tr>
-                        <tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "—"}</td></tr>
+                        <tr><td>Name</td><td>${booking.user?.name || booking.guestName || "â€”"}</td></tr>
+                        <tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "â€”"}</td></tr>
+                        <tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "â€”"}</td></tr>
                         <tr><td>Type</td><td>${booking.manualBooked ? "Manual" : "Online"}</td></tr>
                       </table>
                     </div>
@@ -287,8 +287,8 @@ export function BookingDetailModal({
                   <div class="divider"></div>
                   <div class="section-title">Payment</div>
                   <table>
-                    <tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "—"}</td></tr>
-                    <tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "—"}</td></tr>
+                    <tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "â€”"}</td></tr>
+                    <tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "â€”"}</td></tr>
                     <tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td><td></td><td></td></tr>
                     <tr class="total-row"><td>Total Amount</td><td>${booking.currency} ${booking.totalAmount}</td><td></td><td></td></tr>
                   </table>
@@ -307,7 +307,7 @@ export function BookingDetailModal({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => {
                     const subject = encodeURIComponent(`Booking Confirmation #${booking.id.slice(0, 8)}`);
-                    const body = encodeURIComponent(`Dear ${booking.user?.name || booking.guestName || "Guest"},\n\nYour booking is ${booking.status}.\nCheck-in: ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}\nCheck-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}\n\nThank you.`);
+                    const body = encodeURIComponent(`Dear ${booking.user?.name || booking.guestName || "Guest"},\n\nYour booking is ${booking.status}.\nCheck-in: ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "â€”"}\nCheck-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "â€”"}\n\nThank you.`);
                     window.open(`mailto:${booking.user?.email || booking.guestEmail || ""}?subject=${subject}&body=${body}`);
                   }}>Send Email</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => {
@@ -385,7 +385,7 @@ export function BookingDetailModal({
                             >
                               {booking.checkIn
                                 ? format(new Date(booking.checkIn), "PPP")
-                                : "—"}
+                                : "â€”"}
                             </p>
 
                             <p
@@ -443,7 +443,7 @@ export function BookingDetailModal({
                             >
                               {booking.checkOut
                                 ? format(new Date(booking.checkOut), "PPP")
-                                : "—"}
+                                : "â€”"}
                             </p>
 
                             <p
@@ -499,9 +499,9 @@ export function BookingDetailModal({
                             </p>
                             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                               <span>Room #{booking.room.roomNumber}</span>
-                              <span>•</span>
+                              <span>â€¢</span>
                               <span>{booking.room.type}</span>
-                              <span>•</span>
+                              <span>â€¢</span>
                               <span>Capacity: {booking.room.capacity}</span>
                             </div>
                           </div>
@@ -905,7 +905,7 @@ export function BookingDetailModal({
             Last updated: {format(new Date(booking.updatedAt), "PPp")}
           </div>
           <div className="flex items-center gap-2">
-            {/* Broker: can pre-approve/reject → goes to PENDING_OWNER_APPROVAL */}
+            {/* Broker: can pre-approve/reject â†’ goes to PENDING_OWNER_APPROVAL */}
             {isBroker && (booking.status === BookingStatus.PENDING || (booking.status as string) === "PENDING") && (
               <>
                 <Button variant="destructive" onClick={() => setRejectDialogOpen(true)} disabled={disableAllButtons}>
@@ -934,7 +934,7 @@ export function BookingDetailModal({
               </>
             )}
 
-            {/* Owner: broker submitted rejection — cancel or approve it */}
+            {/* Owner: broker submitted rejection â€” cancel or approve it */}
             {!isAdmin && !isBroker && (booking.status as string) === "PENDING_OWNER_REJECTION" && (
               <>
                 <div className="flex flex-col items-end gap-1 mr-2">
@@ -971,7 +971,7 @@ export function BookingDetailModal({
               </Button>
             )}
 
-            {/* Admin: full authority — can approve, reject, or cancel any booking */}
+            {/* Admin: full authority â€” can approve, reject, or cancel any booking */}
             {isAdmin && booking.status === BookingStatus.PENDING && (
               <>
                 <Button

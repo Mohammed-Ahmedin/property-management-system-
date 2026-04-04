@@ -61,21 +61,8 @@ const HeroSection = () => {
         </p>
       </div>
 
-      {/* Search card */}
-      <style>{`
-        @keyframes float-lr {
-          0%   { transform: translateX(calc(-50vw + 50%)); }
-          50%  { transform: translateX(calc(50vw - 50%)); }
-          100% { transform: translateX(calc(-50vw + 50%)); }
-        }
-        .search-float {
-          animation: float-lr 6s ease-in-out infinite;
-        }
-        .search-float:hover, .search-float:focus-within {
-          animation-play-state: paused;
-        }
-      `}</style>
-      <div className="relative z-20 w-[95%] md:w-[780px] lg:w-[860px] search-float">
+      {/* Search card — centered, no animation */}
+      <div className="relative z-20 w-[95%] md:w-[780px] lg:w-[860px]">
         <FilterTab />
       </div>
     </div>

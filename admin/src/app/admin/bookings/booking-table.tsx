@@ -181,7 +181,8 @@ export function BookingsTable({ bookings }: { bookings: any }) {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto rounded-lg border border-border">
+          <div className="overflow-x-auto rounded-lg border border-border -mx-2 sm:mx-0">
+            <div className="min-w-[900px]">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -323,6 +324,7 @@ export function BookingsTable({ bookings }: { bookings: any }) {
                 )}
               </TableBody>
             </Table>
+            </div>
           </div>
 
           {/* Pagination */}

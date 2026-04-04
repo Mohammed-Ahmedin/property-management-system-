@@ -89,16 +89,16 @@ export default function AdminPropertiesPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                     <Link href={`/admin/properties/${property.id}`}>
-                      <Button size="sm" variant="outline"><Eye className="h-4 w-4 mr-1" /> View</Button>
+                      <Button size="sm" variant="outline" className="text-xs"><Eye className="h-3 w-3 mr-1" /> View</Button>
                     </Link>
                     {property.status !== "APPROVED" && (
-                      <Button size="sm" onClick={() => handleApprove(property.id)} disabled={changeStatus.isPending} className="bg-emerald-600 hover:bg-emerald-700">
-                        <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
+                      <Button size="sm" onClick={() => handleApprove(property.id)} disabled={changeStatus.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-xs">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Approve
                       </Button>
                     )}
                     {property.status !== "REJECTED" && (
-                      <Button size="sm" variant="destructive" onClick={() => setRejectDialog({ id: property.id, name: property.name })} disabled={changeStatus.isPending}>
-                        <XCircle className="h-4 w-4 mr-1" /> Reject
+                      <Button size="sm" variant="destructive" onClick={() => setRejectDialog({ id: property.id, name: property.name })} disabled={changeStatus.isPending} className="text-xs">
+                        <XCircle className="h-3 w-3 mr-1" /> Reject
                       </Button>
                     )}
                   </div>

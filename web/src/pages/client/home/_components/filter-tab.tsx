@@ -60,7 +60,17 @@ const FilterTab = () => {
     if (checkIn) params.set("checkIn", checkIn.toISOString());
     if (checkOut) params.set("checkOut", checkOut.toISOString());
     if (guests > 1) params.set("guests", String(guests));
-    if (activeTab === "longstay") params.set("longstay", "true");
+
+    // Route to correct property type based on active tab
+    if (activeTab === "homes") {
+      params.set("type", "APARTMENT");
+    } else if (activeTab === "longstay") {
+      params.set("type", "GUEST_HOUSE");
+      params.set("longstay", "true");
+    } else if (activeTab === "hotels") {
+      params.set("type", "HOTEL");
+    }
+    // transport tab handled separately below
     navigate(`/properties?${params.toString()}`);
   };
 
@@ -353,7 +363,7 @@ const FilterTab = () => {
 
               <div className="flex justify-center">
                 <button
-                  onClick={() => navigate(`/properties?transport=true&direction=${transferDirection}&pickup=${pickupLocation}&dropoff=${dropoffLocation}&time=${pickupTime}`)}
+                  onClick={() => window.open("https://ride8294.com/", "_blank")}
                   className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />

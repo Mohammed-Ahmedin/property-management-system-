@@ -18,15 +18,16 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-4">
-        <StaffStatsCards />
-        {!isAdmin && (
-          <header className="flex justify-end w-full px-4 py-4">
+      <main className="w-full px-3 sm:px-4 py-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h1 className="text-xl font-bold">Bookings</h1>
+          {!isAdmin && (
             <Link href={"/admin/bookings/manual-booking"}>
-              <Button>Manual booking</Button>
+              <Button size="sm">Manual booking</Button>
             </Link>
-          </header>
-        )}
+          )}
+        </div>
+        <StaffStatsCards />
         {bookingsQuery.isLoading ? (
           <LoaderState />
         ) : bookingsQuery?.data?.length === 0 ? (

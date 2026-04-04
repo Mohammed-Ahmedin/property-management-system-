@@ -39,9 +39,9 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   return (
     <SidebarProvider>
       <AdminSidebar userData={userData as any} />
-      <SidebarInset className="rounded-xl overflow">
+      <SidebarInset className="rounded-xl overflow-hidden min-w-0">
         <AdminHeader />
-        <div className="flex flex-1 flex-col">{children}</div>
+        <div className="flex flex-1 flex-col overflow-x-hidden">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
