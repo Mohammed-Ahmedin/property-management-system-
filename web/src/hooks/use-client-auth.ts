@@ -73,7 +73,19 @@ export function useClientAuth() {
         );
         dispatch(setStatus({ status: "success" }));
       } else {
-        // No active session → log out
+        // No active session from server — but if we have a stored token+user,
+        // keep them (mobile cookie issue: session cookie not sent cross-origin)
+        const storedToken = localStorage.getItem("AUTH_TOKEN");
+        const storedUserRaw = localStorage.getItem("AUTH_USER");
+        if (storedToken && storedUserRaw) {
+          try {
+            const storedUser = JSON.parse(storedUserRaw);
+            dispatch(loginUser({ user: storedUser, token: storedToken }));
+            dispatch(setStatus({ status: "success" }));
+            return;
+          } catch {}
+        }
+        // No stored data either → log out
         dispatch(logoutUser());
         dispatch(setStatus({ status: "success" }));
       }
@@ -82,7 +94,6 @@ export function useClientAuth() {
         "fetchUser failed unexpectedly, keeping user in state:",
         err
       );
-      // Keep user in Redux, just mark as error
       dispatch(setStatus({ status: "error" }));
     }
   }, [dispatch]);

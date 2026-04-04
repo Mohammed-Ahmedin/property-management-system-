@@ -86,7 +86,8 @@ export function PaymentTable({ payments }: { payments: Payment[] }) {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <div className="min-w-[700px]">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
@@ -119,7 +120,7 @@ export function PaymentTable({ payments }: { payments: Payment[] }) {
                   key={p.id}
                   className="border-b border-border hover:bg-muted/50 transition-colors"
                 >
-                  <td className="py-4 px-4 font-medium">{p.bookingId}</td>
+                  <td className="py-4 px-4 font-medium text-xs font-mono">{p.bookingId?.slice(0, 10)}...</td>
                   <td className="py-4 px-4">
                     <FormatedAmount
                       amount={p.amount || 0}
@@ -154,6 +155,7 @@ export function PaymentTable({ payments }: { payments: Payment[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Empty state */}

@@ -65,7 +65,7 @@ export function PaymentViewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden rounded-2xl shadow-lg border border-border">
+      <DialogContent className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-0 rounded-2xl shadow-lg border border-border">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-primary" />

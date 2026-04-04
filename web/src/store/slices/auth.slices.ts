@@ -21,12 +21,89 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
+const storedUser = (() => {
+  try {
+    const raw = localStorage.getItem(Storage_keys.AUTH_USER);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+})();
+
 const initialState: AuthState = {
   token: localStorage.getItem(Storage_keys.AUTH_TOKEN) || null,
   status: "loading",
-  user: null,
+  user: storedUser,
   isAuthenticated: !!localStorage.getItem(Storage_keys.AUTH_TOKEN),
 };
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    loginUser: (
+      state,
+      action: PayloadAction<{ user: User; token?: string }>
+    ) => {
+      const { user, token } = action.payload;
+      state.user = user;
+      if (token) {
+        state.token = token;
+        localStorage.setItem(Storage_keys.AUTH_TOKEN, token);
+      }
+      // Always persist user so reload restores it
+      localStorage.setItem(Storage_keys.AUTH_USER, JSON.stringify(user));
+      state.isAuthenticated = true;
+      state.status = "success";
+    },
+
+    logoutUser: (state) => {
+      state.isAuthenticated = false;
+      state.token = null;
+      state.user = null;
+      state.status = "success";
+      localStorage.removeItem(Storage_keys.AUTH_TOKEN);
+      localStorage.removeItem(Storage_keys.AUTH_USER);
+    },
+
+    updateUser: (state, action: PayloadAction<{ user: User }>) => {
+      state.user = action.payload.user;
+      state.status = "success";
+      localStorage.setItem(Storage_keys.AUTH_USER, JSON.stringify(action.payload.user));
+    },
+
+    setUserToken: (state, action: PayloadAction<{ token: string }>) => {
+      const { token } = action.payload;
+      state.token = token;
+      state.isAuthenticated = true;
+      localStorage.setItem(Storage_keys.AUTH_TOKEN, token);
+    },
+
+    clearUserToken: (state, _action: PayloadAction<null | undefined>) => {
+      state.token = null;
+      state.isAuthenticated = false;
+      localStorage.removeItem(Storage_keys.AUTH_TOKEN);
+      localStorage.removeItem(Storage_keys.AUTH_USER);
+    },
+
+    setStatus: (
+      state,
+      action: PayloadAction<{ status: AuthState["status"] }>
+    ) => {
+      state.status = action.payload.status;
+    },
+  },
+});
+
+export const {
+  loginUser,
+  logoutUser,
+  setUserToken,
+  clearUserToken,
+  setStatus,
+} = authSlice.actions;
+
+export default authSlice;
 
 const authSlice = createSlice({
   name: "auth",
