@@ -336,13 +336,13 @@ export function UsersListContainer({ users }: { users: any[] }) {
                   <p className="text-muted-foreground">{viewUser.role}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <div><p className="text-muted-foreground text-xs">Email</p><p>{viewUser.email}</p></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                <div><p className="text-muted-foreground text-xs">Email</p><p className="break-all">{viewUser.email}</p></div>
                 <div><p className="text-muted-foreground text-xs">Phone</p><p>{viewUser.phone || "—"}</p></div>
                 <div><p className="text-muted-foreground text-xs">Verified</p><p>{viewUser.emailVerified ? "Yes" : "No"}</p></div>
                 <div><p className="text-muted-foreground text-xs">Banned</p><p>{viewUser.banned ? "Yes" : "No"}</p></div>
                 <div><p className="text-muted-foreground text-xs">Joined</p><p>{formatDate(viewUser.createdAt, "PPP")}</p></div>
-                <div><p className="text-muted-foreground text-xs">ID</p><p className="font-mono text-xs">{viewUser.id}</p></div>
+                <div><p className="text-muted-foreground text-xs">ID</p><p className="font-mono text-xs break-all">{viewUser.id}</p></div>
               </div>
             </div>
           )}

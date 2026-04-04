@@ -56,13 +56,13 @@ export default function AdminPropertiesPage() {
           filtered.map((property: any) => (
             <Card key={property.id} className="overflow-hidden">
               <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex gap-4 flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                  <div className="flex gap-3 flex-1 min-w-0">
                     {property.images?.[0]?.url && (
-                      <img src={property.images[0].url} alt={property.name} className="w-20 h-16 object-cover rounded-lg shrink-0" />
+                      <img src={property.images[0].url} alt={property.name} className="w-16 h-14 sm:w-20 sm:h-16 object-cover rounded-lg shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <h3 className="font-semibold truncate">{property.name}</h3>
                         <Badge variant="outline" className={statusColor(property.status)}>{property.status}</Badge>
                       </div>
@@ -75,7 +75,7 @@ export default function AdminPropertiesPage() {
                       {property.statusReason && <p className="text-xs text-red-500 mt-1">Reason: {property.statusReason}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                  <div className="flex items-center gap-2 flex-wrap sm:shrink-0">
                     <Link href={`/admin/properties/${property.id}`}>
                       <Button size="sm" variant="outline" className="text-xs"><Eye className="h-3 w-3 mr-1" /> View</Button>
                     </Link>

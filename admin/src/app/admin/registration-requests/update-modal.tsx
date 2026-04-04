@@ -93,7 +93,7 @@ export function RegistrationModal({
   return (
     <>
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="min-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">Registration Details</DialogTitle>
             <DialogDescription>
@@ -104,7 +104,7 @@ export function RegistrationModal({
 
           <div className="space-y-6 mt-4">
             {/* Status Section */}
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-foreground">
                   Current Status:
@@ -116,12 +116,12 @@ export function RegistrationModal({
                   {registration.status}
                 </Badge>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <Label htmlFor="status" className="text-sm font-medium">
                   Update Status:
                 </Label>
                 <Select value={newStatus} onValueChange={setNewStatus as any}>
-                  <SelectTrigger id="status" className="w-[150px]">
+                  <SelectTrigger id="status" className="w-[140px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

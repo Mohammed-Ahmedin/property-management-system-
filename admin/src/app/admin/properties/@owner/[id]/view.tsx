@@ -140,11 +140,11 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <Link href="/admin/properties">
           <Button variant="ghost" size="sm"><ArrowLeft className="mr-2 h-4 w-4" />Back to Properties</Button>
         </Link>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setVoidOpen(true)}>
             <EyeOff className="mr-2 h-4 w-4" /> Void Property
           </Button>

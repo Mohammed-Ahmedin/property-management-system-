@@ -63,26 +63,26 @@ export const DashboardSummary = () => {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Revenue & Bookings Trend */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>Revenue & Bookings Trend</CardTitle>
           <CardDescription>
             Monthly revenue and booking statistics for the last 6 months
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6">
           <ChartContainer
             config={{
               revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
               bookings: { label: "Bookings", color: "hsl(var(--chart-2))" },
             }}
-            className="h-[300px]"
+            className="h-[260px] w-full"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueData}>
+              <LineChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="month" className="text-xs" />
-                <YAxis className="text-xs" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={55} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Line
                   type="monotone"
@@ -105,32 +105,32 @@ export const DashboardSummary = () => {
       </Card>
 
       {/* Property Performance */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>Property Performance</CardTitle>
           <CardDescription>
             Top performing properties by bookings and revenue
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6">
           <ChartContainer
             config={{
               bookings: { label: "Bookings", color: "hsl(var(--chart-3))" },
               revenue: { label: "Revenue", color: "hsl(var(--chart-4))" },
             }}
-            className="h-[300px]"
+            className="h-[260px] w-full"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={propertyData}>
+              <BarChart data={propertyData} margin={{ top: 5, right: 10, left: 0, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="name"
-                  className="text-xs"
-                  angle={-45}
+                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                  angle={-35}
                   textAnchor="end"
-                  height={80}
+                  interval={0}
                 />
-                <YAxis className="text-xs" />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={35} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar
                   dataKey="bookings"
