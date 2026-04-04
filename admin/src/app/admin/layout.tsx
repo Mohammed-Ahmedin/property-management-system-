@@ -8,31 +8,41 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import React, { ReactNode, useEffect, useState } from "react";
 
+const ADMIN_TOKEN_KEY = "admin_session_token";
+
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { data, isPending } = authClient.useSession();
   const router = useRouter();
   const userData = data?.user;
-  // Give the session a grace period before redirecting
   const [grace, setGrace] = useState(true);
+  const [hasLocalToken, setHasLocalToken] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setGrace(false), 2000);
+    // Check localStorage token immediately — if present, stay on page while session loads
+    const token = typeof window !== "undefined" ? localStorage.getItem(ADMIN_TOKEN_KEY) : null;
+    setHasLocalToken(!!token);
+    const t = setTimeout(() => setGrace(false), 3000);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
     if (isPending || grace) return;
-    if (!userData) {
+    if (!userData && !hasLocalToken) {
       router.replace("/auth");
       return;
     }
-    if ((userData as any).role === "GUEST") {
+    if (userData && (userData as any).role === "GUEST") {
       router.replace("/auth");
     }
-  }, [isPending, userData, grace]);
+  }, [isPending, userData, grace, hasLocalToken]);
 
-  // Show loader while pending or during grace period
-  if (isPending || grace || (!isPending && !userData)) {
+  // Show loader while session is loading or during grace period
+  if (isPending || grace) {
+    return <LoaderState />;
+  }
+
+  // If no session and no local token, redirect (handled above)
+  if (!userData && !hasLocalToken) {
     return <LoaderState />;
   }
 
