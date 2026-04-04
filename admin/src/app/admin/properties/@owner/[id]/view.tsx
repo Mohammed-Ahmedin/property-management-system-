@@ -77,13 +77,23 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   const setRoomDiscount = useSetRoomDiscountMutation();
   const [propertyDiscountInput, setPropertyDiscountInput] = useState(String((data as any).discountPercent ?? 0));
   const [roomDiscountInputs, setRoomDiscountInputs] = useState<Record<string, string>>({});
-  const [policies, setPolicies] = useState({
-    checkIn: (data as any).policies?.checkIn || "15:00",
-    checkOut: (data as any).policies?.checkOut || "12:00",
-    cancellation: (data as any).policies?.cancellation || "Free cancellation available",
-    children: (data as any).policies?.children || "All children welcome",
-    pets: (data as any).policies?.pets || "Not allowed",
-  });
+  const [policies, setPolicies] = useState<Array<{ key: string; value: string }>>(
+    (() => {
+      const p = (data as any).policies;
+      if (!p) return [
+        { key: "Check-in", value: "15:00" },
+        { key: "Check-out", value: "12:00" },
+        { key: "Cancellation", value: "Free cancellation available" },
+        { key: "Children", value: "All children welcome" },
+        { key: "Pets", value: "Not allowed" },
+      ];
+      if (Array.isArray(p)) return p;
+      // Legacy object format → convert to array
+      return Object.entries(p).map(([key, value]) => ({ key, value: String(value) }));
+    })()
+  );
+  const [newPolicyKey, setNewPolicyKey] = useState("");
+  const [newPolicyValue, setNewPolicyValue] = useState("");
   const [savingPolicies, setSavingPolicies] = useState(false);
   const [licenseOpen, setLicenseOpen] = useState(false);
   const [licenseUrl, setLicenseUrl] = useState("");
@@ -484,31 +494,66 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <Card>
             <CardHeader>
               <CardTitle>Property Policies</CardTitle>
-              <CardDescription>Set check-in/out times and house rules shown to guests</CardDescription>
+              <CardDescription>Add, edit, or remove policies shown to guests</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>Check-in time</Label>
-                  <Input value={policies.checkIn} onChange={e => setPolicies(p => ({ ...p, checkIn: e.target.value }))} placeholder="e.g. 15:00" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Check-out time</Label>
-                  <Input value={policies.checkOut} onChange={e => setPolicies(p => ({ ...p, checkOut: e.target.value }))} placeholder="e.g. 12:00" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Cancellation policy</Label>
-                  <Input value={policies.cancellation} onChange={e => setPolicies(p => ({ ...p, cancellation: e.target.value }))} placeholder="e.g. Free cancellation available" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Children policy</Label>
-                  <Input value={policies.children} onChange={e => setPolicies(p => ({ ...p, children: e.target.value }))} placeholder="e.g. All children welcome" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Pets policy</Label>
-                  <Input value={policies.pets} onChange={e => setPolicies(p => ({ ...p, pets: e.target.value }))} placeholder="e.g. Not allowed" />
-                </div>
+              {/* Existing policies */}
+              <div className="space-y-3">
+                {policies.map((policy, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      className="w-36 shrink-0 text-sm"
+                      placeholder="Label"
+                      value={policy.key}
+                      onChange={e => setPolicies(prev => prev.map((p, i) => i === idx ? { ...p, key: e.target.value } : p))}
+                    />
+                    <Input
+                      className="flex-1 text-sm"
+                      placeholder="Value"
+                      value={policy.value}
+                      onChange={e => setPolicies(prev => prev.map((p, i) => i === idx ? { ...p, value: e.target.value } : p))}
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive shrink-0"
+                      onClick={() => setPolicies(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                ))}
               </div>
+
+              {/* Add new policy */}
+              <div className="flex items-center gap-2 pt-2 border-t border-border">
+                <Input
+                  className="w-36 shrink-0 text-sm"
+                  placeholder="Label (e.g. Pets)"
+                  value={newPolicyKey}
+                  onChange={e => setNewPolicyKey(e.target.value)}
+                />
+                <Input
+                  className="flex-1 text-sm"
+                  placeholder="Value (e.g. Not allowed)"
+                  value={newPolicyValue}
+                  onChange={e => setNewPolicyValue(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={!newPolicyKey.trim() || !newPolicyValue.trim()}
+                  onClick={() => {
+                    setPolicies(prev => [...prev, { key: newPolicyKey.trim(), value: newPolicyValue.trim() }]);
+                    setNewPolicyKey("");
+                    setNewPolicyValue("");
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add
+                </Button>
+              </div>
+
               <Button
                 onClick={async () => {
                   setSavingPolicies(true);
