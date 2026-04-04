@@ -1,11 +1,6 @@
-import React from 'react'
+import { Navigate } from "react-router-dom";
 
-const AccountSettingPage = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+// Account settings are on the main account page
+export default function AccountSettingPage() {
+  return <Navigate to="/account" replace />;
 }
-
-export default AccountSettingPage
