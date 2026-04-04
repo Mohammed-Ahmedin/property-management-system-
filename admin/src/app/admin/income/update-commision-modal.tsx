@@ -121,7 +121,7 @@ export function UpdateCommissionModal({
       <DialogTrigger asChild>
         {trigger || <Button variant="outline">Edit Commission</Button>}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-full max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
             Update Commission Setting

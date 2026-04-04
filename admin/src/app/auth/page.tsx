@@ -17,16 +17,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Animated Image */}
-      <div className="relative hidden lg:block overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950">
-        {/* Animated Background Image */}
-        <div className="absolute inset-0 animate-in fade-in zoom-in-95 duration-1000">
-          <img
-            src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/7c/11/39/blaauwheim-property.jpg?w=900&h=500&s=1"
-            alt="Property"
-            className="w-full h-full object-cover opacity-90"
-          />
+      <div className="relative hidden lg:block overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-950">
+        {/* Background */}
+        <div className="absolute inset-0">
+          <div className="w-full h-full bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900" />
           {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         </div>
 
         {/* Animated Text Content */}

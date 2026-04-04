@@ -19,11 +19,11 @@ export default function BookingsPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="w-full px-3 sm:px-4 py-4">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
           <h1 className="text-xl font-bold">Bookings</h1>
           {!isAdmin && (
             <Link href={"/admin/bookings/manual-booking"}>
-              <Button size="sm">Manual booking</Button>
+              <Button size="sm" className="shrink-0">Manual booking</Button>
             </Link>
           )}
         </div>
