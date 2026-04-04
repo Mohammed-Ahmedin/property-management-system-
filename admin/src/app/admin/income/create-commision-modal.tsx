@@ -138,6 +138,11 @@ export function CreateCommissionModal({
   const selectedRole = watch("role");
   const calcType = watch("calcType" as any) || "PERCENTAGE";
 
+  // Find selected property name from REAL data
+  const selectedPropertyName = propertiesForList?.find(
+    (h) => h.id === selectedPropertyId
+  )?.name || null;
+
   const handleFormSubmit = async (data: CommissionFormData) => {
     try {
       setIsSubmitting(true);
@@ -170,20 +175,19 @@ export function CreateCommissionModal({
           Create Commission
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="text-xl">
             Create Commission Setting
           </DialogTitle>
           <DialogDescription>
-            Configure commission percentages and settings for the platform or a
-            specific property.
+            Configure commission percentages and settings for the platform or specific properties.
           </DialogDescription>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmit(handleFormSubmit as any)}
-          className="space-y-6"
+          className="flex-1 overflow-y-auto space-y-5 pr-1"
         >
           {/* Name */}
           <div className="space-y-2">
@@ -252,15 +256,12 @@ export function CreateCommissionModal({
 
           {commissionType === "GUESTHOUSE" && (
             <div className="space-y-2">
-              <Label htmlFor="propertyId">Property</Label>
+              <Label htmlFor="propertyId">Property <span className="text-muted-foreground text-xs">(optional — leave blank to apply to all)</span></Label>
               <Controller
                 name="propertyId"
                 control={control}
                 render={({ field }) => (
-                  <Popover
-                    open={propertyOpen}
-                    onOpenChange={setPropertyOpen}
-                  >
+                  <Popover open={propertyOpen} onOpenChange={setPropertyOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -268,45 +269,39 @@ export function CreateCommissionModal({
                         aria-expanded={propertyOpen}
                         className="w-full justify-between font-normal bg-transparent"
                       >
-                        {selectedProperty
-                          ? selectedProperty.name
-                          : "Select a property..."}
+                        {selectedPropertyName || "Select a property (optional)..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0"
-                      align="start"
-                    >
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Search properties..." />
                         <CommandList>
                           <CommandEmpty>No property found.</CommandEmpty>
                           <CommandGroup>
-                            {isPropertiesLoading
-                              ? ""
-                              : propertiesForList?.map((house) => (
-                                  <CommandItem
-                                    key={house.id}
-                                    value={house.name}
-                                    onSelect={() => {
-                                      setValue("propertyId", house.id, {
-                                        shouldValidate: true,
-                                      });
-                                      setPropertyOpen(false);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedPropertyId === house.id
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    {house.name}
-                                  </CommandItem>
-                                ))}
+                            <CommandItem
+                              value="__none__"
+                              onSelect={() => {
+                                setValue("propertyId", null, { shouldValidate: true });
+                                setPropertyOpen(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", !selectedPropertyId ? "opacity-100" : "opacity-0")} />
+                              All properties (no specific property)
+                            </CommandItem>
+                            {isPropertiesLoading ? null : propertiesForList?.map((house) => (
+                              <CommandItem
+                                key={house.id}
+                                value={house.name}
+                                onSelect={() => {
+                                  setValue("propertyId", house.id, { shouldValidate: true });
+                                  setPropertyOpen(false);
+                                }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", selectedPropertyId === house.id ? "opacity-100" : "opacity-0")} />
+                                {house.name}
+                              </CommandItem>
+                            ))}
                           </CommandGroup>
                         </CommandList>
                       </Command>
@@ -314,11 +309,6 @@ export function CreateCommissionModal({
                   </Popover>
                 )}
               />
-              {errors.propertyId && (
-                <p className="text-sm text-destructive">
-                  {errors.propertyId.message}
-                </p>
-              )}
             </div>
           )}
 
@@ -428,22 +418,17 @@ export function CreateCommissionModal({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-2 pb-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                reset();
-                setOpen(false);
-              }}
+              onClick={() => { reset(); setOpen(false); }}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Commission
             </Button>
           </div>

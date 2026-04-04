@@ -37,11 +37,8 @@ const LoginView = () => {
   const signInWithEmailMutation = useSignInWithEmailMutation();
 
   const onSubmit = async (data: FormType) => {
-    const response = await signInWithEmailMutation.mutateAsync(data);
-    if (response?.user) {
-      // Hard reload so authClient.useSession() re-initializes with the new cookie
-      window.location.href = callBackUrl || "/";
-    }
+    await signInWithEmailMutation.mutateAsync(data);
+    // Navigation handled in mutation (window.location.href for mobile cookie fix)
   };
   return (
     <div className="space-y-6 w-[80%] sm:w-[300px] md:w-[400px] py-20">

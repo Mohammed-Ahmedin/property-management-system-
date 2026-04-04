@@ -6,5 +6,11 @@ export const authClient = createAuthClient({
   baseURL: SERVER_BASE_URL,
   fetchOptions: {
     credentials: "include",
+    headers: {
+      // Include stored token as fallback for mobile browsers that block cookies
+      ...(typeof window !== "undefined" && localStorage.getItem("bete_token")
+        ? { Authorization: `Bearer ${localStorage.getItem("bete_token")}` }
+        : {}),
+    },
   },
 });

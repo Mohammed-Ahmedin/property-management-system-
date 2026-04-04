@@ -83,6 +83,9 @@ export default function PropertyView({ data }: { data: PropertyData }) {
     pets: (data as any).policies?.pets || "Not allowed",
   });
   const [savingPolicies, setSavingPolicies] = useState(false);
+  const [licenseOpen, setLicenseOpen] = useState(false);
+  const [licenseUrl, setLicenseUrl] = useState("");
+  const [uploadingLicense, setUploadingLicense] = useState(false);
 
   // Use live query for staffs so broker shows immediately after add
   const { data: liveStaffs } = useGetGhStaffsQuery({ propertyId: data.id });
@@ -273,7 +276,9 @@ export default function PropertyView({ data }: { data: PropertyData }) {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground"><FileText className="h-4 w-4" /><span>Submitted on {new Date(data.license.createdAt).toLocaleDateString()}</span></div>
                 </CardContent>
               ) : (
-                <EmptyState title="No license registered" description="Add a license below." icon={<FileMinus className="h-12 w-12 text-muted-foreground" />} primaryActions={<Button size="sm"><Plus className="h-4 w-4 mr-2" />Add License</Button>} />
+                <EmptyState title="No license registered" description="Add a license below." icon={<FileMinus className="h-12 w-12 text-muted-foreground" />} primaryActions={
+                  <Button size="sm" onClick={() => setLicenseOpen(true)}><Plus className="h-4 w-4 mr-2" />Add License</Button>
+                } />
               )}
             </Card>
           </div>
@@ -503,6 +508,43 @@ export default function PropertyView({ data }: { data: PropertyData }) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* License Upload Dialog */}
+        <Dialog open={licenseOpen} onOpenChange={setLicenseOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Add License</DialogTitle>
+              <DialogDescription>Upload a license file URL for this property.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <Label>License File URL</Label>
+              <Input
+                placeholder="https://... (upload to Cloudinary first)"
+                value={licenseUrl}
+                onChange={e => setLicenseUrl(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setLicenseOpen(false)}>Cancel</Button>
+              <Button
+                disabled={!licenseUrl.trim() || uploadingLicense}
+                onClick={async () => {
+                  setUploadingLicense(true);
+                  try {
+                    await api.post(`/properties/${data.id}/license`, { fileUrl: licenseUrl });
+                    toast.success("License added");
+                    queryClient.invalidateQueries({ queryKey: ["guest_houses", data.id] });
+                    setLicenseOpen(false);
+                    setLicenseUrl("");
+                  } catch { toast.error("Failed to add license"); }
+                  finally { setUploadingLicense(false); }
+                }}
+              >
+                {uploadingLicense ? "Saving..." : "Save License"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <ImagesTab images={data.images} propertyId={data.id} />
       </Tabs>

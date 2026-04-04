@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube, ArrowRight, Hotel, Home, Building2, TreePine, Tent, Warehouse } from "lucide-react";
-import { useState } from "react";
 
 const PROPERTY_TYPES = [
   { label: "Hotels", value: "HOTEL", icon: <Hotel className="w-3.5 h-3.5" /> },
@@ -12,24 +11,11 @@ const PROPERTY_TYPES = [
 ];
 
 export function Footer() {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = () => {
-    if (email && email.includes("@")) {
-      setSubscribed(true);
-      setEmail("");
-      setTimeout(() => setSubscribed(false), 3000);
-    }
-  };
   return (
     <footer className="bg-zinc-950 text-zinc-400 mt-8">
-      {/* Top accent */}
       <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
-
       <div className="w-full px-4 sm:px-8 lg:px-12 py-14">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 mb-5 group">
@@ -42,14 +28,9 @@ export function Footer() {
               Discover and book the best properties across Ethiopia. From luxury hotels to cozy guest houses — your perfect stay awaits.
             </p>
             <div className="flex items-center gap-2.5">
-              {[
-                { Icon: Facebook, href: "#", label: "Facebook" },
-                { Icon: Twitter, href: "#", label: "Twitter" },
-                { Icon: Instagram, href: "#", label: "Instagram" },
-                { Icon: Youtube, href: "#", label: "Youtube" },
-              ].map(({ Icon, href, label }) => (
-                <a key={label} href={href} aria-label={label}
-                  className="w-9 h-9 rounded-xl bg-zinc-800 hover:bg-primary flex items-center justify-center transition-all hover:scale-110 hover:shadow-lg hover:shadow-primary/20">
+              {[{ Icon: Facebook, label: "Facebook" }, { Icon: Twitter, label: "Twitter" }, { Icon: Instagram, label: "Instagram" }, { Icon: Youtube, label: "Youtube" }].map(({ Icon, label }) => (
+                <a key={label} href="#" aria-label={label}
+                  className="w-9 h-9 rounded-xl bg-zinc-800 hover:bg-primary flex items-center justify-center transition-all hover:scale-110">
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
@@ -62,8 +43,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {PROPERTY_TYPES.map((t) => (
                 <li key={t.value}>
-                  <Link to={`/properties?type=${t.value}`}
-                    className="flex items-center gap-2 text-sm hover:text-primary transition-colors group">
+                  <Link to={`/properties?type=${t.value}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors group">
                     <span className="text-zinc-600 group-hover:text-primary transition-colors">{t.icon}</span>
                     {t.label}
                     <ArrowRight className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -95,10 +75,10 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact + Newsletter */}
+          {/* Contact */}
           <div>
             <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">Contact Us</h3>
-            <ul className="space-y-3 text-sm mb-6">
+            <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 mt-0.5">
                   <MapPin className="w-3.5 h-3.5 text-primary" />
@@ -118,37 +98,9 @@ export function Footer() {
                 <a href="mailto:info@bete.et" className="hover:text-primary transition-colors">info@bete.et</a>
               </li>
             </ul>
-
-            {/* Mini newsletter */}
-            <div className="bg-zinc-900 rounded-xl p-3 border border-zinc-800">
-              <p className="text-xs text-zinc-400 mb-2">Get travel deals in your inbox</p>
-              {subscribed ? (
-                <div className="flex items-center gap-2 text-emerald-400 text-xs font-medium py-2">
-                  <span className="text-lg">✓</span> Subscribed! Check your inbox.
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
-                    placeholder="your@email.com"
-                    className="flex-1 bg-zinc-800 text-white text-xs rounded-lg px-3 py-2 outline-none border border-zinc-700 focus:border-primary transition-colors placeholder:text-zinc-600"
-                  />
-                  <button
-                    onClick={handleSubscribe}
-                    className="bg-primary hover:bg-primary/90 text-white text-xs px-3 py-2 rounded-lg transition-colors font-medium"
-                  >
-                    Go
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
           <p>© {new Date().getFullYear()} <span className="text-zinc-400 font-medium">Bete</span>. All rights reserved.</p>
           <div className="flex items-center gap-5">

@@ -72,6 +72,18 @@ router.post("/:id/facilities", authGuard({ cantAccessBy: ["GUEST"] }), propertie
 router.post("/:id/images", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.addPropertyImage);
 router.delete("/:id/images", propertiesController.deletePropertyImage);
 router.post("/:id/discount", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.setPropertyDiscount);
+router.post("/:id/license", authGuard({ cantAccessBy: ["GUEST"] }), async (req, res) => {
+  const { prisma } = await import("../../lib/prisma");
+  const { id: propertyId } = req.params;
+  const { fileUrl } = req.body;
+  if (!fileUrl) return res.status(400).json({ message: "fileUrl required" });
+  await prisma.license.upsert({
+    where: { propertyId },
+    create: { propertyId, fileUrl, status: "PENDING" },
+    update: { fileUrl, status: "PENDING" },
+  });
+  res.json({ success: true, message: "License added" });
+});
 router.delete(
   "/:id",
   authGuard({ cantAccessBy: ["GUEST"] }),

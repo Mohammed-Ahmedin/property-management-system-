@@ -1,4 +1,4 @@
-import { authClient } from "@/lib/auth-client";
+﻿import { authClient } from "@/lib/auth-client";
 import { useAppDispatch } from "@/store/hooks";
 import { loginUser } from "@/store/slices/auth.slices";
 import { useMutation } from "@tanstack/react-query";
@@ -21,29 +21,23 @@ export const useSignInWithEmailMutation = () => {
 
       if (res.data?.user) {
         toast.success("Login successful!", { position: "top-center" });
-        dispatch(
-          loginUser({ user: res.data?.user as any, token: res.data?.token })
-        );
-        navigate("/account");
-
+        const token = (res.data as any)?.token;
+        if (token) localStorage.setItem("bete_token", token);
+        dispatch(loginUser({ user: res.data?.user as any, token }));
+        // Hard reload so authClient.useSession() picks up the new cookie/token
+        window.location.href = "/";
         return res.data;
       } else if (res.error) {
         handleTanstackError({
           error: null,
-          options: {
-            customMessage: res.error?.message,
-            skipOfflineToast: false,
-          },
+          options: { customMessage: res.error?.message, skipOfflineToast: false },
         });
       }
     },
     onError: (error) => {
       handleTanstackError({
         error: null,
-        options: {
-          customMessage: error?.message,
-          skipOfflineToast: false,
-        },
+        options: { customMessage: error?.message, skipOfflineToast: false },
       });
     },
   });
@@ -55,6 +49,7 @@ interface SignUpInput {
   name: string;
   phone: string;
 }
+
 export const useSignUpWithEmailMutation = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -69,55 +64,24 @@ export const useSignUpWithEmailMutation = () => {
       });
 
       if (res.data?.user && res.data?.token) {
-        toast.success("Login successful!", { position: "top-center" });
-        dispatch(
-          loginUser({ user: res.data?.user as any, token: res.data?.token })
-        );
-        navigate("/account");
-
+        toast.success("Account created!", { position: "top-center" });
+        const token = res.data?.token;
+        if (token) localStorage.setItem("bete_token", token);
+        dispatch(loginUser({ user: res.data?.user as any, token }));
+        window.location.href = "/";
         return res.data;
       } else if (res.error) {
         handleTanstackError({
           error: null,
-          options: {
-            customMessage: res.error?.message,
-            skipOfflineToast: false,
-          },
+          options: { customMessage: res.error?.message, skipOfflineToast: false },
         });
       }
     },
     onError: (error) => {
       handleTanstackError({
         error: null,
-        options: {
-          customMessage: error?.message,
-          skipOfflineToast: false,
-        },
+        options: { customMessage: error?.message, skipOfflineToast: false },
       });
     },
   });
 };
-
-// export const useSignUpWithEmailMutation = () => {
-//   const navigate = useNavigate();
-
-//   return useMutation({
-//     mutationFn: (data: {}) => {
-//       return authClient.signUp.email(data, {
-//         onSuccess: () => {
-//           toast("Success", {
-//             description: "Your account has been created successfully",
-//             position: "top-center",
-//           });
-//           navigate("/account");
-//         },
-//         onError: ({ error }) => {
-//           toast("Unsuccessfull", {
-//             description: error.message,
-//             position: "top-center",
-//           });
-//         },
-//       });
-//     },
-//   });
-// };

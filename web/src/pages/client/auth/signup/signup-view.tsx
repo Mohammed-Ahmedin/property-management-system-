@@ -48,17 +48,13 @@ const SignupView = () => {
   });
 
   const onSubmit = async (data: FormType) => {
-    const response = await signUpMutation.mutateAsync({
+    await signUpMutation.mutateAsync({
       email: data.email,
       name: data.name,
       password: data.password,
       phone: data.phone,
     });
-
-    if (response?.user) {
-      // Hard reload so authClient.useSession() re-initializes with the new cookie
-      window.location.href = callBackUrl || "/";
-    }
+    // Navigation handled in mutation (window.location.href for mobile cookie fix)
   };
 
   return (
