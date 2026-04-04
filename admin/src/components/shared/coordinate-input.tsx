@@ -19,9 +19,10 @@ interface CoordinateInputProps {
  */
 function decimalToComponents(decimal: string, type: "latitude" | "longitude") {
   const num = parseFloat(decimal);
-  if (isNaN(num)) return { degrees: "", direction: type === "latitude" ? "N" : "E" };
+  if (isNaN(num) || decimal === "") return { degrees: "", direction: type === "latitude" ? "N" : "E" };
   const abs = Math.abs(num);
-  const degrees = abs.toFixed(6);
+  // Don't reformat — just strip the sign, keep the raw string as-is
+  const degrees = String(abs);
   let direction: string;
   if (type === "latitude") {
     direction = num >= 0 ? "N" : "S";
@@ -46,11 +47,13 @@ export function CoordinateInput({ type, value, onChange, label }: CoordinateInpu
   const [degrees, setDegrees] = useState(initDeg);
   const [direction, setDirection] = useState(initDir);
 
-  // Sync when external value changes (e.g. auto-fill)
+  // Only sync from external value on initial mount or when value changes from outside (auto-fill)
   useEffect(() => {
-    const { degrees: d, direction: dir } = decimalToComponents(value, type);
-    setDegrees(d);
-    setDirection(dir);
+    if (value && value !== componentToDecimal(degrees, direction)) {
+      const { degrees: d, direction: dir } = decimalToComponents(value, type);
+      setDegrees(d);
+      setDirection(dir);
+    }
   }, [value]);
 
   const handleDegreesChange = (val: string) => {

@@ -260,9 +260,17 @@ const DataContainer = ({ data }: Props) => {
                         )}
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-border">
-                        <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", r.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
-                          {r.availability ? "Available" : "Unavailable"}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full w-fit", r.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
+                            {r.availability ? "Available" : "Unavailable"}
+                          </span>
+                          {!r.availability && r.bookings?.length > 0 && (() => {
+                            const today = new Date(); today.setHours(0,0,0,0);
+                            const active = r.bookings.filter((b: any) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today);
+                            const latest = active.reduce((l: Date | null, b: any) => { const co = new Date(b.checkOut); return !l || co > l ? co : l; }, null);
+                            return latest ? <span className="text-xs text-muted-foreground">Until {latest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span> : null;
+                          })()}
+                        </div>
                         <Button size="sm" className="rounded-full px-4 text-xs h-7" onClick={() => { setRoomsModalOpen(false); navigate(`/rooms/${r.id}`); }}>
                           Book this room
                         </Button>
@@ -505,9 +513,17 @@ const DataContainer = ({ data }: Props) => {
                         )}
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", r.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
-                          {r.availability ? "Available" : "Unavailable"}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full w-fit", r.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
+                            {r.availability ? "Available" : "Unavailable"}
+                          </span>
+                          {!r.availability && r.bookings?.length > 0 && (() => {
+                            const today = new Date(); today.setHours(0,0,0,0);
+                            const active = r.bookings.filter((b: any) => b.checkIn && b.checkOut && new Date(b.checkOut) >= today);
+                            const latest = active.reduce((l: Date | null, b: any) => { const co = new Date(b.checkOut); return !l || co > l ? co : l; }, null);
+                            return latest ? <span className="text-xs text-muted-foreground">Until {latest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span> : null;
+                          })()}
+                        </div>
                         <Button size="sm" className="rounded-full px-5" onClick={() => navigate(`/rooms/${r.id}`)}>
                           Book this room
                         </Button>

@@ -479,7 +479,7 @@ export default {
             data: {
               name: validatedData.name,
               address: validatedData.address,
-              type: "HOTEL",
+              type: (validatedData.type as any) || "HOTEL",
               accessType: "SHARED",
               visibility: true,
               // Admin-created properties are auto-approved
