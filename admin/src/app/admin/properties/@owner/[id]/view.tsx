@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
   Building2, MapPin, Phone, Mail, Edit, Users,
-  Bed, Calendar, Wifi, FileText, CheckCircle2, Clock, Plus, FileMinus, ArrowLeft, EyeOff,
+  Bed, Calendar, Wifi, FileText, CheckCircle2, Clock, Plus, FileMinus, ArrowLeft, EyeOff, Eye,
 } from "lucide-react";
 import StaffsTab from "./staffs-tab";
 import RoomsTab from "./rooms-tab";
@@ -18,7 +18,7 @@ import ImagesTab from "./images-tab";
 import { DashboardCard } from "@/components/shared/dashboard-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import Link from "next/link";
-import { useUpdatePropertyMutation, useVoidPropertyMutation, useSetPropertyDiscountMutation, useSetRoomDiscountMutation } from "@/hooks/api/use-property";
+import { useUpdatePropertyMutation, useVoidPropertyMutation, useSetPropertyDiscountMutation, useSetRoomDiscountMutation, useRestorePropertyMutation } from "@/hooks/api/use-property";
 import { CoordinateInput } from "@/components/shared/coordinate-input";
 import { useAddBrokerToPropertyMutation, useRemoveStaffFromGHMutation, useGetGhStaffsQuery } from "@/hooks/api/use-staff";
 import { Avatar } from "@/components/shared/avatar";
@@ -66,6 +66,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
 
   const updateMutation = useUpdatePropertyMutation();
   const voidMutation = useVoidPropertyMutation();
+  const restoreMutation = useRestorePropertyMutation();
   const addBrokerMutation = useAddBrokerToPropertyMutation();
   const removeStaffMutation = useRemoveStaffFromGHMutation();
   const queryClient = useQueryClient();
@@ -147,6 +148,11 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <Button size="sm" variant="outline" onClick={() => setVoidOpen(true)}>
             <EyeOff className="mr-2 h-4 w-4" /> Void Property
           </Button>
+          {!(data as any).visibility && (
+            <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-300 hover:bg-emerald-50" onClick={() => restoreMutation.mutate(data.id)} disabled={restoreMutation.isPending}>
+              <Eye className="mr-2 h-4 w-4" /> {restoreMutation.isPending ? "Restoring..." : "Restore Property"}
+            </Button>
+          )}
           <Button size="sm" onClick={() => setEditOpen(true)}>
             <Edit className="mr-2 h-4 w-4" /> Edit Property
           </Button>

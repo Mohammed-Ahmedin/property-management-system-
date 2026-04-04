@@ -460,6 +460,16 @@ exports.default = {
                 });
                 return property;
             }), { timeout: 30000 });
+            // Log property creation activity
+            yield prisma_1.prisma.activity.create({
+                data: {
+                    action: "CREATE_GUEST_HOUSE",
+                    description: `Property "${createdProperty.name}" (${createdProperty.type}) created by ${user.role}.`,
+                    propertyId: createdProperty.id,
+                    userId: user.id,
+                    status: "INFO",
+                },
+            }).catch(() => { });
             res.status(201).json({
                 success: true,
                 message: "Property created successfully",
@@ -898,6 +908,25 @@ exports.default = {
             data: { visibility: false },
         });
         return res.json({ success: true, message: "Property voided (hidden) successfully." });
+    })),
+    restoreProperty: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { id: propertyId } = req.params;
+        const user = req.user;
+        const property = yield prisma_1.prisma.property.findUnique({
+            where: { id: propertyId },
+            include: { managers: true },
+        });
+        if (!property)
+            return res.status(404).json({ message: "Property not found" });
+        const isOwner = property.managers.some((m) => m.userId === user.id && m.role === "OWNER");
+        if (!isOwner && user.role !== "ADMIN") {
+            return res.status(403).json({ message: "Not authorized." });
+        }
+        yield prisma_1.prisma.property.update({
+            where: { id: propertyId },
+            data: { visibility: true, status: "APPROVED" },
+        });
+        return res.json({ success: true, message: "Property restored successfully." });
     })),
     changePropertyStatus: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;

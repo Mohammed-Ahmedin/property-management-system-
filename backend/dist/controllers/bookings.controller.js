@@ -374,8 +374,8 @@ exports.default = {
                 // Log manual booking activity
                 yield tx.activity.create({
                     data: {
-                        action: "BOOKED",
-                        description: `Manual booking by ${userRole} for guest "${validated.guestName}" in room "${room.name}". Check-in: ${checkInDate.toLocaleDateString()}, Check-out: ${checkOutDate.toLocaleDateString()}. Total: ETB ${validated.totalAmount}`,
+                        action: "APPROVED_BOOKING",
+                        description: `Manual booking RESERVED by ${userRole} for guest "${validated.guestName}" in room "${room.name}". Check-in: ${checkInDate.toLocaleDateString()}, Check-out: ${checkOutDate.toLocaleDateString()}. Total: ETB ${validated.totalAmount}`,
                         userId,
                         bookingId: created.id,
                         roomId: validated.roomId,

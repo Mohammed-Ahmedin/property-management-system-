@@ -75,6 +75,7 @@ router.get("/:id", properties_controller_1.default.getPropertyById);
 router.put("/:id", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.updateProperty);
 router.post("/:id/status", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.changePropertyStatus);
 router.post("/:id/void", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.voidProperty);
+router.post("/:id/restore", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.restoreProperty);
 router.post("/:id/facilities", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.addFacility);
 router.post("/:id/images", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.addPropertyImage);
 router.delete("/:id/images", properties_controller_1.default.deletePropertyImage);

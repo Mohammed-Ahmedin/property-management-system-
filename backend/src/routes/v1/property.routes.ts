@@ -68,6 +68,7 @@ router.get("/:id", propertiesController.getPropertyById);
 router.put("/:id", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.updateProperty);
 router.post("/:id/status", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.changePropertyStatus);
 router.post("/:id/void", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.voidProperty);
+router.post("/:id/restore", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.restoreProperty);
 router.post("/:id/facilities", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.addFacility);
 router.post("/:id/images", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.addPropertyImage);
 router.delete("/:id/images", propertiesController.deletePropertyImage);

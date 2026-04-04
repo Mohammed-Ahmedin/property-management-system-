@@ -194,3 +194,21 @@ export const useSetRoomDiscountMutation = () => {
     },
   });
 };
+
+export const useRestorePropertyMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, string>({
+    mutationFn: async (id: string) => {
+      const response = await api.post(`/properties/${id}/restore`);
+      return response.data;
+    },
+    onSuccess: ({ message }, id) => {
+      toast.success(message || "Property restored");
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["guest_houses", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to restore property");
+    },
+  });
+};

@@ -32,6 +32,11 @@ export function Header() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [propDropdown, setPropDropdown] = useState(false);
+
+  const selectedType = new URLSearchParams(location.search).get("type");
+  const activePropertyLabel = selectedType
+    ? (PROPERTY_TYPES.find((t) => t.value === selectedType)?.label ?? "Properties")
+    : "Properties";
   const dropRef = useRef<HTMLDivElement>(null);
   const { data, isPending } = authClient.useSession();
   const { signOut, isAuthenticated } = useClientAuth();
@@ -107,7 +112,7 @@ export function Header() {
                   location.pathname.startsWith("/properties") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
                 )}
               >
-                Properties
+                {activePropertyLabel}
                 <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", propDropdown && "rotate-180")} />
               </button>
               {propDropdown && (

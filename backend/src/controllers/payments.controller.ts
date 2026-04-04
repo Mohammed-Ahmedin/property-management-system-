@@ -263,13 +263,15 @@ export default {
         // Get booking details for the activity description
         const bookingDoc = await prisma.booking.findUnique({
           where: { id: payment.bookingId },
-          select: { propertyId: true, roomId: true, userId: true, totalAmount: true },
+          select: { propertyId: true, roomId: true, userId: true, totalAmount: true, guestName: true, user: { select: { name: true } } },
         }).catch(() => null);
+
+        const clientName = bookingDoc?.guestName || bookingDoc?.user?.name || "Guest";
 
         await prisma.activity.create({
           data: {
             action: "APPROVED_BOOKING",
-            description: `Booking RESERVED after successful payment. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}. Booking is now reserved — no further approval needed.`,
+            description: `Booking RESERVED for "${clientName}" after successful payment. Transaction: ${transaction_id || tx_ref}. Amount: ETB ${amount}. Booking is now reserved — no further approval needed.`,
             bookingId: payment.bookingId,
             propertyId: bookingDoc?.propertyId,
             roomId: bookingDoc?.roomId,
@@ -332,7 +334,7 @@ export default {
         await prisma.activity.create({
           data: {
             action: "APPROVED_BOOKING",
-            description: `Booking RESERVED after payment verification. Transaction: ${txRef}. Booking is now reserved — no further approval needed.`,
+            description: `Booking RESERVED for "${(payment.booking as any)?.user?.name || (payment.booking as any)?.guestName || "Guest"}" after payment verification. Transaction: ${txRef}. Booking is now reserved — no further approval needed.`,
             bookingId: payment.bookingId,
             propertyId: payment.booking?.propertyId,
             status: "INFO",

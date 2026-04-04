@@ -5,9 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, Search, Building2, Loader2, Plus, Eye } from "lucide-react";
+import { CheckCircle2, Search, Building2, Plus, Eye } from "lucide-react";
 import { useGetPropertiesForManagmentQuery, useChangePropertyStatusMutation } from "@/hooks/api/use-property";
 import LoaderState from "@/components/shared/loader-state";
 import Link from "next/link";
@@ -22,21 +20,11 @@ export default function AdminPropertiesPage() {
   const { data, isFetching } = useGetPropertiesForManagmentQuery();
   const changeStatus = useChangePropertyStatusMutation();
   const [search, setSearch] = useState("");
-  const [rejectDialog, setRejectDialog] = useState<{ id: string; name: string } | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
 
   const properties: any[] = data?.data || [];
   const filtered = properties.filter((p) => p.name?.toLowerCase().includes(search.toLowerCase()));
 
   const handleApprove = (id: string) => changeStatus.mutate({ id, status: "APPROVED" });
-
-  const handleReject = () => {
-    if (!rejectDialog) return;
-    changeStatus.mutate(
-      { id: rejectDialog.id, status: "REJECTED", reason: rejectReason || undefined },
-      { onSuccess: () => { setRejectDialog(null); setRejectReason(""); } }
-    );
-  };
 
   if (isFetching) return <LoaderState />;
 
@@ -96,11 +84,6 @@ export default function AdminPropertiesPage() {
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Approve
                       </Button>
                     )}
-                    {property.status !== "REJECTED" && (
-                      <Button size="sm" variant="destructive" onClick={() => setRejectDialog({ id: property.id, name: property.name })} disabled={changeStatus.isPending} className="text-xs">
-                        <XCircle className="h-3 w-3 mr-1" /> Reject
-                      </Button>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -109,21 +92,6 @@ export default function AdminPropertiesPage() {
         )}
       </div>
 
-      <Dialog open={!!rejectDialog} onOpenChange={(o) => { if (!o) { setRejectDialog(null); setRejectReason(""); } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Reject Property</DialogTitle>
-            <DialogDescription>Rejecting: <strong>{rejectDialog?.name}</strong>. Optionally provide a reason.</DialogDescription>
-          </DialogHeader>
-          <Textarea placeholder="Reason for rejection (optional)" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} className="mt-2" />
-          <div className="flex gap-2 justify-end mt-4">
-            <Button variant="outline" onClick={() => { setRejectDialog(null); setRejectReason(""); }}>Cancel</Button>
-            <Button variant="destructive" onClick={handleReject} disabled={changeStatus.isPending}>
-              {changeStatus.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null} Confirm Rejection
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
