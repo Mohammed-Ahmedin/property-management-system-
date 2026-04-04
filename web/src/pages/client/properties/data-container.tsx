@@ -72,7 +72,16 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold">
-              {locationParam ? `Hotels in ${locationParam}` : "All Properties"}
+              {(() => {
+                const typeParam = searchParams.get("type");
+                const typeLabels: Record<string, string> = {
+                  HOTEL: "Hotels", GUEST_HOUSE: "Guest Houses", APARTMENT: "Apartments",
+                  RESORT: "Resorts", VILLA: "Villas", HOSTEL: "Hostels", LODGE: "Lodges",
+                };
+                if (typeParam && typeLabels[typeParam]) return typeLabels[typeParam];
+                if (locationParam) return `Properties in ${locationParam}`;
+                return "All Properties";
+              })()}
             </h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               {totalItems || safeData.length} properties found{locationParam ? ` in ${locationParam}` : ""}

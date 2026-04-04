@@ -52,6 +52,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   const [form, setForm] = useState({
     name: data.name,
     address: data.address,
+    type: (data as any).type || "HOTEL",
     description: data.about?.description || "",
     phone: data.contact?.phone || "",
     email: data.contact?.email || "",
@@ -115,6 +116,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
       data: {
         name: form.name,
         address: form.address,
+        type: form.type as any,
         about: { description: form.description },
         contact: { phone: form.phone, email: form.email },
         location: { city: form.city, subcity: form.subcity, country: form.country, nearby: form.nearby, continent: data.location?.continent || "", latitude: form.latitude, longitude: form.longitude },
@@ -158,6 +160,15 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
             <div className="space-y-1"><Label>Name</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Address</Label><Input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} /></div>
+            <div className="space-y-1">
+              <Label>Property Type</Label>
+              <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm">
+                {["HOTEL","GUEST_HOUSE","APARTMENT","RESORT","VILLA","HOSTEL","LODGE"].map(t => (
+                  <option key={t} value={t}>{t.replace("_", " ")}</option>
+                ))}
+              </select>
+            </div>
             <div className="space-y-1 md:col-span-2"><Label>Description</Label><Textarea rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Phone</Label><Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Email</Label><Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
