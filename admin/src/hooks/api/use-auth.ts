@@ -3,16 +3,17 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const ADMIN_TOKEN_KEY = "admin_session_token";
+const ADMIN_USER_KEY = "admin_session_user";
 
 export const useSignInWithEmailMutation = () => {
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
       const res = await authClient.signIn.email(data);
-      if ((res as any)?.data?.session?.token) {
-        localStorage.setItem(ADMIN_TOKEN_KEY, (res as any).data.session.token);
-      } else if ((res as any)?.data?.token) {
-        localStorage.setItem(ADMIN_TOKEN_KEY, (res as any).data.token);
-      }
+      const resData = (res as any)?.data;
+      const token = resData?.session?.token || resData?.token;
+      const user = resData?.user;
+      if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+      if (user) localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
       return res;
     },
     onSuccess: () => {
@@ -34,11 +35,11 @@ export const useSignUpWithEmailMutation = () => {
       role: string;
     }) => {
       const res = await authClient.signUp.email(data);
-      if ((res as any)?.data?.session?.token) {
-        localStorage.setItem(ADMIN_TOKEN_KEY, (res as any).data.session.token);
-      } else if ((res as any)?.data?.token) {
-        localStorage.setItem(ADMIN_TOKEN_KEY, (res as any).data.token);
-      }
+      const resData = (res as any)?.data;
+      const token = resData?.session?.token || resData?.token;
+      const user = resData?.user;
+      if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+      if (user) localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
       return res;
     },
     onSuccess: () => {

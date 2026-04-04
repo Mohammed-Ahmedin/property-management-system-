@@ -9,42 +9,49 @@ import { useRouter } from "next/navigation";
 import React, { ReactNode, useEffect, useState } from "react";
 
 const ADMIN_TOKEN_KEY = "admin_session_token";
+const ADMIN_USER_KEY = "admin_session_user";
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { data, isPending } = authClient.useSession();
   const router = useRouter();
-  const userData = data?.user;
   const [grace, setGrace] = useState(true);
-  const [hasLocalToken, setHasLocalToken] = useState(false);
+  const [localUser, setLocalUser] = useState<any>(null);
 
   useEffect(() => {
-    // Check localStorage token immediately — if present, stay on page while session loads
-    const token = typeof window !== "undefined" ? localStorage.getItem(ADMIN_TOKEN_KEY) : null;
-    setHasLocalToken(!!token);
+    // Restore user from localStorage immediately on mount
+    try {
+      const raw = localStorage.getItem(ADMIN_USER_KEY);
+      if (raw) setLocalUser(JSON.parse(raw));
+    } catch {}
     const t = setTimeout(() => setGrace(false), 3000);
     return () => clearTimeout(t);
   }, []);
 
+  // Prefer live session user, fall back to stored user
+  const userData = data?.user ?? localUser;
+
+  // Keep localStorage in sync when live session loads
+  useEffect(() => {
+    if (data?.user) {
+      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.user));
+      const token = (data as any)?.session?.token;
+      if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    }
+  }, [data?.user]);
+
   useEffect(() => {
     if (isPending || grace) return;
-    if (!userData && !hasLocalToken) {
+    if (!userData) {
       router.replace("/auth");
       return;
     }
-    if (userData && (userData as any).role === "GUEST") {
+    if ((userData as any).role === "GUEST") {
       router.replace("/auth");
     }
-  }, [isPending, userData, grace, hasLocalToken]);
+  }, [isPending, userData, grace]);
 
-  // Show loader while session is loading or during grace period
-  if (isPending || grace) {
-    return <LoaderState />;
-  }
-
-  // If no session and no local token, redirect (handled above)
-  if (!userData && !hasLocalToken) {
-    return <LoaderState />;
-  }
+  if (isPending || grace) return <LoaderState />;
+  if (!userData) return <LoaderState />;
 
   return (
     <SidebarProvider>

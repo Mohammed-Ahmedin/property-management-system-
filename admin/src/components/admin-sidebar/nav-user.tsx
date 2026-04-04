@@ -98,6 +98,7 @@ export function NavUser({
             <DropdownMenuItem
               onClick={async () => {
                 localStorage.removeItem("admin_session_token");
+                localStorage.removeItem("admin_session_user");
                 await authClient.signOut();
                 window.location.href = "/auth";
               }}
