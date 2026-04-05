@@ -1,16 +1,16 @@
 "use client";
 
-import React, { startTransition, useState, useTransition } from "react";
-
+import React, { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, User } from "lucide-react";
+import { Upload } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "../shared/avatar";
+import { toast } from "sonner";
 
 // Validation schema
 const userUpdateSchema = yup.object({
@@ -21,7 +21,8 @@ const userUpdateSchema = yup.object({
     .max(50, "Name must be less than 50 characters"),
   username: yup
     .string()
-    .required()
+    .optional()
+    .nullable()
     .transform((value) => value || null)
     .matches(
       /^[a-zA-Z0-9_]+$/,
@@ -122,7 +123,21 @@ const FormContainer = ({
 
   const onSubmit = async (data: UserUpdateForm) => {
     startTransition(async () => {
-      refetch(); // 🔥 This re-fetches the session from the server
+      try {
+        await authClient.updateUser({ name: data.name });
+        // Update localStorage so mobile sees the new name
+        try {
+          const raw = localStorage.getItem("admin_session_user");
+          if (raw) {
+            const stored = JSON.parse(raw);
+            localStorage.setItem("admin_session_user", JSON.stringify({ ...stored, name: data.name }));
+          }
+        } catch {}
+        toast.success("Profile updated");
+        refetch();
+      } catch {
+        toast.error("Failed to update profile");
+      }
     });
   };
 
