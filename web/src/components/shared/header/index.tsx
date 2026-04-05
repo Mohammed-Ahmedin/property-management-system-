@@ -95,8 +95,8 @@ export function Header() {
             <span className="text-xl font-bold text-foreground tracking-tight">Bete</span>
           </Link>
 
-          {/* Desktop Nav — compact spread */}
-          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center px-4">
+          {/* Desktop Nav — left-aligned next to logo */}
+          <nav className="hidden md:flex items-center gap-1 ml-6">
             <Link to="/"
               className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                 isActive("/") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
@@ -116,7 +116,7 @@ export function Header() {
                 <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", propDropdown && "rotate-180")} />
               </button>
               {propDropdown && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <Link to="/properties" onClick={() => setPropDropdown(false)}
                     className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 border-b border-border transition-colors">
                     <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
