@@ -45,12 +45,21 @@ export default function AccountSetting({
   isModalOpen: boolean;
 }) {
   const { data } = authClient.useSession();
-  const user = data?.user as any;
+  const sessionUser = data?.user as any;
+
+  // Fall back to localStorage on mobile where cookie session fails
+  const user = sessionUser ?? (() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem("admin_session_user");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
 
   if (!user) {
     return (
       <div className="px-0 h-full max-w-2xl mx-auto flex items-center justify-center py-20">
-        <p className="text-muted-foreground text-sm">Loading profile...</p>
+        <p className="text-muted-foreground text-sm">Could not load profile. Please sign out and sign in again.</p>
       </div>
     );
   }
