@@ -12,34 +12,37 @@ import { User } from "lucide-react"
 
 const ADMIN_USER_KEY = "admin_session_user"
 
+function getLocalUser() {
+  if (typeof window === "undefined") return null
+  try { const r = localStorage.getItem(ADMIN_USER_KEY); return r ? JSON.parse(r) : null } catch { return null }
+}
+
 export function ProfileTab() {
-  const { data, isPending } = authClient.useSession()
-
-  // Fall back to localStorage on mobile
+  const { data } = authClient.useSession()
   const sessionUser = data?.user as any
-  const localUser = (() => {
-    if (typeof window === "undefined") return null
-    try { const r = localStorage.getItem(ADMIN_USER_KEY); return r ? JSON.parse(r) : null } catch { return null }
-  })()
-  const user = sessionUser ?? localUser
 
+  // Use localStorage immediately — don't wait for session (mobile cookie fails)
+  const [user, setUser] = useState<any>(() => getLocalUser())
   const [name, setName] = useState("")
   const [saving, setSaving] = useState(false)
 
+  // Update when session loads
   useEffect(() => {
-    if (user?.name) setName(user.name)
-  }, [user?.name])
+    const u = sessionUser ?? getLocalUser()
+    if (u) {
+      setUser(u)
+      setName(u.name || "")
+    }
+  }, [sessionUser?.id])
 
   const handleSave = async () => {
     if (!name.trim()) return
     setSaving(true)
     try {
       await authClient.updateUser({ name })
-      // Update localStorage too
-      if (user) {
-        const updated = { ...user, name }
-        localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(updated))
-      }
+      const updated = { ...user, name }
+      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(updated))
+      setUser(updated)
       toast.success("Profile updated")
     } catch {
       toast.error("Failed to update profile")
@@ -48,19 +51,11 @@ export function ProfileTab() {
     }
   }
 
-  if (isPending && !user) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner className="size-6" />
-      </div>
-    )
-  }
-
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
         <User className="h-10 w-10 opacity-30" />
-        <p className="text-sm">Could not load profile. Please refresh.</p>
+        <p className="text-sm">Could not load profile. Please sign in again.</p>
       </div>
     )
   }
@@ -91,13 +86,11 @@ export function ProfileTab() {
           <Label htmlFor="fullName">Full Name</Label>
           <Input id="fullName" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
         </div>
-
         <div className="grid gap-2">
           <Label htmlFor="email">Email Address</Label>
           <Input id="email" type="email" value={user.email || ""} disabled className="opacity-60" />
           <p className="text-xs text-muted-foreground">Email cannot be changed here</p>
         </div>
-
         {user.phone && (
           <div className="grid gap-2">
             <Label>Phone</Label>
