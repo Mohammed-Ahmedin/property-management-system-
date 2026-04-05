@@ -517,6 +517,23 @@ export default {
     res.json({ success: true, message: "Image deleted" });
   }),
 
+  addFeature: tryCatch(async (req, res) => {
+    const roomId = req.params.id;
+    const features = Array.isArray(req.body) ? req.body : [req.body];
+    const created = await Promise.all(
+      features.map((f: any) =>
+        prisma.roomFeature.create({ data: { roomId, category: f.category || "General", name: f.name, value: f.value || "" } })
+      )
+    );
+    res.status(201).json({ success: true, message: "Feature(s) added", data: created });
+  }),
+
+  deleteFeature: tryCatch(async (req, res) => {
+    const { featureId } = req.params;
+    await prisma.roomFeature.delete({ where: { id: featureId } });
+    res.json({ success: true, message: "Feature deleted" });
+  }),
+
   addServices: tryCatch(async (req, res) => {
     const { roomId } = req.params;
 

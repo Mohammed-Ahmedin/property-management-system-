@@ -282,3 +282,33 @@ export const useDeleteRoomImageMutation = () => {
     onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to delete image"),
   });
 };
+
+export const useAddRoomFeaturesMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { roomId: string; features: Array<{ category: string; name: string; value: string }> }>({
+    mutationFn: async ({ roomId, features }) => {
+      const res = await api.post(`/rooms/${roomId}/features`, features);
+      return res.data;
+    },
+    onSuccess: (_, { roomId }) => {
+      toast.success("Feature(s) added");
+      queryClient.invalidateQueries({ queryKey: ["rooms", roomId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to add feature"),
+  });
+};
+
+export const useDeleteRoomFeatureMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { roomId: string; featureId: string }>({
+    mutationFn: async ({ roomId, featureId }) => {
+      const res = await api.delete(`/rooms/${roomId}/features/${featureId}`);
+      return res.data;
+    },
+    onSuccess: (_, { roomId }) => {
+      toast.success("Feature deleted");
+      queryClient.invalidateQueries({ queryKey: ["rooms", roomId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "Failed to delete feature"),
+  });
+};

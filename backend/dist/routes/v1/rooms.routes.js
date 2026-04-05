@@ -32,3 +32,6 @@ router.post("/:id/images", rooms_controller_1.default.addRoomImage);
 router.delete("/:id/images/:imageId", rooms_controller_1.default.deleteRoomImage);
 // room discount
 router.post("/:id/discount", (0, auth_middleware_1.authGuard)({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), properties_controller_1.default.setRoomDiscount);
+// room features
+router.post("/:id/features", (0, auth_middleware_1.authGuard)({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), rooms_controller_1.default.addFeature);
+router.delete("/:id/features/:featureId", (0, auth_middleware_1.authGuard)({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), rooms_controller_1.default.deleteFeature);

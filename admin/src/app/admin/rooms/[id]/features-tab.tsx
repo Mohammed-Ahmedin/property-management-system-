@@ -4,9 +4,11 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Pencil, Trash2, Sparkles } from "lucide-react"
+import { Plus, Trash2, Sparkles } from "lucide-react"
 import { FeatureDialog } from "./feature-dialog"
 import { Empty } from "./empty"
+import { useAddRoomFeaturesMutation, useDeleteRoomFeatureMutation } from "@/hooks/api/use-rooms"
+import { Spinner } from "@/components/ui/spinner"
 
 interface Feature {
   id: string
@@ -26,57 +28,32 @@ interface FeaturesTabProps {
 export function FeaturesTab({ features: initialFeatures, roomId }: FeaturesTabProps) {
   const [features, setFeatures] = useState(initialFeatures)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingFeature, setEditingFeature] = useState<Feature | null>(null)
+  const addMutation = useAddRoomFeaturesMutation()
+  const deleteMutation = useDeleteRoomFeatureMutation()
 
-  const handleAddFeatures = (newFeatures: Omit<Feature, "id" | "createdAt" | "updatedAt">[]) => {
-    const featuresWithIds = newFeatures.map((feature) => ({
-      ...feature,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }))
-    setFeatures([...features, ...featuresWithIds])
-    setDialogOpen(false)
-  }
-
-  const handleEditFeature = (updatedFeatures: Omit<Feature, "id" | "createdAt" | "updatedAt">[]) => {
-    if (editingFeature && updatedFeatures.length > 0) {
-      const updatedFeature = updatedFeatures[0]
-      setFeatures(
-        features.map((f) =>
-          f.id === editingFeature.id ? { ...f, ...updatedFeature, updatedAt: new Date().toISOString() } : f,
-        ),
-      )
-      setEditingFeature(null)
+  const handleAddFeatures = async (newFeatures: Omit<Feature, "id" | "createdAt" | "updatedAt">[]) => {
+    try {
+      const res = await addMutation.mutateAsync({ roomId, features: newFeatures })
+      // Append returned features (with real IDs) to local state
+      const created: Feature[] = Array.isArray(res.data) ? res.data : [res.data]
+      setFeatures(prev => [...prev, ...created])
       setDialogOpen(false)
-    }
+    } catch {}
   }
 
-  const handleDeleteFeature = (id: string) => {
-    setFeatures(features.filter((f) => f.id !== id))
-  }
-
-  const openEditDialog = (feature: Feature) => {
-    setEditingFeature(feature)
-    setDialogOpen(true)
-  }
-
-  const closeDialog = () => {
-    setDialogOpen(false)
-    setEditingFeature(null)
+  const handleDeleteFeature = async (id: string) => {
+    try {
+      await deleteMutation.mutateAsync({ roomId, featureId: id })
+      setFeatures(prev => prev.filter(f => f.id !== id))
+    } catch {}
   }
 
   // Group features by category
-  const groupedFeatures = features.reduce(
-    (acc, feature) => {
-      if (!acc[feature.category]) {
-        acc[feature.category] = []
-      }
-      acc[feature.category].push(feature)
-      return acc
-    },
-    {} as Record<string, Feature[]>,
-  )
+  const groupedFeatures = features.reduce((acc, feature) => {
+    if (!acc[feature.category]) acc[feature.category] = []
+    acc[feature.category].push(feature)
+    return acc
+  }, {} as Record<string, Feature[]>)
 
   return (
     <div className="space-y-6">
@@ -86,8 +63,7 @@ export function FeaturesTab({ features: initialFeatures, roomId }: FeaturesTabPr
           <p className="text-muted-foreground">Manage amenities and features for this room</p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Features
+          <Plus className="mr-2 h-4 w-4" /> Add Features
         </Button>
       </div>
 
@@ -98,8 +74,7 @@ export function FeaturesTab({ features: initialFeatures, roomId }: FeaturesTabPr
           description="Add features to highlight what makes this room special"
           action={
             <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add First Feature
+              <Plus className="mr-2 h-4 w-4" /> Add First Feature
             </Button>
           }
         />
@@ -114,24 +89,19 @@ export function FeaturesTab({ features: initialFeatures, roomId }: FeaturesTabPr
               <CardContent>
                 <div className="grid gap-3">
                   {categoryFeatures.map((feature) => (
-                    <div key={feature.id} className="flex items-center justify-between rounded-lg border bg-card p-4">
+                    <div key={feature.id} className="flex items-center justify-between rounded-lg border bg-card p-4 hover:border-primary/30 transition-colors">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium">{feature.name}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {feature.category}
-                          </Badge>
+                          <Badge variant="outline" className="text-xs">{feature.category}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{feature.value}</p>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(feature)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteFeature(feature.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteFeature(feature.id)}
+                        disabled={deleteMutation.isPending}>
+                        {deleteMutation.isPending ? <Spinner className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -143,10 +113,9 @@ export function FeaturesTab({ features: initialFeatures, roomId }: FeaturesTabPr
 
       <FeatureDialog
         open={dialogOpen}
-        onOpenChange={closeDialog}
-        onSubmit={editingFeature ? handleEditFeature : handleAddFeatures}
-        initialData={editingFeature ? [editingFeature] : undefined}
-        mode={editingFeature ? "edit" : "add"}
+        onOpenChange={(o) => setDialogOpen(o)}
+        onSubmit={handleAddFeatures}
+        mode="add"
         roomId={roomId}
       />
     </div>

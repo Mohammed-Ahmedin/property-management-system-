@@ -62,32 +62,17 @@ const commissionSchema = yup.object({
     .number()
     .nullable()
     .transform((value, originalValue) => (originalValue === "" ? null : value))
-    .min(0).max(100).typeError("Must be a valid number")
-    .when(["role", "calcType"], {
-      is: (role: string, calcType: string) => role !== "BROKER" && calcType !== "FLAT_AMOUNT",
-      then: (s) => s.required("Percentage is required"),
-      otherwise: (s) => s.nullable(),
-    }),
+    .min(0).max(100).typeError("Must be a valid number"),
   flatAmount: yup
     .number()
     .nullable()
     .transform((value, originalValue) => (originalValue === "" ? null : value))
-    .min(0).typeError("Must be a valid number")
-    .when("calcType", {
-      is: "FLAT_AMOUNT",
-      then: (s) => s.required("Amount is required"),
-      otherwise: (s) => s.nullable(),
-    }),
+    .min(0).typeError("Must be a valid number"),
   brokerPercent: yup
     .number()
     .nullable()
     .transform((value, originalValue) => (originalValue === "" ? null : value))
-    .min(0).max(100).typeError("Must be a valid number")
-    .when(["role", "calcType"], {
-      is: (role: string, calcType: string) => role === "BROKER" && calcType !== "FLAT_AMOUNT",
-      then: (s) => s.required("Broker percentage is required"),
-      otherwise: (s) => s.nullable(),
-    }),
+    .min(0).max(100).typeError("Must be a valid number"),
   type: yup.string().oneOf(["PLATFORM", "GUESTHOUSE"]).required("Commission type is required"),
   propertyId: yup.string().nullable(),
   isActive: yup.boolean().required(),

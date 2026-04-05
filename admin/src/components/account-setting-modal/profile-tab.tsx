@@ -14,7 +14,11 @@ const ADMIN_USER_KEY = "admin_session_user"
 
 function getLocalUser() {
   if (typeof window === "undefined") return null
-  try { const r = localStorage.getItem(ADMIN_USER_KEY); return r ? JSON.parse(r) : null } catch { return null }
+  try {
+    // Try both possible keys
+    const r = localStorage.getItem("admin_session_user") || localStorage.getItem("ADMIN_USER")
+    return r ? JSON.parse(r) : null
+  } catch { return null }
 }
 
 export function ProfileTab() {
@@ -22,18 +26,19 @@ export function ProfileTab() {
   const sessionUser = data?.user as any
 
   // Use localStorage immediately — don't wait for session (mobile cookie fails)
-  const [user, setUser] = useState<any>(() => getLocalUser())
+  const [user, setUser] = useState<any>(null)
   const [name, setName] = useState("")
   const [saving, setSaving] = useState(false)
 
-  // Update when session loads
+  // Load from localStorage on mount + update when session loads
   useEffect(() => {
     const u = sessionUser ?? getLocalUser()
     if (u) {
       setUser(u)
       setName(u.name || "")
     }
-  }, [sessionUser?.id])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSave = async () => {
     if (!name.trim()) return
@@ -53,9 +58,9 @@ export function ProfileTab() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
-        <User className="h-10 w-10 opacity-30" />
-        <p className="text-sm">Could not load profile. Please sign in again.</p>
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+        <Spinner className="size-6" />
+        <p className="text-sm">Loading profile...</p>
       </div>
     )
   }

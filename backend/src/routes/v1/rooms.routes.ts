@@ -47,6 +47,10 @@ router.post("/:id/images", roomsController.addRoomImage);
 router.delete("/:id/images/:imageId", roomsController.deleteRoomImage);
 // room discount
 router.post("/:id/discount", authGuard({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), propertiesController.setRoomDiscount);
+
+// room features
+router.post("/:id/features", authGuard({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), roomsController.addFeature);
+router.delete("/:id/features/:featureId", authGuard({ accessedBy: ["BROKER", "OWNER", "STAFF", "ADMIN"] }), roomsController.deleteFeature);
 // router.post("/dummy", roomsController.createDummyRoom);
 
 export { router as RoomsRouter };

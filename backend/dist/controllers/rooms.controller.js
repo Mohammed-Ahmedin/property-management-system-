@@ -452,6 +452,17 @@ exports.default = {
         yield prisma_1.prisma.roomImage.delete({ where: { id: imageId } });
         res.json({ success: true, message: "Image deleted" });
     })),
+    addFeature: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const roomId = req.params.id;
+        const features = Array.isArray(req.body) ? req.body : [req.body];
+        const created = yield Promise.all(features.map((f) => prisma_1.prisma.roomFeature.create({ data: { roomId, category: f.category || "General", name: f.name, value: f.value || "" } })));
+        res.status(201).json({ success: true, message: "Feature(s) added", data: created });
+    })),
+    deleteFeature: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const { featureId } = req.params;
+        yield prisma_1.prisma.roomFeature.delete({ where: { id: featureId } });
+        res.json({ success: true, message: "Feature deleted" });
+    })),
     addServices: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { roomId } = req.params;
         // Ensure room exists

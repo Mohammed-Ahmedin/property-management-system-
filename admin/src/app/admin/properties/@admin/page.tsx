@@ -66,7 +66,7 @@ export default function AdminPropertiesPage() {
             return (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={cn(
-                  "relative overflow-hidden p-4 rounded-xl border text-left hover:shadow-md transition-all",
+                  "relative overflow-hidden p-4 rounded-xl border text-left hover:shadow-md transition-all select-none",
                   statusFilter === s ? "ring-2 ring-primary border-primary/30" : "border-border bg-card hover:border-primary/20"
                 )}>
                 {cfg && <div className={cn("absolute top-0 left-0 right-0 h-0.5", cfg.bar)} />}
