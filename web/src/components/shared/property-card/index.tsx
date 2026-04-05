@@ -210,25 +210,23 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
 
       {/* ── Right: rating + price + CTA ── */}
       <div
-        className="sm:w-[200px] shrink-0 p-4 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between border-t sm:border-t-0 sm:border-l border-border"
+        className="sm:w-[180px] shrink-0 p-4 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 border-t sm:border-t-0 sm:border-l border-border"
         onClick={() => navigate(`/properties/${data.id}`)}
       >
-        <div className="text-right">
-          {averageRating > 0 ? (
-            <div className="flex items-center gap-2 justify-end">
-              <div className="text-right">
-                <p className="text-sm font-semibold">{ratingLabel}</p>
-                <p className="text-xs text-muted-foreground">{reviewCount} reviews</p>
-              </div>
-              <div className="bg-primary text-white text-sm font-bold w-9 h-9 flex items-center justify-center rounded-lg shrink-0">
-                {averageRating.toFixed(1)}
-              </div>
+        {averageRating > 0 ? (
+          <div className="flex items-center gap-2 justify-end">
+            <div className="text-right">
+              <p className="text-sm font-semibold">{ratingLabel}</p>
+              <p className="text-xs text-muted-foreground">{reviewCount} reviews</p>
             </div>
-          ) : (
-            <span className="text-xs text-muted-foreground">No reviews yet</span>
-          )}
-        </div>
-        <div className="text-right mt-4">
+            <div className="bg-primary text-white text-sm font-bold w-9 h-9 flex items-center justify-center rounded-lg shrink-0">
+              {averageRating.toFixed(1)}
+            </div>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">No reviews yet</span>
+        )}
+        <div className="text-right sm:mt-auto">
           <p className="text-xs text-muted-foreground mb-0.5">Avg price per night</p>
           {avgPrice ? (
             (() => {

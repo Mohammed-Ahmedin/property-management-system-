@@ -95,10 +95,10 @@ export function Header() {
             <span className="text-xl font-bold text-foreground tracking-tight">Bete</span>
           </Link>
 
-          {/* Desktop Nav — full width spread */}
-          <nav className="hidden md:flex items-center flex-1 justify-between px-6 lg:px-16">
+          {/* Desktop Nav — compact spread */}
+          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center px-4">
             <Link to="/"
-              className={cn("px-5 py-2 rounded-full text-sm font-medium transition-all",
+              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                 isActive("/") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
               )}>
               Home
@@ -108,7 +108,7 @@ export function Header() {
             <div ref={dropRef} className="relative">
               <button
                 onClick={() => setPropDropdown(d => !d)}
-                className={cn("flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium transition-all",
+                className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                   location.pathname.startsWith("/properties") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
                 )}
               >
@@ -138,21 +138,21 @@ export function Header() {
             </div>
 
             <Link to="/nearby"
-              className={cn("flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium transition-all",
+              className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                 isActive("/nearby") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
               )}>
               <MapPin className="w-3.5 h-3.5" /> Nearby
             </Link>
 
             <Link to="/about"
-              className={cn("px-5 py-2 rounded-full text-sm font-medium transition-all",
+              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                 isActive("/about") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
               )}>
               About
             </Link>
 
             <Link to="/register"
-              className={cn("px-5 py-2 rounded-full text-sm font-medium transition-all",
+              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                 isActive("/register") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
               )}>
               Register

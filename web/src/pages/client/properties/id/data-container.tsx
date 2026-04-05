@@ -661,18 +661,24 @@ const DataContainer = ({ data }: Props) => {
           <section id="policies" className="mb-10">
             <h2 className="text-xl font-bold mb-4">Property policies</h2>
             <div className="border border-border rounded-2xl overflow-hidden bg-card">
-              {[
-                { label: "Check-in", value: "From 15:00" },
-                { label: "Check-out", value: "Until 12:00" },
-                { label: "Cancellation", value: "Free cancellation available", green: true },
-                { label: "Children", value: "All children welcome" },
-                { label: "Pets", value: "Not allowed" },
-              ].map(({ label, value, green }, i, arr) => (
-                <div key={label} className={cn("flex justify-between items-center px-5 py-3.5 text-sm", i < arr.length - 1 ? "border-b border-border" : "")}>
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className={cn("font-medium", green ? "text-green-600" : "")}>{value}</span>
-                </div>
-              ))}
+              {(() => {
+                const rawPolicies = (property as any).policies;
+                const policies: Array<{ key: string; value: string }> = Array.isArray(rawPolicies) && rawPolicies.length > 0
+                  ? rawPolicies
+                  : [
+                    { key: "Check-in", value: "From 15:00" },
+                    { key: "Check-out", value: "Until 12:00" },
+                    { key: "Cancellation", value: "Free cancellation available" },
+                    { key: "Children", value: "All children welcome" },
+                    { key: "Pets", value: "Not allowed" },
+                  ];
+                return policies.map(({ key, value }, i) => (
+                  <div key={key} className={cn("flex justify-between items-center px-5 py-3.5 text-sm", i < policies.length - 1 ? "border-b border-border" : "")}>
+                    <span className="text-muted-foreground">{key}</span>
+                    <span className="font-medium">{value}</span>
+                  </div>
+                ));
+              })()}
             </div>
           </section>
         </div>
@@ -870,18 +876,24 @@ const DataContainer = ({ data }: Props) => {
                 <div>
                   <h3 className="text-lg font-bold mb-4">Property policies</h3>
                   <div className="border border-border rounded-2xl overflow-hidden">
-                    {[
-                      { label: "Check-in", value: "From 15:00" },
-                      { label: "Check-out", value: "Until 12:00" },
-                      { label: "Cancellation", value: "Free cancellation available", green: true },
-                      { label: "Children", value: "All children welcome" },
-                      { label: "Pets", value: "Not allowed" },
-                    ].map(({ label, value, green }, i, arr) => (
-                      <div key={label} className={cn("flex justify-between items-center px-5 py-3.5 text-sm", i < arr.length - 1 ? "border-b border-border" : "")}>
-                        <span className="text-muted-foreground">{label}</span>
-                        <span className={cn("font-medium", green ? "text-green-600" : "")}>{value}</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      const rawPolicies = (property as any).policies;
+                      const policies: Array<{ key: string; value: string }> = Array.isArray(rawPolicies) && rawPolicies.length > 0
+                        ? rawPolicies
+                        : [
+                          { key: "Check-in", value: "From 15:00" },
+                          { key: "Check-out", value: "Until 12:00" },
+                          { key: "Cancellation", value: "Free cancellation available" },
+                          { key: "Children", value: "All children welcome" },
+                          { key: "Pets", value: "Not allowed" },
+                        ];
+                      return policies.map(({ key, value }, i) => (
+                        <div key={key} className={cn("flex justify-between items-center px-5 py-3.5 text-sm", i < policies.length - 1 ? "border-b border-border" : "")}>
+                          <span className="text-muted-foreground">{key}</span>
+                          <span className="font-medium">{value}</span>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               )}

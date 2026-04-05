@@ -4,6 +4,8 @@ import { PropertyCard } from "@/components/shared/property-card";
 import type { PropertyDataResponse } from "@/hooks/api/use-properties";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { LayoutGrid, List } from "lucide-react";
+import { useState } from "react";
 
 interface Props {
   data: PropertyDataResponse[];
@@ -25,6 +27,7 @@ const SORT_TABS = [
 const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }: Props) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSort = searchParams.get("sortField") || "top_picks";
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Client-side price sort (backend can't sort by min room price easily)
   const safeData = Array.isArray(data) ? data : [];
@@ -68,7 +71,7 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
 
       {/* Right content */}
       <div className="flex-1 min-w-0">
-        {/* Heading */}
+        {/* Heading + view toggle */}
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold">
@@ -87,12 +90,31 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
               {totalItems || safeData.length} properties found{locationParam ? ` in ${locationParam}` : ""}
             </p>
           </div>
-          {totalItems > 0 && (
-            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-full px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              {totalItems} available
+          <div className="flex items-center gap-2">
+            {totalItems > 0 && (
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-border rounded-full px-3 py-1.5">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                {totalItems} available
+              </div>
+            )}
+            {/* View toggle */}
+            <div className="flex items-center border border-border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={cn("p-2 transition-colors", viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground")}
+                title="Grid view"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={cn("p-2 transition-colors", viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground")}
+                title="List view"
+              >
+                <List className="w-4 h-4" />
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Info panel — only when location is set */}
@@ -138,9 +160,13 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
         </div>
 
         {/* Cards */}
-        <div className="flex flex-col gap-4">
+        <div className={cn(
+          viewMode === "grid"
+            ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
+            : "flex flex-col gap-4"
+        )}>
           {sortedData.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground">
+            <div className="col-span-full py-16 text-center text-muted-foreground">
               <svg className="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9.75L12 3l9 6.75V21H3V9.75z" />
               </svg>
@@ -148,7 +174,9 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
               <p className="text-sm mt-1">Try adjusting your filters or check back later.</p>
             </div>
           ) : (
-            sortedData.map((d, idx) => <PropertyCard data={d} key={d.id + idx} />)
+            sortedData.map((d, idx) => (
+              <PropertyCard data={d} key={d.id + idx} view={viewMode === "grid" ? "vertical" : "horizontal"} />
+            ))
           )}
         </div>
 
