@@ -87,77 +87,79 @@ export function Header() {
       <div className="w-full px-4 sm:px-8 lg:px-12">
         <div className="flex h-16 items-center justify-between">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow">
-              <span className="text-primary-foreground font-bold text-base">B</span>
-            </div>
-            <span className="text-xl font-bold text-foreground tracking-tight">Bete</span>
-          </Link>
-
-          {/* Desktop Nav — left-aligned next to logo */}
-          <nav className="hidden md:flex items-center gap-1 ml-6">
-            <Link to="/"
-              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                isActive("/") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
-              )}>
-              Home
+          {/* Logo + Nav grouped on left */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow">
+                <span className="text-primary-foreground font-bold text-base">B</span>
+              </div>
+              <span className="text-xl font-bold text-foreground tracking-tight">Bete</span>
             </Link>
 
-            {/* Properties dropdown */}
-            <div ref={dropRef} className="relative">
-              <button
-                onClick={() => setPropDropdown(d => !d)}
-                className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  location.pathname.startsWith("/properties") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
-                )}
-              >
-                {activePropertyLabel}
-                <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", propDropdown && "rotate-180")} />
-              </button>
-              {propDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <Link to="/properties" onClick={() => setPropDropdown(false)}
-                    className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 border-b border-border transition-colors">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Building2 className="w-3.5 h-3.5 text-primary" />
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1 ml-4">
+              <Link to="/"
+                className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                  isActive("/") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                )}>
+                Home
+              </Link>
+
+              {/* Properties dropdown */}
+              <div ref={dropRef} className="relative">
+                <button
+                  onClick={() => setPropDropdown(d => !d)}
+                  className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                    location.pathname.startsWith("/properties") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {activePropertyLabel}
+                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", propDropdown && "rotate-180")} />
+                </button>
+                {propDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <Link to="/properties" onClick={() => setPropDropdown(false)}
+                      className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 border-b border-border transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      All Properties
+                    </Link>
+                    <div className="p-1.5">
+                      {PROPERTY_TYPES.map((t) => (
+                        <Link key={t.value} to={`/properties?type=${t.value}`} onClick={() => setPropDropdown(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition-colors">
+                          <span className={t.color}>{t.icon}</span>
+                          {t.label}
+                        </Link>
+                      ))}
                     </div>
-                    All Properties
-                  </Link>
-                  <div className="p-1.5">
-                    {PROPERTY_TYPES.map((t) => (
-                      <Link key={t.value} to={`/properties?type=${t.value}`} onClick={() => setPropDropdown(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition-colors">
-                        <span className={t.color}>{t.icon}</span>
-                        {t.label}
-                      </Link>
-                    ))}
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <Link to="/nearby"
-              className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                isActive("/nearby") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
-              )}>
-              <MapPin className="w-3.5 h-3.5" /> Nearby
-            </Link>
+              <Link to="/nearby"
+                className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                  isActive("/nearby") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                )}>
+                <MapPin className="w-3.5 h-3.5" /> Nearby
+              </Link>
 
-            <Link to="/about"
-              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                isActive("/about") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
-              )}>
-              About
-            </Link>
+              <Link to="/about"
+                className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                  isActive("/about") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                )}>
+                About
+              </Link>
 
-            <Link to="/register"
-              className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                isActive("/register") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
-              )}>
-              Register
-            </Link>
-          </nav>
+              <Link to="/register"
+                className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                  isActive("/register") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                )}>
+                Register
+              </Link>
+            </nav>
+          </div>
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-2">
