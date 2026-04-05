@@ -1,72 +1,72 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useGetCommisionSettings } from "@/hooks/api/use-commision";
 import LoaderState from "@/components/shared/loader-state";
 import { UpdateCommissionModal } from "./update-commision-modal";
+import { cn } from "@/lib/utils";
+import { Percent, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const BookingCommissionsTable: React.FC = () => {
-  const { data, isFetching, isError, error, refetch } =
-    useGetCommisionSettings();
+  const { data, isFetching, isError, refetch } = useGetCommisionSettings();
 
   if (isFetching) return <LoaderState />;
 
-  if (isError)
-    return (
-      <div className="py-20 grid place-content-center">
-        <p className="text-red-500">Something went wrong, please try again</p>
-      </div>
-    );
+  if (isError) return (
+    <div className="py-12 text-center">
+      <p className="text-destructive mb-3">Failed to load commissions</p>
+      <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+        <RefreshCw className="h-3.5 w-3.5" /> Retry
+      </Button>
+    </div>
+  );
+
+  if (!data?.length) return (
+    <div className="py-12 text-center text-muted-foreground">
+      <Percent className="h-10 w-10 mx-auto mb-3 opacity-20" />
+      <p>No commissions configured yet.</p>
+    </div>
+  );
 
   return (
-    <Card>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Id</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Platform %</TableHead>
-              <TableHead className="text-right">Broker %</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {data?.map((commission) => (
-              <TableRow key={commission.id} className={`${commission.type === 'PLATFORM' && 'bg-purple-400/20 rounded-b-lg overflow-hidden'}`}>
-                <TableCell className="font-medium">{commission.id.slice(0, 7)}...</TableCell>
-                <TableCell className="font-medium">{(commission as any).name || "—"}</TableCell>
-                <TableCell><span className="text-xs bg-muted px-2 py-0.5 rounded font-medium">{(commission as any).role || "—"}</span></TableCell>
-                <TableCell>{commission.type}</TableCell>
-                <TableCell>{new Date(commission.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge variant={commission.isActive ? "default" : "destructive"}>
-                    {commission.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right font-medium">{commission.platformPercent || 0}%</TableCell>
-                <TableCell className="text-right font-medium">{commission.brokerPercent || 0}%</TableCell>
-                <TableCell className="text-right">
-                  <UpdateCommissionModal commissionId={commission.id} initialData={commission as any} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-3">
+      {data.map((commission) => (
+        <div key={commission.id}
+          className={cn(
+            "flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border hover:border-primary/30 hover:shadow-sm transition-all",
+            commission.type === "PLATFORM" ? "bg-purple-500/5 border-purple-500/20" : "bg-card"
+          )}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={cn("p-2 rounded-lg shrink-0", commission.type === "PLATFORM" ? "bg-purple-100 dark:bg-purple-900/30" : "bg-muted")}>
+              <Percent className={cn("h-4 w-4", commission.type === "PLATFORM" ? "text-purple-600" : "text-muted-foreground")} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-semibold text-sm">{(commission as any).name || "Commission"}</p>
+                <Badge variant="outline" className="text-xs">{commission.type}</Badge>
+                <Badge variant={commission.isActive ? "default" : "destructive"} className="text-xs">
+                  {commission.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                ID: {commission.id.slice(0, 8)}... · Created {new Date(commission.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">Platform</p>
+              <p className="text-lg font-bold text-primary">{commission.platformPercent || 0}%</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">Broker</p>
+              <p className="text-lg font-bold text-purple-600">{commission.brokerPercent || 0}%</p>
+            </div>
+            <UpdateCommissionModal commissionId={commission.id} initialData={commission as any} />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };

@@ -10,7 +10,7 @@ import {
 import { useGetAdminDashboardSummary, useGetAdminDashboardStats } from "@/hooks/api/use-dashboard";
 import LoaderState from "@/components/shared/loader-state";
 
-const PIE_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
+const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
 export const DashboardSummary = () => {
   const { data: propertyData = [], isFetching, error } = useGetAdminDashboardSummary();
@@ -58,19 +58,19 @@ export const DashboardSummary = () => {
           <CardContent className="p-2 sm:p-6">
             <ChartContainer
               config={{
-                revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
-                bookings: { label: "Bookings", color: "hsl(var(--chart-2))" },
+                revenue: { label: "Revenue", color: "#3b82f6" },
+                bookings: { label: "Bookings", color: "#10b981" },
               }}
               className="h-[240px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={50} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line type="monotone" dataKey="revenue" stroke="var(--color-revenue)" strokeWidth={2} dot={{ fill: "var(--color-revenue)", r: 3 }} />
-                  <Line type="monotone" dataKey="bookings" stroke="var(--color-bookings)" strokeWidth={2} dot={{ fill: "var(--color-bookings)", r: 3 }} />
+                  <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2.5} dot={{ fill: "#3b82f6", r: 4 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="bookings" stroke="#10b981" strokeWidth={2.5} dot={{ fill: "#10b981", r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -116,16 +116,16 @@ export const DashboardSummary = () => {
           </CardHeader>
           <CardContent className="p-2 sm:p-6">
             <ChartContainer
-              config={{ bookings: { label: "Bookings", color: "hsl(var(--chart-3))" } }}
+              config={{ bookings: { label: "Bookings", color: "#f59e0b" } }}
               className="h-[240px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={propertyData} margin={{ top: 5, right: 10, left: 0, bottom: 55 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} angle={-35} textAnchor="end" interval={0} />
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={30} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="bookings" fill="var(--color-bookings)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="bookings" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>

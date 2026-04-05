@@ -60,28 +60,105 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
   );
 
   if (view === "vertical") {
+    const roomPricesV = (data.rooms || []).map(r => r.price).filter(p => p > 0);
+    const avgPriceV = roomPricesV.length ? Math.round(roomPricesV.reduce((a, b) => a + b, 0) / roomPricesV.length) : null;
+    const propDiscountV = (data as any).discountPercent ?? 0;
+    const discountedPriceV = propDiscountV > 0 && avgPriceV ? Math.round(avgPriceV * (1 - propDiscountV / 100)) : null;
+
     return (
       <div
-        className="rounded-xl overflow-hidden border bg-card hover:shadow-lg transition-all duration-300 cursor-pointer group"
+        className="rounded-2xl overflow-hidden border border-border bg-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col"
         onClick={() => navigate(`/properties/${data.id}`)}
       >
-        <ImageCarousel height="h-52" />
-        <div className="p-4">
-          <h3 className="font-semibold text-base line-clamp-1 mb-1">{name}</h3>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-            <MapPin className="w-3 h-3 shrink-0" />
-            <span className="line-clamp-1">{address}</span>
-          </div>
-          {averageRating > 0 && (
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded">
-                {averageRating.toFixed(1)}
-              </span>
-              <span className="text-xs font-medium">{ratingLabel}</span>
-              <span className="text-xs text-muted-foreground">({reviewCount})</span>
+        {/* Image */}
+        <div className="relative h-52 overflow-hidden bg-muted">
+          {images?.[0]?.url ? (
+            <img src={images[0].url} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <svg className="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9.75L12 3l9 6.75V21H3V9.75z" />
+              </svg>
             </div>
           )}
-          {distance && <p className="text-xs text-muted-foreground mb-2">{distance} km from you</p>}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          {/* Type badge */}
+          <div className="absolute top-3 left-3">
+            <Badge className="text-xs font-semibold bg-primary/90 backdrop-blur-sm">{type || "Property"}</Badge>
+          </div>
+          {/* Discount badge */}
+          {propDiscountV > 0 && (
+            <div className="absolute top-3 right-10">
+              <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">{propDiscountV}% OFF</span>
+            </div>
+          )}
+          {/* Heart */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggle(data.id); }}
+            className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow transition-all hover:scale-110"
+            aria-label="Save property"
+          >
+            <Heart className={cn("w-4 h-4", saved ? "fill-red-500 text-red-500" : "text-gray-600")} />
+          </button>
+          {/* Rating badge on image */}
+          {averageRating > 0 && (
+            <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
+              <div className="bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded">{averageRating.toFixed(1)}</div>
+              <span className="text-white text-xs font-medium drop-shadow">{ratingLabel}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-4 flex flex-col flex-1">
+          <h3 className="font-bold text-sm line-clamp-1 mb-1 group-hover:text-primary transition-colors">{name}</h3>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+            <MapPin className="w-3 h-3 shrink-0 text-primary" />
+            <span className="line-clamp-1">{address}</span>
+          </div>
+
+          {/* Stars */}
+          {starCount > 0 && (
+            <div className="flex items-center gap-0.5 mb-2">
+              {Array.from({ length: Math.min(starCount, 5) }).map((_, i) => (
+                <FaStar key={i} className="w-3 h-3 text-yellow-400" />
+              ))}
+              <span className="text-xs text-muted-foreground ml-1">({reviewCount})</span>
+            </div>
+          )}
+
+          {/* Facilities */}
+          {facilities && facilities.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {facilities.slice(0, 3).map((f) => (
+                <span key={f.id} className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border/50">{f.name}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Price */}
+          <div className="mt-auto pt-3 border-t border-border/50 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">per night</p>
+              {avgPriceV ? (
+                discountedPriceV ? (
+                  <div>
+                    <p className="text-xs line-through text-muted-foreground">ETB {avgPriceV.toLocaleString()}</p>
+                    <p className="text-base font-bold text-red-500">ETB {discountedPriceV.toLocaleString()}</p>
+                  </div>
+                ) : (
+                  <p className="text-base font-bold text-primary">ETB {avgPriceV.toLocaleString()}</p>
+                )
+              ) : (
+                <p className="text-xs text-muted-foreground">Contact for price</p>
+              )}
+            </div>
+            <Button size="sm" className="text-xs h-8 rounded-full px-4 font-semibold"
+              onClick={(e) => { e.stopPropagation(); navigate(`/properties/${data.id}`); }}>
+              Book
+            </Button>
+          </div>
         </div>
       </div>
     );
