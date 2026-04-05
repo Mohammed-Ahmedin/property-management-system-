@@ -8,37 +8,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { authClient } from "@/lib/auth-client"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
-import { User } from "lucide-react"
-
-const ADMIN_USER_KEY = "admin_session_user"
-
-function getLocalUser() {
-  if (typeof window === "undefined") return null
-  try {
-    // Try both possible keys
-    const r = localStorage.getItem("admin_session_user") || localStorage.getItem("ADMIN_USER")
-    return r ? JSON.parse(r) : null
-  } catch { return null }
-}
 
 export function ProfileTab() {
   const { data } = authClient.useSession()
-  const sessionUser = data?.user as any
-
-  // Use localStorage immediately — don't wait for session (mobile cookie fails)
   const [user, setUser] = useState<any>(null)
   const [name, setName] = useState("")
   const [saving, setSaving] = useState(false)
 
-  // Load from localStorage on mount + update when session loads
   useEffect(() => {
-    const u = sessionUser ?? getLocalUser()
-    if (u) {
-      setUser(u)
-      setName(u.name || "")
+    // Try session first, then all possible localStorage keys
+    const sessionUser = data?.user as any
+    if (sessionUser?.id) {
+      setUser(sessionUser)
+      setName(sessionUser.name || "")
+      return
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    // Try localStorage keys
+    const keys = ["admin_session_user", "ADMIN_USER", "admin_user"]
+    for (const key of keys) {
+      try {
+        const raw = localStorage.getItem(key)
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (parsed?.id || parsed?.email) {
+            setUser(parsed)
+            setName(parsed.name || "")
+            return
+          }
+        }
+      } catch {}
+    }
+  }, [data?.user])
 
   const handleSave = async () => {
     if (!name.trim()) return
@@ -46,7 +46,13 @@ export function ProfileTab() {
     try {
       await authClient.updateUser({ name })
       const updated = { ...user, name }
-      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(updated))
+      // Update all possible localStorage keys
+      const keys = ["admin_session_user", "ADMIN_USER", "admin_user"]
+      for (const key of keys) {
+        if (localStorage.getItem(key)) {
+          localStorage.setItem(key, JSON.stringify(updated))
+        }
+      }
       setUser(updated)
       toast.success("Profile updated")
     } catch {
@@ -58,7 +64,7 @@ export function ProfileTab() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+      <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
         <Spinner className="size-6" />
         <p className="text-sm">Loading profile...</p>
       </div>
@@ -70,7 +76,7 @@ export function ProfileTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground">Profile Settings</h3>
+        <h3 className="text-lg font-semibold">Profile Settings</h3>
         <p className="text-sm text-muted-foreground">Manage your personal information</p>
       </div>
 
@@ -82,7 +88,7 @@ export function ProfileTab() {
         <div>
           <p className="font-semibold text-base">{user.name}</p>
           <p className="text-sm text-muted-foreground">{user.email}</p>
-          <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wide">{user.role}</p>
+          {user.role && <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wide">{user.role}</p>}
         </div>
       </div>
 

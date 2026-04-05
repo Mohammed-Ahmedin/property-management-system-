@@ -55,14 +55,23 @@ export const BookingCommissionsTable: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-4 shrink-0">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">Platform</p>
-              <p className="text-lg font-bold text-primary">{commission.platformPercent || 0}%</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">Broker</p>
-              <p className="text-lg font-bold text-purple-600">{commission.brokerPercent || 0}%</p>
-            </div>
+            {(commission as any).calcType === "FLAT_AMOUNT" ? (
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Flat Amount</p>
+                <p className="text-lg font-bold text-primary">ETB {(commission as any).flatAmount?.toLocaleString() || 0}</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Platform</p>
+                  <p className="text-lg font-bold text-primary">{commission.platformPercent || 0}%</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Broker</p>
+                  <p className="text-lg font-bold text-purple-600">{commission.brokerPercent || 0}%</p>
+                </div>
+              </>
+            )}
             <UpdateCommissionModal commissionId={commission.id} initialData={commission as any} />
           </div>
         </div>
