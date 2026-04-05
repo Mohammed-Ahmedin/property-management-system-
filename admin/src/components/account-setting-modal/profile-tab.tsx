@@ -14,45 +14,60 @@ export function ProfileTab() {
   const [user, setUser] = useState<any>(null)
   const [name, setName] = useState("")
   const [saving, setSaving] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
+  // On mount: read from localStorage immediately (client-only)
   useEffect(() => {
-    // Try session first, then all possible localStorage keys
-    const sessionUser = data?.user as any
-    if (sessionUser?.id) {
-      setUser(sessionUser)
-      setName(sessionUser.name || "")
+    setMounted(true)
+    // Try session first
+    const su = (data?.user as any)
+    if (su?.id || su?.email) {
+      setUser(su)
+      setName(su.name || "")
       return
     }
-    // Try localStorage keys
-    const keys = ["admin_session_user", "ADMIN_USER", "admin_user"]
-    for (const key of keys) {
-      try {
-        const raw = localStorage.getItem(key)
-        if (raw) {
-          const parsed = JSON.parse(raw)
-          if (parsed?.id || parsed?.email) {
-            setUser(parsed)
-            setName(parsed.name || "")
-            return
-          }
+    // Fall back to localStorage
+    try {
+      const raw = localStorage.getItem("admin_session_user")
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed?.id || parsed?.email) {
+          setUser(parsed)
+          setName(parsed.name || "")
+          return
         }
-      } catch {}
+      }
+    } catch {}
+    // Last resort: try to get session via API using stored token
+    const token = localStorage.getItem("admin_session_token")
+    if (token) {
+      authClient.getSession().then(({ data: sessionData }) => {
+        const u = sessionData?.user as any
+        if (u?.id || u?.email) {
+          setUser(u)
+          setName(u.name || "")
+          localStorage.setItem("admin_session_user", JSON.stringify(u))
+        }
+      }).catch(() => {})
+    }
+  }, []) // run once on mount
+
+  // Also update when session data arrives (desktop)
+  useEffect(() => {
+    const su = (data?.user as any)
+    if (su?.id || su?.email) {
+      setUser(su)
+      setName(prev => prev || su.name || "")
     }
   }, [data?.user])
 
   const handleSave = async () => {
-    if (!name.trim()) return
+    if (!name.trim() || !user) return
     setSaving(true)
     try {
       await authClient.updateUser({ name })
       const updated = { ...user, name }
-      // Update all possible localStorage keys
-      const keys = ["admin_session_user", "ADMIN_USER", "admin_user"]
-      for (const key of keys) {
-        if (localStorage.getItem(key)) {
-          localStorage.setItem(key, JSON.stringify(updated))
-        }
-      }
+      localStorage.setItem("admin_session_user", JSON.stringify(updated))
       setUser(updated)
       toast.success("Profile updated")
     } catch {
@@ -62,11 +77,15 @@ export function ProfileTab() {
     }
   }
 
-  if (!user) {
+  // Show spinner until mounted (avoids SSR mismatch) or while user is loading
+  if (!mounted || !user) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
         <Spinner className="size-6" />
         <p className="text-sm">Loading profile...</p>
+        {mounted && (
+          <p className="text-xs opacity-60">If this persists, try signing out and back in</p>
+        )}
       </div>
     )
   }

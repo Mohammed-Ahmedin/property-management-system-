@@ -10,8 +10,8 @@ export const useSignInWithEmailMutation = () => {
     mutationFn: async (data: { email: string; password: string }) => {
       const res = await authClient.signIn.email(data);
       const resData = (res as any)?.data;
-      const token = resData?.session?.token || resData?.token;
-      const user = resData?.user;
+      const token = resData?.session?.token || resData?.token || (res as any)?.token;
+      const user = resData?.user || (res as any)?.user;
       if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
       if (user) localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
       return res;
