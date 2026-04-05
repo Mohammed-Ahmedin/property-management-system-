@@ -16,7 +16,7 @@ interface AccountSettingsModalProps {
 }
 
 export function AccountSettingsModal({ open, onOpenChange }: AccountSettingsModalProps) {
-  const { role } = useAuthSession();
+  const { role, user } = useAuthSession();
   const showPayment = role !== "ADMIN";
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -46,7 +46,7 @@ export function AccountSettingsModal({ open, onOpenChange }: AccountSettingsModa
           </TabsList>
 
           <div className="flex-1 overflow-y-auto">
-            <TabsContent value="profile" className="m-0 p-6"><ProfileTab /></TabsContent>
+            <TabsContent value="profile" className="m-0 p-6"><ProfileTab initialUser={user} /></TabsContent>
             {showPayment && <TabsContent value="payment" className="m-0 p-6"><PaymentTab /></TabsContent>}
             <TabsContent value="notifications" className="m-0 p-6"><NotificationsTab /></TabsContent>
             <TabsContent value="session" className="m-0 p-6"><SessionTab /></TabsContent>
