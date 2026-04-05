@@ -128,6 +128,15 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
             </div>
           )}
 
+          {/* Distance badge — always visible */}
+          {distance !== undefined && distance !== null && (
+            <div className="flex items-center gap-1 mb-2">
+              <span className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">
+                <MapPin className="w-3 h-3" /> {distance} km away
+              </span>
+            </div>
+          )}
+
           {/* Facilities */}
           {facilities && facilities.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
