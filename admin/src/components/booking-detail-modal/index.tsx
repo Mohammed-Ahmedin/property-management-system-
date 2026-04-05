@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import {
   Dialog,
   DialogContent,
@@ -196,161 +196,57 @@ export function BookingDetailModal({
         showCloseButton={false}
         className="w-full max-w-4xl max-h-[95vh] p-0 gap-0 overflow-hidden"
       >
-        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/30">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-3">
-                <DialogTitle className="text-2xl font-bold">
-                  Booking #{booking?.id}
+        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-muted/30">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <DialogTitle className="text-base sm:text-xl font-bold truncate">
+                  Booking #{booking?.id?.slice(0, 8)}...
                 </DialogTitle>
-                <Badge variant="outline" className={cn("gap-1.5 px-3 py-1")}>
+                <Badge variant="outline" className="text-xs shrink-0">
                   {booking.status}
                 </Badge>
                 {booking.manualBooked && (
-                  <Badge variant="secondary" className="gap-1.5">
-                    <FileText className="h-3 w-3" />
-                    Manual
+                  <Badge variant="secondary" className="text-xs gap-1 shrink-0">
+                    <FileText className="h-3 w-3" /> Manual
                   </Badge>
                 )}
                 {isFetching && (
-                  <Badge variant="outline" className="gap-1.5">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Updating...
+                  <Badge variant="outline" className="text-xs gap-1 shrink-0">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Updating...
                   </Badge>
                 )}
               </div>
-              <DialogDescription className="text-base">
+              <DialogDescription className="text-xs sm:text-sm">
                 Created on {format(new Date(booking.createdAt), "PPP 'at' p")}
               </DialogDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" title="Save as PDF" onClick={() => {
+            <div className="flex items-center gap-1 shrink-0">
+              <Button variant="outline" size="icon" className="h-8 w-8" title="Print" onClick={() => {
                 const w = window.open("", "_blank", "width=700,height=900");
                 if (!w) return;
-                w.document.write(`<html><head><title>Booking #${booking.id.slice(0,8)}</title>
-                  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}h1{font-size:16px;font-weight:bold;margin-bottom:2px}.sub{color:#666;font-size:10px;margin-bottom:10px}.divider{border-top:1px solid #ddd;margin:8px 0}.section-title{font-size:11px;font-weight:bold;color:#444;margin:8px 0 4px;text-transform:uppercase}table{width:100%;border-collapse:collapse}td{padding:3px 0;font-size:11px;vertical-align:top}td:first-child{color:#666;width:38%}.total-row td{font-weight:bold;font-size:13px;color:#1a56db;padding-top:6px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}@media print{@page{size:A4;margin:10mm}}</style></head><body>
-                  <h1>${booking.property?.name || "Booking Receipt"}</h1>
-                  <div class="sub">Booking ID: ${booking.id.slice(0,8)} | ${format(new Date(booking.createdAt), "PPP")} | Status: ${booking.status}</div>
-                  <div class="divider"></div>
-                  <div class="two-col"><div><div class="section-title">Booking</div><table><tr><td>Room</td><td>${booking.room?.name || "â€”"}</td></tr><tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "â€”"}</td></tr><tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "â€”"}</td></tr><tr><td>Guests</td><td>${booking.guests}</td></tr></table></div>
-                  <div><div class="section-title">Guest</div><table><tr><td>Name</td><td>${booking.user?.name || booking.guestName || "â€”"}</td></tr><tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "â€”"}</td></tr><tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "â€”"}</td></tr></table></div></div>
-                  <div class="divider"></div><div class="section-title">Payment</div>
-                  <table><tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "â€”"}</td></tr><tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "â€”"}</td></tr><tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td><td></td><td></td></tr><tr class="total-row"><td>Total</td><td>${booking.currency} ${booking.totalAmount}</td><td></td><td></td></tr></table>
-                  </body></html>`);
-                w.document.close();
-                w.focus();
-                setTimeout(() => w.print(), 500);
+                w.document.write(`<html><head><title>Booking #${booking.id.slice(0,8)}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}h1{font-size:16px;font-weight:bold;margin-bottom:2px}.sub{color:#666;font-size:10px;margin-bottom:10px}.divider{border-top:1px solid #ddd;margin:8px 0}.section-title{font-size:11px;font-weight:bold;color:#444;margin:8px 0 4px;text-transform:uppercase}table{width:100%;border-collapse:collapse}td{padding:3px 0;font-size:11px;vertical-align:top}td:first-child{color:#666;width:38%}.total-row td{font-weight:bold;font-size:13px;color:#1a56db;padding-top:6px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}@media print{@page{size:A4;margin:10mm}}</style></head><body><h1>${booking.property?.name || "Booking Receipt"}</h1><div class="sub">Booking ID: ${booking.id.slice(0,8)} | ${format(new Date(booking.createdAt), "PPP")} | Status: ${booking.status}</div><div class="divider"></div><div class="two-col"><div><div class="section-title">Booking</div><table><tr><td>Room</td><td>${booking.room?.name || "-"}</td></tr><tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "-"}</td></tr><tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "-"}</td></tr><tr><td>Guests</td><td>${booking.guests}</td></tr></table></div><div><div class="section-title">Guest</div><table><tr><td>Name</td><td>${booking.user?.name || booking.guestName || "-"}</td></tr><tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "-"}</td></tr></table></div></div><div class="divider"></div><div class="section-title">Payment</div><table><tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td></tr><tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td></tr><tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td></tr><tr class="total-row"><td>Total</td><td>${booking.currency} ${booking.totalAmount}</td></tr></table></body></html>`);
+                w.document.close(); w.print();
               }}>
-                <Download className="h-4 w-4" />
+                <Printer className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="outline" size="icon" title="Print / Save as PDF" onClick={() => {
-                const w = window.open("", "_blank", "width=700,height=900");
-                if (!w) return;
-                w.document.write(`<html><head><title>Booking #${booking.id.slice(0,8)}</title>
-                  <style>
-                    *{margin:0;padding:0;box-sizing:border-box}
-                    body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px}
-                    h1{font-size:16px;font-weight:bold;margin-bottom:2px}
-                    .sub{color:#666;font-size:10px;margin-bottom:10px}
-                    .divider{border-top:1px solid #ddd;margin:8px 0}
-                    .section-title{font-size:11px;font-weight:bold;color:#444;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px}
-                    table{width:100%;border-collapse:collapse}
-                    td{padding:3px 0;font-size:11px;vertical-align:top}
-                    td:first-child{color:#666;width:38%}
-                    .total-row td{font-weight:bold;font-size:13px;color:#1a56db;padding-top:6px}
-                    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
-                    @media print{body{padding:10px}@page{size:A4;margin:10mm}}
-                  </style></head><body>
-                  <h1>${booking.property?.name || "Booking Receipt"}</h1>
-                  <div class="sub">Booking ID: ${booking.id.slice(0,8)} &nbsp;|&nbsp; ${format(new Date(booking.createdAt), "PPP")} &nbsp;|&nbsp; Status: ${booking.status}</div>
-                  <div class="divider"></div>
-                  <div class="two-col">
-                    <div>
-                      <div class="section-title">Booking</div>
-                      <table>
-                        <tr><td>Room</td><td>${booking.room?.name || "â€”"}</td></tr>
-                        <tr><td>Check-in</td><td>${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "â€”"}</td></tr>
-                        <tr><td>Check-out</td><td>${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "â€”"}</td></tr>
-                        <tr><td>Guests</td><td>${booking.guests}</td></tr>
-                      </table>
-                    </div>
-                    <div>
-                      <div class="section-title">Guest</div>
-                      <table>
-                        <tr><td>Name</td><td>${booking.user?.name || booking.guestName || "â€”"}</td></tr>
-                        <tr><td>Email</td><td>${booking.user?.email || booking.guestEmail || "â€”"}</td></tr>
-                        <tr><td>Phone</td><td>${booking.user?.phone || booking.guestPhone || "â€”"}</td></tr>
-                        <tr><td>Type</td><td>${booking.manualBooked ? "Manual" : "Online"}</td></tr>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="divider"></div>
-                  <div class="section-title">Payment</div>
-                  <table>
-                    <tr><td>Base Price</td><td>${booking.currency} ${booking.basePrice}</td><td>Method</td><td>${booking.payment?.method || "â€”"}</td></tr>
-                    <tr><td>Tax</td><td>${booking.currency} ${booking.taxAmount}</td><td>Payment Status</td><td>${booking.payment?.status || "â€”"}</td></tr>
-                    <tr><td>Discount</td><td>${booking.currency} ${booking.discount}</td><td></td><td></td></tr>
-                    <tr class="total-row"><td>Total Amount</td><td>${booking.currency} ${booking.totalAmount}</td><td></td><td></td></tr>
-                  </table>
-                  </body></html>`);
-                w.document.close();
-                w.print();
-              }}>
-                <Printer className="h-4 w-4" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => {
-                    const subject = encodeURIComponent(`Booking Confirmation #${booking.id.slice(0, 8)}`);
-                    const body = encodeURIComponent(`Dear ${booking.user?.name || booking.guestName || "Guest"},\n\nYour booking is ${booking.status}.\nCheck-in: ${booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "â€”"}\nCheck-out: ${booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "â€”"}\n\nThank you.`);
-                    window.open(`mailto:${booking.user?.email || booking.guestEmail || ""}?subject=${subject}&body=${body}`);
-                  }}>Send Email</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    const phone = booking.user?.phone || booking.guestPhone || "";
-                    if (phone) window.open(`sms:${phone}`);
-                  }}>Send SMS</DropdownMenuItem>
-                  {booking.status === BookingStatus.PENDING && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        disabled={disableAllButtons}
-                        onClick={() => handleCancelBooking(booking.id)}
-                      >
-                        Delete Booking
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => setOpen(false)}
-                disabled={disableAllButtons}
-              >
-                <X className="h-4 w-4" />
+              <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => setOpen(false)} disabled={disableAllButtons}>
+                <X className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
         </DialogHeader>
         <ScrollArea className="flex-1 h-[calc(90vh-180px)]">
           <Tabs defaultValue="overview" className="w-full">
-            <div className="sticky top-0 z-10 bg-background border-b px-6">
+            <div className="sticky top-0 z-10 bg-background border-b px-4 sm:px-6">
               <TabsList className="w-full justify-start h-12 bg-transparent p-0">
-                <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none">
+                <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none text-xs sm:text-sm">
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="guest" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none">
+                <TabsTrigger value="guest" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none text-xs sm:text-sm">
                   Guest Info
                 </TabsTrigger>
-                <TabsTrigger value="payment" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none">
+                <TabsTrigger value="payment" className="data-[state=active]:border-b-2 data-[state=active]:bg-accent rounded-none text-xs sm:text-sm">
                   Payment
                 </TabsTrigger>
               </TabsList>
@@ -385,7 +281,7 @@ export function BookingDetailModal({
                             >
                               {booking.checkIn
                                 ? format(new Date(booking.checkIn), "PPP")
-                                : "â€”"}
+                                : "—"}
                             </p>
 
                             <p
@@ -443,7 +339,7 @@ export function BookingDetailModal({
                             >
                               {booking.checkOut
                                 ? format(new Date(booking.checkOut), "PPP")
-                                : "â€”"}
+                                : "—"}
                             </p>
 
                             <p
@@ -499,9 +395,9 @@ export function BookingDetailModal({
                             </p>
                             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                               <span>Room #{booking.room.roomNumber}</span>
-                              <span>â€¢</span>
+                              <span>•</span>
                               <span>{booking.room.type}</span>
-                              <span>â€¢</span>
+                              <span>•</span>
                               <span>Capacity: {booking.room.capacity}</span>
                             </div>
                           </div>
@@ -905,7 +801,7 @@ export function BookingDetailModal({
             Last updated: {format(new Date(booking.updatedAt), "PPp")}
           </div>
           <div className="flex items-center gap-2">
-            {/* Broker: can pre-approve/reject â†’ goes to PENDING_OWNER_APPROVAL */}
+            {/* Broker: can pre-approve/reject → goes to PENDING_OWNER_APPROVAL */}
             {isBroker && (booking.status === BookingStatus.PENDING || (booking.status as string) === "PENDING") && (
               <>
                 <Button variant="destructive" onClick={() => setRejectDialogOpen(true)} disabled={disableAllButtons}>
@@ -934,7 +830,7 @@ export function BookingDetailModal({
               </>
             )}
 
-            {/* Owner: broker submitted rejection â€” cancel or approve it */}
+            {/* Owner: broker submitted rejection — cancel or approve it */}
             {!isAdmin && !isBroker && (booking.status as string) === "PENDING_OWNER_REJECTION" && (
               <>
                 <div className="flex flex-col items-end gap-1 mr-2">
@@ -971,7 +867,7 @@ export function BookingDetailModal({
               </Button>
             )}
 
-            {/* Admin: full authority â€” can approve, reject, or cancel any booking */}
+            {/* Admin: full authority — can approve, reject, or cancel any booking */}
             {isAdmin && booking.status === BookingStatus.PENDING && (
               <>
                 <Button

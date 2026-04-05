@@ -12,4 +12,10 @@ router.post("/management/:id/ban", authGuard({ accessedBy: ["ADMIN"] }), userCon
 router.post("/management/:id/unban", authGuard({ accessedBy: ["ADMIN"] }), userController.unbanUser);
 router.delete("/management/:id", authGuard({ accessedBy: ["ADMIN"] }), userController.deleteUser);
 
+// Get current authenticated user (used as mobile fallback for profile tab)
+router.get("/me", authGuard(), async (req, res) => {
+  const user = (req as any).user;
+  res.json({ user });
+});
+
 export { router as UsersRouter };
