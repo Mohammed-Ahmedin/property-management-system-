@@ -13,7 +13,18 @@ export const useSignInWithEmailMutation = () => {
       const token = resData?.session?.token || resData?.token || (res as any)?.token;
       const user = resData?.user || (res as any)?.user;
       if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
-      if (user) localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+      if (user) {
+        localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+      } else {
+        // If user not in response, fetch session to get user data
+        try {
+          const { data: session } = await authClient.getSession();
+          if (session?.user) {
+            localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(session.user));
+            if (session.session?.token) localStorage.setItem(ADMIN_TOKEN_KEY, session.session.token);
+          }
+        } catch {}
+      }
       return res;
     },
     onSuccess: () => {

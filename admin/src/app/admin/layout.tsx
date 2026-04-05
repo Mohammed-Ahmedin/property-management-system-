@@ -36,8 +36,11 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.user));
       const token = (data as any)?.session?.token;
       if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    } else if (localUser) {
+      // Re-write localUser to ensure key is correct
+      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(localUser));
     }
-  }, [data?.user]);
+  }, [data?.user, localUser]);
 
   useEffect(() => {
     if (isPending || grace) return;
