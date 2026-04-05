@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Settings, User, Bell } from "lucide-react";
 import { toast } from "sonner";
+import { ProfileTab as ProfileTabComponent } from "./profile-tab";
 
 // Validation schemas
 const generalSettingsSchema = yup.object({
@@ -59,10 +60,12 @@ type NotificationForm = yup.InferType<typeof notificationSchema>;
 
 interface AccountSettingsDialogProps {
   children?: React.ReactNode;
+  user?: any;
 }
 
 export function AccountSettingsModal({
   children,
+  user,
 }: AccountSettingsDialogProps) {
   const [open, setOpen] = useState(false);
 
@@ -135,10 +138,19 @@ export function AccountSettingsModal({
         <Separator />
 
         <Tabs
-          defaultValue="general"
+          defaultValue={user ? "profile" : "general"}
           className="flex-1 overflow-hidden flex flex-col"
         >
           <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto p-0">
+            {user && (
+              <TabsTrigger
+                value="profile"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </TabsTrigger>
+            )}
             <TabsTrigger
               value="general"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
@@ -163,6 +175,12 @@ export function AccountSettingsModal({
           </TabsList>
 
           <div className="flex-1 overflow-y-auto px-6 py-6">
+            {/* Profile Tab */}
+            {user && (
+              <TabsContent value="profile" className="mt-0">
+                <ProfileTabComponent initialUser={user} />
+              </TabsContent>
+            )}
             {/* General Settings Tab */}
             <TabsContent value="general" className="mt-0 space-y-6">
               <form

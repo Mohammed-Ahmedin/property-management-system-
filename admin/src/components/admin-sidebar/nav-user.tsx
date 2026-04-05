@@ -80,7 +80,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <AccountSettingsModal>
+              <AccountSettingsModal user={user}>
                 <Button
                   variant={"ghost"}
                   className="w-full text-start flex justify-start font-normal"
