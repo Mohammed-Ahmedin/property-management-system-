@@ -152,6 +152,7 @@ export default {
         subcity,
         country,
         type,
+        accessType,
         search,
         page,
         limit,
@@ -188,9 +189,24 @@ export default {
         });
       }
 
-      // 🏠 Type filter (PRIVATE / SHARED)
+      // 🏠 Type filter — PropertyType enum (HOTEL, GUEST_HOUSE, etc.)
       if (type) {
-        filters.AND.push({ type: (type as string).toUpperCase() });
+        const typeUpper = (type as string).toUpperCase();
+        // Only apply if it's a valid PropertyType (not PRIVATE/SHARED which are accessType)
+        const validTypes = ["HOTEL","GUEST_HOUSE","APARTMENT","RESORT","VILLA","HOSTEL","LODGE"];
+        if (validTypes.includes(typeUpper)) {
+          filters.AND.push({ type: typeUpper });
+        }
+      }
+
+      // 🏠 AccessType filter — PRIVATE (Villas & Guest Houses) or SHARED (everything else)
+      if (accessType) {
+        const at = (accessType as string).toUpperCase();
+        if (at === "PRIVATE") {
+          filters.AND.push({ type: { in: ["VILLA", "GUEST_HOUSE"] } });
+        } else if (at === "SHARED") {
+          filters.AND.push({ type: { notIn: ["VILLA", "GUEST_HOUSE"] } });
+        }
       }
 
       // 💰 Price range — filter by average room price

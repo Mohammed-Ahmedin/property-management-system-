@@ -12,7 +12,7 @@ import CitySubcityFilter from "./city-filter";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const FACILITIES = ["WiFi", "Kitchen", "Air Conditioning", "Heating", "Parking", "Washer", "Dryer", "TV", "Pool", "Gym", "Breakfast", "Airport Transfer"];
-const PROPERTY_TYPES = ["Shared", "Private", "Entire"];
+const PROPERTY_TYPES = ["Shared", "Private"];
 const STAR_RATINGS = [5, 4, 3, 2, 1];
 const REVIEW_SCORES = [
   { label: "Excellent (5)", min: 5, max: 5 },
@@ -157,10 +157,10 @@ export function FilterSidebar() {
               {PROPERTY_TYPES.map((t) => (
                 <label key={t} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
-                    checked={searchParams.get("type") === t.toLowerCase()}
-                    onCheckedChange={(checked) => applyFilter("type", checked ? t.toLowerCase() : undefined)}
+                    checked={searchParams.get("accessType") === t.toUpperCase()}
+                    onCheckedChange={(checked) => applyFilter("accessType" as any, checked ? t.toUpperCase() : undefined)}
                   />
-                  <span className="text-sm">{t}</span>
+                  <span className="text-sm">{t} {t === "Private" ? "(Villas & Guest Houses)" : "(Hotels, Resorts & more)"}</span>
                 </label>
               ))}
             </div>
