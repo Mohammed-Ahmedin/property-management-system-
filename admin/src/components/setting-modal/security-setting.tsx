@@ -39,17 +39,21 @@ const SecuritySetting = () => {
 
   const onSubmit = (data: SecurityForm) => {
     startTransition(async () => {
-      const result = await authClient.changePassword({
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-        revokeOtherSessions: true,
-      });
-
-      if (result.error) {
-        toast.error(result.error.message || "Failed to change password");
-      } else {
-        toast.success("Password changed successfully");
-        reset();
+      try {
+        // Use our custom endpoint that supports Bearer token (works on mobile)
+        const { api } = await import("@/hooks/api");
+        const res = await api.post("/auth/change-password", {
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword,
+        });
+        if (res.data?.success) {
+          toast.success("Password changed successfully");
+          reset();
+        } else {
+          toast.error(res.data?.message || "Failed to change password");
+        }
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Failed to change password");
       }
     });
   };

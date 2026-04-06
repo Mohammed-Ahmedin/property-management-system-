@@ -53,16 +53,25 @@ export function SecurityDialog({ open, onOpenChange }: SecurityDialogProps) {
   const [isPending, setIsPending] = useState(false);
 
   const onSubmit = async (data: any) => {
-    const { data: res, error } = await authClient.changePassword({
-      currentPassword: data.oldPassword,
-      newPassword: data.newPassword,
-    });
-    if (error) {
-      toast.error(error.message, { position: "top-center" });
-    } else if (res.user) {
-      toast.success("Password updated successfully", {
-        position: "top-center",
+    setIsPending(true);
+    try {
+      // Use our custom endpoint that supports Bearer token (works on mobile)
+      const { api } = await import("@/hooks/api");
+      const res = await api.post("/auth/change-password", {
+        currentPassword: data.oldPassword,
+        newPassword: data.newPassword,
       });
+      if (res.data?.success) {
+        toast.success("Password updated successfully", { position: "top-center" });
+        setPasswordUpdated(true);
+        reset();
+      } else {
+        toast.error(res.data?.message || "Failed to change password", { position: "top-center" });
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Current password is incorrect", { position: "top-center" });
+    } finally {
+      setIsPending(false);
     }
   };
 
