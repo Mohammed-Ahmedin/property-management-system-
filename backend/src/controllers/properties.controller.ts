@@ -496,7 +496,7 @@ export default {
               name: validatedData.name,
               address: validatedData.address,
               type: (validatedData.type as any) || "HOTEL",
-              accessType: "SHARED",
+              accessType: ["VILLA", "GUEST_HOUSE"].includes((validatedData.type as string) || "") ? "PRIVATE" : "SHARED",
               visibility: true,
               // Admin-created properties are auto-approved
               status: user.role === "ADMIN" ? "APPROVED" : "PENDING",
@@ -603,6 +603,10 @@ export default {
         name: validatedData.name,
         address: validatedData.address,
         type: validatedData.type,
+        // Auto-set accessType based on type
+        ...(validatedData.type ? {
+          accessType: ["VILLA", "GUEST_HOUSE"].includes(validatedData.type as string) ? "PRIVATE" : "SHARED"
+        } : {}),
         ...(validatedData.policies !== undefined ? { policies: validatedData.policies } : {}),
         about: validatedData.about
           ? {

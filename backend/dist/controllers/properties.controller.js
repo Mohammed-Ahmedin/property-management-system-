@@ -436,7 +436,7 @@ exports.default = {
                         name: validatedData.name,
                         address: validatedData.address,
                         type: validatedData.type || "HOTEL",
-                        accessType: "SHARED",
+                        accessType: ["VILLA", "GUEST_HOUSE"].includes(validatedData.type || "") ? "PRIVATE" : "SHARED",
                         visibility: true,
                         // Admin-created properties are auto-approved
                         status: user.role === "ADMIN" ? "APPROVED" : "PENDING",
@@ -524,7 +524,9 @@ exports.default = {
         // 3️⃣ Update nested relations safely
         const updatedProperty = yield prisma_1.prisma.property.update({
             where: { id: propertyId },
-            data: Object.assign(Object.assign({ name: validatedData.name, address: validatedData.address, type: validatedData.type }, (validatedData.policies !== undefined ? { policies: validatedData.policies } : {})), { about: validatedData.about
+            data: Object.assign(Object.assign(Object.assign({ name: validatedData.name, address: validatedData.address, type: validatedData.type }, (validatedData.type ? {
+                accessType: ["VILLA", "GUEST_HOUSE"].includes(validatedData.type) ? "PRIVATE" : "SHARED"
+            } : {})), (validatedData.policies !== undefined ? { policies: validatedData.policies } : {})), { about: validatedData.about
                     ? {
                         upsert: {
                             create: validatedData.about,
