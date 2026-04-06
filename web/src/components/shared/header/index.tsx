@@ -117,7 +117,7 @@ export function Header() {
                   <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", propDropdown && "rotate-180")} />
                 </button>
                 {propDropdown && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                     <Link to="/properties" onClick={() => setPropDropdown(false)}
                       className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 border-b border-border transition-colors">
                       <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -125,6 +125,17 @@ export function Header() {
                       </div>
                       All Properties
                     </Link>
+                    {/* Private / Shared access type filters */}
+                    <div className="px-3 py-2 flex gap-2 border-b border-border">
+                      <Link to="/properties?accessType=PRIVATE" onClick={() => setPropDropdown(false)}
+                        className="flex-1 text-center text-xs font-semibold px-2 py-1.5 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition-colors">
+                        🏡 Private
+                      </Link>
+                      <Link to="/properties?accessType=SHARED" onClick={() => setPropDropdown(false)}
+                        className="flex-1 text-center text-xs font-semibold px-2 py-1.5 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition-colors">
+                        🏨 Shared
+                      </Link>
+                    </div>
                     <div className="p-1.5">
                       {PROPERTY_TYPES.map((t) => (
                         <Link key={t.value} to={`/properties?type=${t.value}`} onClick={() => setPropDropdown(false)}
@@ -208,6 +219,16 @@ export function Header() {
                     ))}
                     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2">Property Types</div>
                     <Link to="/properties" onClick={() => setOpen(false)} className="text-sm font-medium px-3 py-2 rounded-xl text-primary hover:bg-primary/5">All Properties</Link>
+                    <div className="flex gap-2 px-3 py-1">
+                      <Link to="/properties?accessType=PRIVATE" onClick={() => setOpen(false)}
+                        className="flex-1 text-center text-xs font-semibold px-2 py-1.5 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition-colors">
+                        🏡 Private
+                      </Link>
+                      <Link to="/properties?accessType=SHARED" onClick={() => setOpen(false)}
+                        className="flex-1 text-center text-xs font-semibold px-2 py-1.5 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary transition-colors">
+                        🏨 Shared
+                      </Link>
+                    </div>
                     {PROPERTY_TYPES.map((t) => (
                       <Link key={t.value} to={`/properties?type=${t.value}`} onClick={() => setOpen(false)}
                         className="text-sm px-3 py-2 rounded-xl text-foreground/70 hover:bg-muted hover:text-foreground flex items-center gap-2.5 ml-2">

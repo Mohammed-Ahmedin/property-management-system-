@@ -185,6 +185,7 @@ export const useGetProperties = (
             minReviewScore: (input.filters as any)?.minReviewScore || undefined,
             maxReviewScore: (input.filters as any)?.maxReviewScore || undefined,
             hasRoomsAvailable: input.filters?.hasRoomsAvailable || undefined,
+            accessType: (input.filters as any)?.accessType || undefined,
           },
         }
       );
