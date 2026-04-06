@@ -67,7 +67,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
 
     return (
       <div
-        className="rounded-2xl overflow-hidden border border-border bg-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col"
+        className="rounded-2xl overflow-hidden border border-border bg-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full"
         onClick={() => navigate(`/properties/${data.id}`)}
       >
         {/* Image */}
