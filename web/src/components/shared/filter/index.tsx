@@ -88,10 +88,11 @@ export function PropertyFilter({
 
   const handleClearFilters = () => {
     setFilters({});
-    // Preserve only location params
+    // Preserve only location/search params
     const p = new URLSearchParams();
     if (searchParams.get("city")) p.set("city", searchParams.get("city")!);
     if (searchParams.get("search")) p.set("search", searchParams.get("search")!);
+    if (searchParams.get("type")) p.set("type", searchParams.get("type")!);
     navigate(`/properties?${p.toString()}`);
   };
 
@@ -100,7 +101,7 @@ export function PropertyFilter({
     const params = new URLSearchParams(searchParams);
 
     // Clear old filter params before applying new ones
-    ["minPrice","maxPrice","minRating","maxRating","type","categoryId","facilityNames","hasRoomsAvailable","country","subcity"].forEach(k => params.delete(k));
+    ["minPrice","maxPrice","minRating","maxRating","type","accessType","categoryId","facilityNames","hasRoomsAvailable","country","subcity"].forEach(k => params.delete(k));
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
@@ -178,19 +179,23 @@ export function PropertyFilter({
 
       {/* Property Type */}
       <div className="mt-1 space-y-2">
-        <Label htmlFor="type" className="text-base font-medium">
+        <Label htmlFor="accessType" className="text-base font-medium">
           Property Type
         </Label>
         <Select
-          value={filters.type || ""}
-          onValueChange={(value) => handleFilterChange("type", value)}
+          value={(filters as any).accessType || ""}
+          onValueChange={(value) => {
+            handleFilterChange("accessType" as any, value || undefined);
+            // Clear specific type filter when access type is selected
+            handleFilterChange("type", undefined);
+          }}
         >
-          <SelectTrigger id="type" className="w-full py-5">
+          <SelectTrigger id="accessType" className="w-full py-5">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="shared">Shared</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
+            <SelectItem value="SHARED">Shared (Hotels, Resorts & more)</SelectItem>
+            <SelectItem value="PRIVATE">Private (Villas & Guest Houses)</SelectItem>
           </SelectContent>
         </Select>
       </div>
