@@ -194,7 +194,7 @@ export function BookingDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-full max-w-4xl max-h-[95vh] p-0 gap-0 overflow-hidden"
+        className="w-full max-w-5xl max-h-[95vh] p-0 gap-0 overflow-hidden"
       >
         <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b bg-muted/30">
           <div className="flex items-start justify-between gap-3">
@@ -253,272 +253,125 @@ export function BookingDetailModal({
             </div>
 
             <div className="p-6">
-              <TabsContent value="overview" className="mt-0 space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Booking Details */}
-                  <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-primary" />
-                        Booking Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">
-                              Check-in
-                            </p>
-
-                            <p
-                              className={`text-lg font-semibold ${
-                                booking.status === "CANCELLED" ||
-                                booking.status === "REJECTED"
-                                  ? "line-through text-red-500 underline decoration-dotted"
-                                  : ""
-                              }`}
-                            >
-                              {booking.checkIn
-                                ? format(new Date(booking.checkIn), "PPP")
-                                : "—"}
-                            </p>
-
-                            <p
-                              className={`text-sm text-muted-foreground ${
-                                booking.status === "CANCELLED" ||
-                                booking.status === "REJECTED"
-                                  ? "line-through text-red-400"
-                                  : ""
-                              }`}
-                            >
-                              {booking.checkIn
-                                ? format(new Date(booking.checkIn), "p")
-                                : ""}
-                            </p>
-
-                            {/* Optional: show old dates below if cancelled */}
-                            {booking.status === "CANCELLED" &&
-                              booking.cancelledCheckIn && (
-                                <p className="text-xs text-muted-foreground italic mt-1">
-                                  Originally:{" "}
-                                  <span className="underline decoration-dotted">
-                                    {format(
-                                      new Date(booking.cancelledCheckIn),
-                                      "PPP"
-                                    )}
-                                  </span>
-                                </p>
-                              )}
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">
-                              Guests
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
-                              <p className="text-lg font-semibold">
-                                {booking.guests}
-                              </p>
-                            </div>
-                          </div>
+              <TabsContent value="overview" className="mt-0 space-y-4">
+                {/* Booking dates — 4 columns on md+ */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Calendar className="h-4 w-4 text-primary" /> Booking Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Check-in</p>
+                        <p className={`font-semibold text-sm ${booking.status === "CANCELLED" || booking.status === "REJECTED" ? "line-through text-red-500" : ""}`}>
+                          {booking.checkIn ? format(new Date(booking.checkIn), "PPP") : "—"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{booking.checkIn ? format(new Date(booking.checkIn), "p") : ""}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Check-out</p>
+                        <p className={`font-semibold text-sm ${booking.status === "CANCELLED" || booking.status === "REJECTED" ? "line-through text-red-500" : ""}`}>
+                          {booking.checkOut ? format(new Date(booking.checkOut), "PPP") : "—"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{booking.checkOut ? format(new Date(booking.checkOut), "p") : ""}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Duration</p>
+                        <p className="font-semibold text-sm">{nights} {nights === 1 ? "Night" : "Nights"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Guests</p>
+                        <div className="flex items-center gap-1.5">
+                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                          <p className="font-semibold text-sm">{booking.guests}</p>
                         </div>
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">
-                              Check-out
-                            </p>
-
-                            <p
-                              className={`text-lg font-semibold ${
-                                booking.status === "CANCELLED" ||
-                                booking.status === "REJECTED"
-                                  ? "line-through text-red-500 underline decoration-dotted"
-                                  : ""
-                              }`}
-                            >
-                              {booking.checkOut
-                                ? format(new Date(booking.checkOut), "PPP")
-                                : "—"}
-                            </p>
-
-                            <p
-                              className={`text-sm text-muted-foreground ${
-                                booking.status === "CANCELLED" ||
-                                booking.status === "REJECTED"
-                                  ? "line-through text-red-400"
-                                  : ""
-                              }`}
-                            >
-                              {booking.checkOut
-                                ? format(new Date(booking.checkOut), "p")
-                                : ""}
-                            </p>
-
-                            {/* Optional: show old cancelled date */}
-                            {booking.status === "CANCELLED" &&
-                              booking.cancelledCheckOut && (
-                                <p className="text-xs text-muted-foreground italic mt-1">
-                                  Originally:{" "}
-                                  <span className="underline decoration-dotted">
-                                    {format(
-                                      new Date(booking.cancelledCheckOut),
-                                      "PPP"
-                                    )}
-                                  </span>
-                                </p>
-                              )}
-                          </div>
-
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">
-                              Duration
-                            </p>
-                            <p className="text-lg font-semibold">
-                              {nights} {nights === 1 ? "Night" : "Nights"}
-                            </p>
+                      </div>
+                    </div>
+                    <Separator className="my-3" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-start gap-3">
+                        <Bed className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Room</p>
+                          <p className="font-semibold text-sm">{booking.room.name}</p>
+                          <p className="text-xs text-muted-foreground">Room #{booking.room.roomNumber} · {booking.room.type} · Capacity: {booking.room.capacity}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Home className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Property</p>
+                          <p className="font-semibold text-sm">{booking.property.name}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span>{booking.property.address}, {booking.property.city}</span>
                           </div>
                         </div>
                       </div>
-
-                      <Separator />
-
-                      <div className="space-y-4">
+                    </div>
+                    {booking.approvedBy && (
+                      <>
+                        <Separator className="my-3" />
                         <div className="flex items-start gap-3">
-                          <Bed className="h-5 w-5 text-primary mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">
-                              Room
-                            </p>
-                            <p className="font-semibold text-lg">
-                              {booking.room.name}
-                            </p>
-                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                              <span>Room #{booking.room.roomNumber}</span>
-                              <span>•</span>
-                              <span>{booking.room.type}</span>
-                              <span>•</span>
-                              <span>Capacity: {booking.room.capacity}</span>
-                            </div>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs text-muted-foreground">Approved By</p>
+                            <p className="font-semibold text-sm">{booking.approvedBy.name}</p>
+                            <p className="text-xs text-muted-foreground">{booking.approvedBy.email}</p>
                           </div>
                         </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
 
-                        <div className="flex items-start gap-3">
-                          <Home className="h-5 w-5 text-primary mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">
-                              Property
-                            </p>
-                            <p className="font-semibold text-lg">
-                              {booking.property.name}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5" />
-                              <span>
-                                {booking.property.address},{" "}
-                                {booking.property.city}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                {/* Financial summary */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Receipt className="h-4 w-4 text-primary" /> Financial Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="p-3 rounded-lg bg-muted/40 border border-border">
+                        <p className="text-xs text-muted-foreground">Base Price</p>
+                        <p className="font-semibold text-sm mt-0.5">{booking.currency} {booking.basePrice}</p>
                       </div>
-
-                      {booking.approvedBy && (
-                        <>
-                          <Separator />
-                          <div className="flex items-start gap-3">
-                            <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" />
-                            <div className="flex-1">
-                              <p className="text-sm text-muted-foreground">
-                                Approved By
-                              </p>
-                              <p className="font-semibold">
-                                {booking.approvedBy.name}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {booking.approvedBy.email}
-                              </p>
-                            </div>
-                          </div>
-                        </>
+                      <div className="p-3 rounded-lg bg-muted/40 border border-border">
+                        <p className="text-xs text-muted-foreground">Tax</p>
+                        <p className="font-semibold text-sm mt-0.5">{booking.currency} {booking.taxAmount}</p>
+                      </div>
+                      {booking.discount > 0 && (
+                        <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                          <p className="text-xs text-muted-foreground">Discount</p>
+                          <p className="font-semibold text-sm mt-0.5 text-emerald-600">-{booking.currency} {booking.discount}</p>
+                        </div>
                       )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Financial Summary */}
-                  <Card>
+                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="font-bold text-base mt-0.5 text-primary">{booking.currency} {booking.totalAmount}</p>
+                      </div>
+                    </div>
+                    {booking.additionalServices.length > 0 && (
+                      <>
+                        <Separator className="my-3" />
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">Additional Services</p>
+                        <div className="space-y-1.5">
+                          {booking.additionalServices.map((service: any) => (
+                            <div key={service.id} className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">{service.name}</span>
+                              <span className="font-medium">{booking.currency} {service.price}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Receipt className="h-5 w-5 text-primary" />
-                        Financial Summary
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">
-                            Base Price
-                          </span>
-                          <span className="font-medium">
-                            {booking.currency} {booking?.basePrice}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">
-                            Tax
-                          </span>
-                          <span className="font-medium">
-                            {booking.currency} {booking?.taxAmount}
-                          </span>
-                        </div>
-                        {booking.discount > 0 && (
-                          <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400">
-                            <span className="text-sm">Discount</span>
-                            <span className="font-medium">
-                              -{booking.currency} {booking?.discount}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <Separator />
-
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">Total Amount</span>
-                        <span className="text-2xl font-bold text-primary">
-                          {booking.currency} {booking?.totalAmount}
-                        </span>
-                      </div>
-
-                      {booking.additionalServices.length > 0 && (
-                        <>
-                          <Separator />
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">
-                              Additional Services
-                            </p>
-                            {booking.additionalServices.map((service: any) => (
-                              <div
-                                key={service.id}
-                                className="flex justify-between items-center text-sm"
-                              >
-                                <span className="text-muted-foreground">
-                                  {service.name} x {service.quantity}
-                                </span>
-                                {/* <span className="font-medium">
-                                  {booking.currency}{" "}
-                                  {(service.price * service.quantity)}
-                                </span> */}
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
               <TabsContent value="guest" className="mt-0">
                 <Card>
                   <CardHeader>
