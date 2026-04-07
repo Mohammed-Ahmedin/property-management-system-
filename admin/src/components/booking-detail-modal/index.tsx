@@ -371,7 +371,8 @@ export function BookingDetailModal({
                     )}
                   </CardContent>
                 </Card>
-                    <CardHeader>
+              </TabsContent>
+
               <TabsContent value="guest" className="mt-0">
                 <Card>
                   <CardHeader>
