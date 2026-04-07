@@ -29,15 +29,51 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
   const activeSort = searchParams.get("sortField") || "top_picks";
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  // Client-side price sort (backend can't sort by min room price easily)
+  // Client-side sorting and filtering
   const safeData = Array.isArray(data) ? data : [];
-  const sortedData = [...safeData].sort((a, b) => {
+
+  // Helper: compute average room price for a property
+  const avgPrice = (d: PropertyDataResponse) => {
+    const prices = (d.rooms || []).map((r: any) => r.price).filter((p: number) => p > 0);
+    return prices.length ? prices.reduce((a: number, b: number) => a + b, 0) / prices.length : null;
+  };
+
+  // Client-side price range filter (backend filters by any room in range, we want avg)
+  const minPrice = searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : null;
+  const maxPrice = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : null;
+
+  const priceFiltered = (minPrice !== null || maxPrice !== null)
+    ? safeData.filter(d => {
+        const avg = avgPrice(d);
+        if (avg === null) return false;
+        if (minPrice !== null && avg < minPrice) return false;
+        if (maxPrice !== null && avg > maxPrice) return false;
+        return true;
+      })
+    : safeData;
+
+  const sortedData = [...priceFiltered].sort((a, b) => {
     if (activeSort === "price") {
-      const aRooms = a.rooms?.map((r: any) => r.price).filter((p: number) => p > 0) || [];
-      const bRooms = b.rooms?.map((r: any) => r.price).filter((p: number) => p > 0) || [];
-      const aPrice = aRooms.length ? Math.min(...aRooms) : Infinity;
-      const bPrice = bRooms.length ? Math.min(...bRooms) : Infinity;
-      return aPrice - bPrice;
+      const aAvg = avgPrice(a) ?? Infinity;
+      const bAvg = avgPrice(b) ?? Infinity;
+      return aAvg - bAvg;
+    }
+    if (activeSort === "nearest") {
+      // Sort by lat/lon proximity — use Addis Ababa as default reference (9.0, 38.7)
+      // Properties without coordinates go last, then sort by city name
+      const refLat = 9.0; const refLon = 38.7;
+      const dist = (d: PropertyDataResponse) => {
+        const lat = parseFloat((d as any).location?.latitude);
+        const lon = parseFloat((d as any).location?.longitude);
+        if (isNaN(lat) || isNaN(lon)) return Infinity;
+        return Math.sqrt((lat - refLat) ** 2 + (lon - refLon) ** 2);
+      };
+      const da = dist(a); const db = dist(b);
+      if (da === Infinity && db === Infinity) {
+        // Both no coords — sort by city
+        return ((a as any).location?.city || "").localeCompare((b as any).location?.city || "");
+      }
+      return da - db;
     }
     return 0;
   });
