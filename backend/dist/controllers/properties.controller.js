@@ -526,7 +526,9 @@ exports.default = {
             where: { id: propertyId },
             data: Object.assign(Object.assign(Object.assign({ name: validatedData.name, address: validatedData.address, type: validatedData.type }, (validatedData.type ? {
                 accessType: ["VILLA", "GUEST_HOUSE"].includes(validatedData.type) ? "PRIVATE" : "SHARED"
-            } : {})), (validatedData.policies !== undefined ? { policies: validatedData.policies } : {})), { about: validatedData.about
+            } : {})), (validatedData.policies !== undefined ? { policies: validatedData.policies } : {})), { 
+                // NEVER reset discountPercent — it's managed separately via setPropertyDiscount
+                about: validatedData.about
                     ? {
                         upsert: {
                             create: validatedData.about,
@@ -979,6 +981,10 @@ exports.default = {
         const { id: propertyId } = req.params;
         const { discountPercent } = req.body;
         const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+        // Protect: if discountPercent was not explicitly provided, don't reset existing discount
+        if (discountPercent === undefined || discountPercent === null || discountPercent === "") {
+            return res.status(400).json({ message: "discountPercent is required" });
+        }
         const updated = yield prisma_1.prisma.property.update({
             where: { id: propertyId },
             data: { discountPercent: pct },
@@ -989,6 +995,9 @@ exports.default = {
     setRoomDiscount: (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { id: roomId } = req.params;
         const { discountPercent } = req.body;
+        if (discountPercent === undefined || discountPercent === null || discountPercent === "") {
+            return res.status(400).json({ message: "discountPercent is required" });
+        }
         const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
         const updated = yield prisma_1.prisma.room.update({
             where: { id: roomId },

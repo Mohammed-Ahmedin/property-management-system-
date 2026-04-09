@@ -608,6 +608,7 @@ export default {
           accessType: ["VILLA", "GUEST_HOUSE"].includes(validatedData.type as string) ? "PRIVATE" : "SHARED"
         } : {}),
         ...(validatedData.policies !== undefined ? { policies: validatedData.policies } : {}),
+        // NEVER reset discountPercent — it's managed separately via setPropertyDiscount
         about: validatedData.about
           ? {
               upsert: {
@@ -1133,6 +1134,10 @@ export default {
     const { id: propertyId } = req.params;
     const { discountPercent } = req.body;
     const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+    // Protect: if discountPercent was not explicitly provided, don't reset existing discount
+    if (discountPercent === undefined || discountPercent === null || discountPercent === "") {
+      return res.status(400).json({ message: "discountPercent is required" });
+    }
     const updated = await prisma.property.update({
       where: { id: propertyId },
       data: { discountPercent: pct },
@@ -1144,6 +1149,9 @@ export default {
   setRoomDiscount: tryCatch(async (req, res) => {
     const { id: roomId } = req.params;
     const { discountPercent } = req.body;
+    if (discountPercent === undefined || discountPercent === null || discountPercent === "") {
+      return res.status(400).json({ message: "discountPercent is required" });
+    }
     const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
     const updated = await prisma.room.update({
       where: { id: roomId },
