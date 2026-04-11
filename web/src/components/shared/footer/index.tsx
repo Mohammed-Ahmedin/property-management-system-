@@ -63,15 +63,6 @@ export function Footer() {
                 ))}
               </div>
             )}
-            {socialLinks.length === 0 && (
-              <div className="flex items-center gap-3">
-                {[Youtube, TikTokIcon, Send, Instagram].map((Icon, i) => (
-                  <span key={i} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center opacity-40">
-                    <Icon className="w-4 h-4" />
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Property Types */}

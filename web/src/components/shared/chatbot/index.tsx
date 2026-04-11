@@ -110,7 +110,7 @@ export function ChatBotContainer() {
         {isOpen ? (
           <X className="h-6 w-6" />
         ) : (
-          <MessageCircle className="h-6 w-6" />
+          <Bot className="h-6 w-6" />
         )}
         <span className="sr-only">Toggle chat</span>
       </Button>

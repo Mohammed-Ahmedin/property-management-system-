@@ -12,9 +12,9 @@ import { PropertyFilter } from "@/components/shared/filter";
 type TabType = "hotels" | "homes" | "longstay" | "transport";
 
 const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
+  { id: "longstay", label: "Guest House", icon: <Clock className="w-4 h-4" /> },
   { id: "hotels", label: "Hotels", icon: <Building2 className="w-4 h-4" /> },
   { id: "homes", label: "Homes & Apts", icon: <Home className="w-4 h-4" /> },
-  { id: "longstay", label: "Long stays", icon: <Clock className="w-4 h-4" /> },
   { id: "transport", label: "Airport transfer", icon: <Plane className="w-4 h-4" /> },
 ];
 
@@ -25,7 +25,7 @@ const VALUE = "text-sm font-semibold text-gray-900";
 const PLACEHOLDER = "text-sm text-gray-400";
 
 const FilterTab = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("hotels");
+  const [activeTab, setActiveTab] = useState<TabType>("longstay");
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [guests, setGuests] = useState<number>(1);

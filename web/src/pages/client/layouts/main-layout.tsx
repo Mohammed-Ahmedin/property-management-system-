@@ -1,4 +1,4 @@
-import { Footer } from "@/components/footer";
+import { Footer } from "@/components/shared/footer";
 import { Header } from "@/components/shared/header";
 import MobileTab from "@/components/shared/mobile-tab";
 import ClientFooterProvider from "@/providers/footer-provider";
