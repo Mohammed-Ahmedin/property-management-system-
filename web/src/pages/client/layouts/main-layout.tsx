@@ -3,6 +3,7 @@ import { Header } from "@/components/shared/header";
 import MobileTab from "@/components/shared/mobile-tab";
 import ClientFooterProvider from "@/providers/footer-provider";
 import { Outlet } from "react-router-dom";
+import { ChatWidget } from "@/components/shared/chat-widget";
 
 const MainLayout = () => {
   return (
@@ -25,6 +26,9 @@ const MainLayout = () => {
       >
         <Footer />
       </ClientFooterProvider>
+
+      {/* Chat widget — only visible to logged-in users */}
+      <ChatWidget />
     </div>
   );
 };

@@ -11,6 +11,8 @@ import { CommisionRouter } from "./v1/commision.routes";
 import { PaymentsRouter } from "./v1/payments.routes";
 import { AiRouter } from "./v1/ai.routes";
 import { ActivitiesRouter } from "./v1/activities.routes";
+import { SiteConfigRouter } from "./v1/site-config.routes";
+import { ChatRouter } from "./v1/chat.routes";
 
 const rootRouter = Router();
 
@@ -93,5 +95,7 @@ rootRouter.use("/api/v1/commision-settings", CommisionRouter);
 rootRouter.use("/api/v1/registration-requests", RegistrationRequestRouter);
 rootRouter.use("/api/v1/ai", AiRouter);
 rootRouter.use("/api/v1/activities", ActivitiesRouter);
+rootRouter.use("/api/v1/site-config", SiteConfigRouter);
+rootRouter.use("/api/v1/chat", ChatRouter);
 
 export default rootRouter;

@@ -1,7 +1,38 @@
 import { Link } from "react-router-dom";
-import { Hotel, MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { MapPin, Phone, Mail, Youtube, Instagram, Send } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api } from "@/hooks/api";
+
+// TikTok SVG icon
+const TikTokIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/>
+  </svg>
+);
+
+interface SiteConfig {
+  siteName: string;
+  logoUrl?: string;
+  youtube?: string;
+  tiktok?: string;
+  telegram?: string;
+  instagram?: string;
+}
 
 export function Footer() {
+  const [config, setConfig] = useState<SiteConfig>({ siteName: "Bete" });
+
+  useEffect(() => {
+    api.get("/site-config").then(res => setConfig(res.data)).catch(() => {});
+  }, []);
+
+  const socialLinks = [
+    { href: config.youtube, icon: <Youtube className="w-4 h-4" />, label: "YouTube" },
+    { href: config.tiktok, icon: <TikTokIcon />, label: "TikTok" },
+    { href: config.telegram, icon: <Send className="w-4 h-4" />, label: "Telegram" },
+    { href: config.instagram, icon: <Instagram className="w-4 h-4" />, label: "Instagram" },
+  ].filter(s => s.href);
+
   return (
     <footer className="bg-zinc-900 text-zinc-300 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -9,21 +40,38 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">B</span>
-              </div>
-              <span className="text-xl font-bold text-white">Bete</span>
+              {config.logoUrl ? (
+                <img src={config.logoUrl} alt={config.siteName} className="w-8 h-8 rounded-lg object-contain" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{config.siteName?.[0] || "B"}</span>
+                </div>
+              )}
+              <span className="text-xl font-bold text-white">{config.siteName || "Bete"}</span>
             </div>
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
               Discover and book the best properties across Ethiopia. From hotels to guest houses, find your perfect stay.
             </p>
-            <div className="flex items-center gap-3">
-              {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-primary flex items-center justify-center transition-colors">
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex items-center gap-3">
+                {socialLinks.map(({ href, icon, label }) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-primary flex items-center justify-center transition-colors"
+                    aria-label={label}>
+                    {icon}
+                  </a>
+                ))}
+              </div>
+            )}
+            {socialLinks.length === 0 && (
+              <div className="flex items-center gap-3">
+                {[Youtube, TikTokIcon, Send, Instagram].map((Icon, i) => (
+                  <span key={i} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center opacity-40">
+                    <Icon className="w-4 h-4" />
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Property Types */}
@@ -78,7 +126,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500">
-          <p>© {new Date().getFullYear()} Bete. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {config.siteName || "Bete"}. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-zinc-300 transition-colors">Terms of Service</a>

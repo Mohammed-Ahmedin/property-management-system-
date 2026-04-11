@@ -55,6 +55,8 @@ const commision_routes_1 = require("./v1/commision.routes");
 const payments_routes_1 = require("./v1/payments.routes");
 const ai_routes_1 = require("./v1/ai.routes");
 const activities_routes_1 = require("./v1/activities.routes");
+const site_config_routes_1 = require("./v1/site-config.routes");
+const chat_routes_1 = require("./v1/chat.routes");
 const rootRouter = (0, express_1.Router)();
 rootRouter.get("/", (req, res) => {
     res.json({ message: "Server is running successfully" });
@@ -134,4 +136,6 @@ rootRouter.use("/api/v1/commision-settings", commision_routes_1.CommisionRouter)
 rootRouter.use("/api/v1/registration-requests", registration_request_routes_1.RegistrationRequestRouter);
 rootRouter.use("/api/v1/ai", ai_routes_1.AiRouter);
 rootRouter.use("/api/v1/activities", activities_routes_1.ActivitiesRouter);
+rootRouter.use("/api/v1/site-config", site_config_routes_1.SiteConfigRouter);
+rootRouter.use("/api/v1/chat", chat_routes_1.ChatRouter);
 exports.default = rootRouter;

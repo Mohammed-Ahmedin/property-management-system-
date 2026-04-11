@@ -28,6 +28,8 @@ import {
   Banknote,
   Wallet,
   ChevronRight,
+  Palette,
+  MessageSquare,
 } from "lucide-react";
 import {
   Collapsible,
@@ -54,6 +56,8 @@ const roleSidebarLinks: Record<
     { title: "Users", url: "/admin/users", icon: Users },
     { title: "Registrations", url: "/admin/registration-requests", icon: HomeIcon },
     { title: "Activities", url: "/admin/activities", icon: Activity },
+    { title: "Messages", url: "/admin/messages", icon: MessageSquare },
+    { title: "Customization", url: "/admin/customization", icon: Palette },
     {
       title: "Finance",
       icon: DollarSign,
