@@ -26,11 +26,11 @@ router.get("/", (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, vo
 })));
 // Admin only: update site config
 router.put("/", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { siteName, logoUrl, youtube, tiktok, telegram, instagram } = req.body;
+    const { siteName, logoUrl, tagline, youtube, tiktok, telegram, instagram, contactPhone, contactEmail, contactAddress } = req.body;
     const config = yield prisma_1.prisma.siteConfig.upsert({
         where: { id: "singleton" },
-        create: { id: "singleton", siteName, logoUrl, youtube, tiktok, telegram, instagram },
-        update: { siteName, logoUrl, youtube, tiktok, telegram, instagram },
+        create: { id: "singleton", siteName, logoUrl, tagline, youtube, tiktok, telegram, instagram, contactPhone, contactEmail, contactAddress },
+        update: { siteName, logoUrl, tagline, youtube, tiktok, telegram, instagram, contactPhone, contactEmail, contactAddress },
     });
     res.json({ success: true, message: "Site config updated", data: config });
 })));

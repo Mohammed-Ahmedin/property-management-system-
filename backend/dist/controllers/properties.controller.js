@@ -310,7 +310,7 @@ exports.default = {
                 pagination: {
                     totalItems,
                     currentPage: pageNumber,
-                    limit: limit,
+                    limit: pageSize,
                     totalPages,
                     hasMore,
                     nextPage: hasMore ? pageNumber + 1 : null,

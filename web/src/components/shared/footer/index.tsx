@@ -13,10 +13,14 @@ const TikTokIcon = () => (
 interface SiteConfig {
   siteName: string;
   logoUrl?: string;
+  tagline?: string;
   youtube?: string;
   tiktok?: string;
   telegram?: string;
   instagram?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactAddress?: string;
 }
 
 export function Footer() {
@@ -50,7 +54,7 @@ export function Footer() {
               <span className="text-xl font-bold text-white">{config.siteName || "Bete"}</span>
             </div>
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              Discover and book the best properties across Ethiopia. From hotels to guest houses, find your perfect stay.
+              {config.tagline || "Discover and book the best properties across Ethiopia. From hotels to guest houses, find your perfect stay."}
             </p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3">
@@ -102,15 +106,19 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>Bole, Addis Ababa, Ethiopia</span>
+                <span>{config.contactAddress || "Bole, Addis Ababa, Ethiopia"}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
-                <a href="tel:+251911000000" className="hover:text-primary transition-colors">+251 911 000 000</a>
+                <a href={`tel:${config.contactPhone || "+251911000000"}`} className="hover:text-primary transition-colors">
+                  {config.contactPhone || "+251 911 000 000"}
+                </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
-                <a href="mailto:info@bete.et" className="hover:text-primary transition-colors">info@bete.et</a>
+                <a href={`mailto:${config.contactEmail || "info@bete.et"}`} className="hover:text-primary transition-colors">
+                  {config.contactEmail || "info@bete.et"}
+                </a>
               </li>
             </ul>
           </div>

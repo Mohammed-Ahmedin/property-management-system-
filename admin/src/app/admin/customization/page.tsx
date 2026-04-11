@@ -31,13 +31,18 @@ export default function CustomizationPage() {
   const [socialOpen, setSocialOpen] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    siteName: "Bete", logoUrl: "", youtube: "", tiktok: "", telegram: "", instagram: "",
+    siteName: "Bete", logoUrl: "", tagline: "", youtube: "", tiktok: "", telegram: "", instagram: "",
+    contactPhone: "", contactEmail: "", contactAddress: "",
   });
 
   useEffect(() => {
     api.get("/site-config").then(res => {
       const d = res.data;
-      setForm({ siteName: d.siteName || "Bete", logoUrl: d.logoUrl || "", youtube: d.youtube || "", tiktok: d.tiktok || "", telegram: d.telegram || "", instagram: d.instagram || "" });
+      setForm({
+        siteName: d.siteName || "Bete", logoUrl: d.logoUrl || "", tagline: d.tagline || "",
+        youtube: d.youtube || "", tiktok: d.tiktok || "", telegram: d.telegram || "", instagram: d.instagram || "",
+        contactPhone: d.contactPhone || "", contactEmail: d.contactEmail || "", contactAddress: d.contactAddress || "",
+      });
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
@@ -95,6 +100,12 @@ export default function CustomizationPage() {
                 <Label>Site Name</Label>
                 <Input value={form.siteName} onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} placeholder="e.g. Bete" />
                 <p className="text-xs text-muted-foreground">Shown in the header, footer and browser tab</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Tagline / Description</Label>
+                <Input value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} placeholder="e.g. Discover and book the best properties across Ethiopia." />
+                <p className="text-xs text-muted-foreground">Short description shown below the logo in the footer</p>
               </div>
 
               {/* Logo upload */}
@@ -162,6 +173,28 @@ export default function CustomizationPage() {
                 ))}
               </CardContent>
             )}
+          </Card>
+
+          {/* Contact Us */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><Globe className="h-4 w-4 text-primary" /> Contact Us</CardTitle>
+              <CardDescription>Contact information shown in the footer</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Phone Number</Label>
+                <Input value={form.contactPhone} onChange={e => setForm(f => ({ ...f, contactPhone: e.target.value }))} placeholder="+251 911 000 000" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Email Address</Label>
+                <Input value={form.contactEmail} onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))} placeholder="info@bete.et" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Address / Location</Label>
+                <Input value={form.contactAddress} onChange={e => setForm(f => ({ ...f, contactAddress: e.target.value }))} placeholder="Bole, Addis Ababa, Ethiopia" />
+              </div>
+            </CardContent>
           </Card>
 
           <Button onClick={handleSave} disabled={saving} className="w-full h-11 font-semibold">

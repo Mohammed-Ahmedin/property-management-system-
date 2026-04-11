@@ -2,10 +2,14 @@ model SiteConfig {
   id          String   @id @default("singleton")
   siteName    String   @default("Bete")
   logoUrl     String?
+  tagline     String?
   youtube     String?
   tiktok      String?
   telegram    String?
   instagram   String?
+  contactPhone    String?
+  contactEmail    String?
+  contactAddress  String?
   updatedAt   DateTime @updatedAt
 }
 

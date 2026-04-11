@@ -16,11 +16,11 @@ router.get("/", tryCatch(async (req, res) => {
 
 // Admin only: update site config
 router.put("/", authGuard({ accessedBy: ["ADMIN"] }), tryCatch(async (req, res) => {
-  const { siteName, logoUrl, youtube, tiktok, telegram, instagram } = req.body;
+  const { siteName, logoUrl, tagline, youtube, tiktok, telegram, instagram, contactPhone, contactEmail, contactAddress } = req.body;
   const config = await prisma.siteConfig.upsert({
     where: { id: "singleton" },
-    create: { id: "singleton", siteName, logoUrl, youtube, tiktok, telegram, instagram },
-    update: { siteName, logoUrl, youtube, tiktok, telegram, instagram },
+    create: { id: "singleton", siteName, logoUrl, tagline, youtube, tiktok, telegram, instagram, contactPhone, contactEmail, contactAddress },
+    update: { siteName, logoUrl, tagline, youtube, tiktok, telegram, instagram, contactPhone, contactEmail, contactAddress },
   });
   res.json({ success: true, message: "Site config updated", data: config });
 }));
