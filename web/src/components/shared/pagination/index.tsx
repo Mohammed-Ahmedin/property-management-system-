@@ -65,7 +65,7 @@ export function PaginationControls({
       <div className="flex items-center gap-6">
         {showLimitSelector && (
           <div className="flex items-center gap-2">
-            <span className="text-sm">Rows per page</span>
+            <span className="text-sm">Properties per page</span>
             <Select value={limit.toString()} onValueChange={handleLimitChange}>
               <SelectTrigger className="h-8 w-[70px]">
                 <SelectValue placeholder={limit.toString()} />

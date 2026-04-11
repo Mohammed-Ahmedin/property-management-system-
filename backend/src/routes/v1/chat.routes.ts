@@ -46,9 +46,12 @@ router.get("/admin/conversations", authGuard({ accessedBy: ["ADMIN"] }), tryCatc
         where: { userId },
         orderBy: { createdAt: "desc" },
       });
-      const unread = await prisma.chatMessage.count({
-        where: { userId, isAdmin: false, read: false },
-      });
+      let unread = 0;
+      try {
+        unread = await prisma.chatMessage.count({
+          where: { userId, isAdmin: false, read: false },
+        });
+      } catch {}
       return { ...user, lastMessage: lastMsg?.message || "", lastAt: lastMsg?.createdAt || new Date(), unread };
     })
   );
@@ -67,7 +70,9 @@ router.get("/admin/:userId", authGuard({ accessedBy: ["ADMIN"] }), tryCatch(asyn
     orderBy: { createdAt: "asc" },
   });
   // Mark as read
-  await prisma.chatMessage.updateMany({ where: { userId, isAdmin: false, read: false }, data: { read: true } });
+  try {
+    await prisma.chatMessage.updateMany({ where: { userId, isAdmin: false, read: false }, data: { read: true } });
+  } catch {}
   res.json({ success: true, data: messages });
 }));
 

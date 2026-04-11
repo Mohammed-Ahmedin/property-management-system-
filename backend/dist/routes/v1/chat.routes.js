@@ -54,9 +54,13 @@ router.get("/admin/conversations", (0, auth_middleware_1.authGuard)({ accessedBy
             where: { userId },
             orderBy: { createdAt: "desc" },
         });
-        const unread = yield prisma_1.prisma.chatMessage.count({
-            where: { userId, isAdmin: false, read: false },
-        });
+        let unread = 0;
+        try {
+            unread = yield prisma_1.prisma.chatMessage.count({
+                where: { userId, isAdmin: false, read: false },
+            });
+        }
+        catch (_b) { }
         return Object.assign(Object.assign({}, user), { lastMessage: (lastMsg === null || lastMsg === void 0 ? void 0 : lastMsg.message) || "", lastAt: (lastMsg === null || lastMsg === void 0 ? void 0 : lastMsg.createdAt) || new Date(), unread });
     })));
     // Sort by most recent message
@@ -72,7 +76,10 @@ router.get("/admin/:userId", (0, auth_middleware_1.authGuard)({ accessedBy: ["AD
         orderBy: { createdAt: "asc" },
     });
     // Mark as read
-    yield prisma_1.prisma.chatMessage.updateMany({ where: { userId, isAdmin: false, read: false }, data: { read: true } });
+    try {
+        yield prisma_1.prisma.chatMessage.updateMany({ where: { userId, isAdmin: false, read: false }, data: { read: true } });
+    }
+    catch (_a) { }
     res.json({ success: true, data: messages });
 })));
 // Admin: reply to a user

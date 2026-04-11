@@ -255,8 +255,10 @@ export default function PropertiesPage() {
   const limitSearchParam = searchParams.get("limit");
   const pageSearchParam = searchParams.get("page");
   const filters: any = {};
+  const SKIP_KEYS = new Set(["limit", "page", "sort", "sortField", "sortDirection"]);
 
   searchParams.forEach((value, key) => {
+    if (SKIP_KEYS.has(key)) return;
     if (key === "facilityNames") {
       try { filters[key as keyof PropertyFilters] = JSON.parse(value); } catch { filters[key as any] = value; }
     } else if (["minRating","maxRating","minPrice","maxPrice"].includes(key)) {
@@ -269,6 +271,7 @@ export default function PropertiesPage() {
   });
 
   const sort = searchParams.get("sort");
+  const sortField = searchParams.get("sortField");
 
   const hasActiveFilters = useMemo(() => {
     return Array.from(searchParams.keys()).some((k) => k !== "sort");
@@ -279,10 +282,9 @@ export default function PropertiesPage() {
     limit: Number(limitSearchParam) || 10,
     page: Number(pageSearchParam) || 1,
     sortDirection: sort === "latest" ? "desc" : "asc",
+    sortField: sortField || undefined,
     retry: false,
   } as any);
-
-  useEffect(() => { dataQuery.refetch(); }, [searchParams]);
 
   useEffect(() => {
     const hero = heroRef.current;
