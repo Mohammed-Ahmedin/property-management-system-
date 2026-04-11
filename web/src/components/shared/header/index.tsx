@@ -42,6 +42,14 @@ export function Header() {
   const { signOut, isAuthenticated } = useClientAuth();
   const navigate = useNavigate();
 
+  // Load site config for logo/name
+  const [siteConfig, setSiteConfig] = useState<{ siteName?: string; logoUrl?: string }>({});
+  useEffect(() => {
+    import("@/hooks/api").then(({ api }) => {
+      api.get("/site-config").then(res => setSiteConfig(res.data)).catch(() => {});
+    });
+  }, []);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) setPropDropdown(false);
@@ -90,10 +98,14 @@ export function Header() {
           {/* Logo + Nav grouped on left */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow">
-                <span className="text-primary-foreground font-bold text-base">B</span>
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow overflow-hidden">
+                {siteConfig.logoUrl ? (
+                  <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Bete"} className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-primary-foreground font-bold text-base">{(siteConfig.siteName || "Bete")[0]}</span>
+                )}
               </div>
-              <span className="text-xl font-bold text-foreground tracking-tight">Bete</span>
+              <span className="text-xl font-bold text-foreground tracking-tight">{siteConfig.siteName || "Bete"}</span>
             </Link>
 
             {/* Desktop Nav */}
@@ -163,12 +175,8 @@ export function Header() {
                 About
               </Link>
 
-              <Link to="/register"
-                className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/register") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
-                )}>
-                Register
-              </Link>
+              {/* Register tab hidden — kept for future use */}
+              {/* <Link to="/register" className="...">Register</Link> */}
             </nav>
           </div>
 
@@ -211,7 +219,7 @@ export function Header() {
                     </SheetTitle>
                   </SheetHeader>
                   <div className="flex flex-col gap-0.5">
-                    {[{ href: "/", label: "Home" }, { href: "/nearby", label: "Nearby" }, { href: "/about", label: "About" }, { href: "/register", label: "Register" }].map(({ href, label }) => (
+                    {[{ href: "/", label: "Home" }, { href: "/nearby", label: "Nearby" }, { href: "/about", label: "About" }].map(({ href, label }) => (
                       <Link key={href} to={href} onClick={() => setOpen(false)}
                         className={cn("text-sm font-medium px-3 py-2.5 rounded-xl transition-colors", isActive(href) ? "text-primary bg-primary/5" : "text-foreground hover:bg-muted")}>
                         {label}

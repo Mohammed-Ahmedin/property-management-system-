@@ -576,15 +576,42 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>Add License</DialogTitle>
-              <DialogDescription>Upload a license file URL for this property.</DialogDescription>
+              <DialogDescription>Upload a license file for this property.</DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-2">
-              <Label>License File URL</Label>
-              <Input
-                placeholder="https://... (upload to Cloudinary first)"
-                value={licenseUrl}
-                onChange={e => setLicenseUrl(e.target.value)}
-              />
+              {/* Local file upload */}
+              <div className="space-y-1.5">
+                <Label>Upload from device</Label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 cursor-pointer file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingLicense(true);
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      fd.append("upload_preset", "preset");
+                      const res = await fetch("https://api.cloudinary.com/v1_1/dxqy5eoqf/image/upload", { method: "POST", body: fd });
+                      const d = await res.json();
+                      if (d.secure_url) { setLicenseUrl(d.secure_url); toast.success("File uploaded"); }
+                    } catch { toast.error("Upload failed"); }
+                    finally { setUploadingLicense(false); }
+                  }}
+                />
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex-1 h-px bg-border" /> or paste URL <div className="flex-1 h-px bg-border" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>License URL</Label>
+                <Input placeholder="https://..." value={licenseUrl} onChange={e => setLicenseUrl(e.target.value)} />
+              </div>
+              {licenseUrl && (
+                <p className="text-xs text-emerald-600 truncate">✓ {licenseUrl}</p>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setLicenseOpen(false)}>Cancel</Button>
@@ -602,7 +629,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
                   finally { setUploadingLicense(false); }
                 }}
               >
-                {uploadingLicense ? "Saving..." : "Save License"}
+                {uploadingLicense ? "Uploading..." : "Save License"}
               </Button>
             </DialogFooter>
           </DialogContent>

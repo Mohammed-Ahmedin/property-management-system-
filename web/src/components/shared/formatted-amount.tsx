@@ -28,7 +28,8 @@ const FormatedAmount: FC<FormatedAmountProps> = ({
     style: "currency",
     currency,
     currencyDisplay: showSymbol ? "symbol" : "code",
-    minimumFractionDigits: 2,
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 
   return (

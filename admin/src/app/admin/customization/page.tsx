@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/hooks/api";
-import { Palette, Youtube, Send, Instagram, Globe, Image, Type, RefreshCw } from "lucide-react";
+import { Palette, Youtube, Send, Instagram, Globe, Type, ChevronDown, ChevronUp, Upload, Loader2 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
 const TIKTOK_ICON = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -16,53 +17,66 @@ const TIKTOK_ICON = () => (
   </svg>
 );
 
+const SOCIAL_FIELDS = [
+  { key: "youtube", label: "YouTube", icon: <Youtube className="w-4 h-4 text-red-500" />, placeholder: "https://youtube.com/@yourhandle", color: "text-red-500" },
+  { key: "tiktok", label: "TikTok", icon: <TIKTOK_ICON />, placeholder: "https://tiktok.com/@yourhandle", color: "text-foreground" },
+  { key: "telegram", label: "Telegram", icon: <Send className="w-4 h-4 text-blue-500" />, placeholder: "https://t.me/yourhandle", color: "text-blue-500" },
+  { key: "instagram", label: "Instagram", icon: <Instagram className="w-4 h-4 text-pink-500" />, placeholder: "https://instagram.com/yourhandle", color: "text-pink-500" },
+];
+
 export default function CustomizationPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    siteName: "Bete",
-    logoUrl: "",
-    youtube: "",
-    tiktok: "",
-    telegram: "",
-    instagram: "",
+    siteName: "Bete", logoUrl: "", youtube: "", tiktok: "", telegram: "", instagram: "",
   });
 
   useEffect(() => {
     api.get("/site-config").then(res => {
       const d = res.data;
-      setForm({
-        siteName: d.siteName || "Bete",
-        logoUrl: d.logoUrl || "",
-        youtube: d.youtube || "",
-        tiktok: d.tiktok || "",
-        telegram: d.telegram || "",
-        instagram: d.instagram || "",
-      });
+      setForm({ siteName: d.siteName || "Bete", logoUrl: d.logoUrl || "", youtube: d.youtube || "", tiktok: d.tiktok || "", telegram: d.telegram || "", instagram: d.instagram || "" });
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", "preset");
+      const res = await fetch("https://api.cloudinary.com/v1_1/dxqy5eoqf/image/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.secure_url) {
+        setForm(f => ({ ...f, logoUrl: data.secure_url }));
+        toast.success("Logo uploaded");
+      }
+    } catch { toast.error("Upload failed"); }
+    finally { setUploadingLogo(false); }
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.put("/site-config", form);
       toast.success("Site settings saved successfully");
-    } catch {
-      toast.error("Failed to save settings");
-    } finally {
-      setSaving(false);
-    }
+    } catch { toast.error("Failed to save settings"); }
+    finally { setSaving(false); }
   };
 
   if (loading) return <div className="flex items-center justify-center py-20"><Spinner className="size-8" /></div>;
+
+  const activeSocialCount = SOCIAL_FIELDS.filter(f => (form as any)[f.key]).length;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="px-4 py-6 max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-xl bg-primary/10">
-            <Palette className="h-5 w-5 text-primary" />
-          </div>
+          <div className="p-2.5 rounded-xl bg-primary/10"><Palette className="h-5 w-5 text-primary" /></div>
           <div>
             <h1 className="text-xl font-bold">Site Customization</h1>
             <p className="text-sm text-muted-foreground">Edit site name, logo and social media links</p>
@@ -73,61 +87,81 @@ export default function CustomizationPage() {
           {/* Branding */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Type className="h-4 w-4 text-primary" /> Branding
-              </CardTitle>
+              <CardTitle className="text-base flex items-center gap-2"><Type className="h-4 w-4 text-primary" /> Branding</CardTitle>
               <CardDescription>Site name and logo shown across the platform</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               <div className="space-y-1.5">
                 <Label>Site Name</Label>
-                <Input
-                  value={form.siteName}
-                  onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))}
-                  placeholder="e.g. Bete"
-                />
+                <Input value={form.siteName} onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} placeholder="e.g. Bete" />
                 <p className="text-xs text-muted-foreground">Shown in the header, footer and browser tab</p>
               </div>
-              <div className="space-y-1.5">
-                <Label>Logo URL</Label>
-                <Input
-                  value={form.logoUrl}
-                  onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))}
-                  placeholder="https://... (upload to Cloudinary first)"
-                />
-                {form.logoUrl && (
-                  <img src={form.logoUrl} alt="Logo preview" className="h-12 w-12 rounded-lg object-contain border border-border mt-2" />
-                )}
-                <p className="text-xs text-muted-foreground">Leave empty to use the default "B" letter logo</p>
+
+              {/* Logo upload */}
+              <div className="space-y-2">
+                <Label>Logo</Label>
+                <div className="flex items-start gap-4">
+                  {/* Preview */}
+                  <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 shrink-0 overflow-hidden">
+                    {form.logoUrl ? (
+                      <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-2xl font-bold text-primary">{form.siteName?.[0] || "B"}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}>
+                      {uploadingLogo ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</> : <><Upload className="w-3.5 h-3.5" /> Upload from device</>}
+                    </Button>
+                    <Input value={form.logoUrl} onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))} placeholder="Or paste image URL..." className="text-xs" />
+                    {form.logoUrl && (
+                      <Button variant="ghost" size="sm" className="text-xs text-destructive h-6 px-2" onClick={() => setForm(f => ({ ...f, logoUrl: "" }))}>Remove logo</Button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Recommended: square image, at least 64×64px. Leave empty to use the default letter logo.</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Social Media */}
+          {/* Social Media — collapsible */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Globe className="h-4 w-4 text-primary" /> Social Media Links
-              </CardTitle>
-              <CardDescription>Links shown in the footer. Leave empty to hide.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { key: "youtube", label: "YouTube", icon: <Youtube className="w-4 h-4 text-red-500" />, placeholder: "https://youtube.com/@yourhandle" },
-                { key: "tiktok", label: "TikTok", icon: <TIKTOK_ICON />, placeholder: "https://tiktok.com/@yourhandle" },
-                { key: "telegram", label: "Telegram", icon: <Send className="w-4 h-4 text-blue-500" />, placeholder: "https://t.me/yourhandle" },
-                { key: "instagram", label: "Instagram", icon: <Instagram className="w-4 h-4 text-pink-500" />, placeholder: "https://instagram.com/yourhandle" },
-              ].map(({ key, label, icon, placeholder }) => (
-                <div key={key} className="space-y-1.5">
-                  <Label className="flex items-center gap-2">{icon} {label}</Label>
-                  <Input
-                    value={(form as any)[key]}
-                    onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                  />
+            <button className="w-full text-left" onClick={() => setSocialOpen(o => !o)}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-base">Social Media Links</CardTitle>
+                    {activeSocialCount > 0 && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{activeSocialCount} active</span>
+                    )}
+                  </div>
+                  {socialOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                 </div>
-              ))}
-            </CardContent>
+                <CardDescription>Links shown in the footer. Leave empty to hide.</CardDescription>
+              </CardHeader>
+            </button>
+            {socialOpen && (
+              <CardContent className="space-y-4 pt-0">
+                {SOCIAL_FIELDS.map(({ key, label, icon, placeholder }) => (
+                  <div key={key} className="space-y-1.5">
+                    <Label className="flex items-center gap-2">{icon} {label}</Label>
+                    <div className="relative">
+                      <Input
+                        value={(form as any)[key]}
+                        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                        placeholder={placeholder}
+                        className={cn((form as any)[key] && "border-primary/50 bg-primary/5")}
+                      />
+                      {(form as any)[key] && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 font-medium">✓ Set</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            )}
           </Card>
 
           <Button onClick={handleSave} disabled={saving} className="w-full h-11 font-semibold">
