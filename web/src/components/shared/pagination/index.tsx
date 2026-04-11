@@ -46,11 +46,10 @@ export function PaginationControls({
 
   const handleLimitChange = useCallback(
     (value: string) => {
+      // onLimitChange already resets to page 1 internally
       onLimitChange(Number(value));
-      // When changing limit, we typically want to reset to page 1
-      onPageChange(1);
     },
-    [onLimitChange, onPageChange]
+    [onLimitChange]
   );
 
   return (
