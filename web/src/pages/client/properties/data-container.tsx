@@ -219,7 +219,10 @@ const DataContainer = ({ data, pagination, locationParam = "", totalItems = 0 }:
         <PaginationControls
           onLimitChange={handleRowsPerPageChange}
           onPageChange={handlePageChange}
-          pagination={pagination}
+          pagination={{
+            ...pagination,
+            limit: Number(pagination.limit) || Number(searchParams.get("limit")) || 10,
+          }}
           className="py-10 mt-8"
           showLimitSelector
         />

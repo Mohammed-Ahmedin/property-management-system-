@@ -30,18 +30,32 @@ router.get("/my", authGuard(), tryCatch(async (req, res) => {
 
 // Admin: get all conversations (grouped by user)
 router.get("/admin/conversations", authGuard({ accessedBy: ["ADMIN"] }), tryCatch(async (req, res) => {
-  const users = await prisma.chatMessage.findMany({
+  // Get all unique users who have messages
+  const userIds = await prisma.chatMessage.findMany({
+    select: { userId: true },
     distinct: ["userId"],
-    orderBy: { createdAt: "desc" },
-    include: { user: { select: { id: true, name: true, image: true, email: true } } },
   });
-  const unread = await prisma.chatMessage.groupBy({
-    by: ["userId"],
-    where: { isAdmin: false, read: false },
-    _count: { id: true },
-  });
-  const unreadMap = Object.fromEntries(unread.map(u => [u.userId, u._count.id]));
-  res.json({ success: true, data: users.map(m => ({ ...m.user, lastMessage: m.message, lastAt: m.createdAt, unread: unreadMap[m.userId] || 0 })) });
+
+  const conversations = await Promise.all(
+    userIds.map(async ({ userId }) => {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, image: true, email: true },
+      });
+      const lastMsg = await prisma.chatMessage.findFirst({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      });
+      const unread = await prisma.chatMessage.count({
+        where: { userId, isAdmin: false, read: false },
+      });
+      return { ...user, lastMessage: lastMsg?.message || "", lastAt: lastMsg?.createdAt || new Date(), unread };
+    })
+  );
+
+  // Sort by most recent message
+  conversations.sort((a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
+  res.json({ success: true, data: conversations });
 }));
 
 // Admin: get messages for a specific user

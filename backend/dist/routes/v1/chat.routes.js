@@ -40,18 +40,28 @@ router.get("/my", (0, auth_middleware_1.authGuard)(), (0, async_handler_1.tryCat
 })));
 // Admin: get all conversations (grouped by user)
 router.get("/admin/conversations", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield prisma_1.prisma.chatMessage.findMany({
+    // Get all unique users who have messages
+    const userIds = yield prisma_1.prisma.chatMessage.findMany({
+        select: { userId: true },
         distinct: ["userId"],
-        orderBy: { createdAt: "desc" },
-        include: { user: { select: { id: true, name: true, image: true, email: true } } },
     });
-    const unread = yield prisma_1.prisma.chatMessage.groupBy({
-        by: ["userId"],
-        where: { isAdmin: false, read: false },
-        _count: { id: true },
-    });
-    const unreadMap = Object.fromEntries(unread.map(u => [u.userId, u._count.id]));
-    res.json({ success: true, data: users.map(m => (Object.assign(Object.assign({}, m.user), { lastMessage: m.message, lastAt: m.createdAt, unread: unreadMap[m.userId] || 0 }))) });
+    const conversations = yield Promise.all(userIds.map((_a) => __awaiter(void 0, [_a], void 0, function* ({ userId }) {
+        const user = yield prisma_1.prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, name: true, image: true, email: true },
+        });
+        const lastMsg = yield prisma_1.prisma.chatMessage.findFirst({
+            where: { userId },
+            orderBy: { createdAt: "desc" },
+        });
+        const unread = yield prisma_1.prisma.chatMessage.count({
+            where: { userId, isAdmin: false, read: false },
+        });
+        return Object.assign(Object.assign({}, user), { lastMessage: (lastMsg === null || lastMsg === void 0 ? void 0 : lastMsg.message) || "", lastAt: (lastMsg === null || lastMsg === void 0 ? void 0 : lastMsg.createdAt) || new Date(), unread });
+    })));
+    // Sort by most recent message
+    conversations.sort((a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
+    res.json({ success: true, data: conversations });
 })));
 // Admin: get messages for a specific user
 router.get("/admin/:userId", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), (0, async_handler_1.tryCatch)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
