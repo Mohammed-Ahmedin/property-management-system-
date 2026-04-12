@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MessageCircle, X, Send, Loader2, ChevronUp } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 import { api } from "@/hooks/api";
@@ -13,6 +13,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
 export function ChatWidget() {
   const user = useAppSelector(s => s.auth.user);
   const isAuthenticated = useAppSelector(s => s.auth.isAuthenticated);
+  const authStatus = useAppSelector(s => s.auth.status);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
@@ -23,11 +24,13 @@ export function ChatWidget() {
   const [loadingMore, setLoadingMore] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  // Track pending optimistic IDs so we can replace them when socket confirms
   const pendingOptRef = useRef<string | null>(null);
+  // Track whether we've loaded messages at least once
+  const loadedRef = useRef(false);
 
+  // Init socket once auth is ready
   useEffect(() => {
-    if (!isAuthenticated || !user?.id) return;
+    if (!isAuthenticated || !user?.id || authStatus !== "success") return;
     const token = localStorage.getItem("AUTH_TOKEN");
     const socket = io(SERVER_URL, {
       auth: { userId: user.id, token },
@@ -38,22 +41,20 @@ export function ChatWidget() {
 
     socket.on("message:new", (msg: any) => {
       setMessages(prev => {
-        // If we have a pending optimistic for this message, replace it
         if (pendingOptRef.current && !msg.isAdmin) {
           pendingOptRef.current = null;
           return prev.map(m => m.id?.toString().startsWith("opt-") ? msg : m);
         }
-        // For admin replies or if no pending opt, just append if not duplicate
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
     });
 
     return () => { socket.disconnect(); socketRef.current = null; };
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, authStatus]);
 
-  const loadMessages = async (pageNum = 1, prepend = false) => {
-    if (!isAuthenticated) return;
+  const loadMessages = useCallback(async (pageNum = 1, prepend = false) => {
+    if (!isAuthenticated || !user?.id) return;
     if (pageNum === 1) setLoading(true);
     try {
       const res = await api.get("/chat/my", { params: { page: pageNum, limit: 50 } });
@@ -63,17 +64,28 @@ export function ChatWidget() {
         setMessages(prev => [...msgs, ...prev]);
       } else {
         setMessages(msgs);
+        loadedRef.current = true;
       }
-    } catch {}
+    } catch {
+      // silently fail — messages stay as-is
+    }
     setLoading(false);
-  };
+  }, [isAuthenticated, user?.id]);
 
+  // Load messages as soon as auth is confirmed (even if widget is closed)
+  // so they're ready instantly when user opens the chat
   useEffect(() => {
-    if (open && isAuthenticated) {
-      setPage(1);
+    if (isAuthenticated && user?.id && authStatus === "success" && !loadedRef.current) {
       loadMessages(1);
     }
-  }, [open, isAuthenticated]);
+  }, [isAuthenticated, user?.id, authStatus, loadMessages]);
+
+  // Reload when widget opens (refresh in case new messages arrived)
+  useEffect(() => {
+    if (open && isAuthenticated && user?.id && authStatus === "success") {
+      loadMessages(1);
+    }
+  }, [open]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -98,12 +110,10 @@ export function ChatWidget() {
     setInput("");
 
     if (socketRef.current?.connected) {
-      // Mark this optimistic as pending — socket reply will replace it
       pendingOptRef.current = optId;
       socketRef.current.emit("user:message", { userId: user.id, message: text });
       setSending(false);
     } else {
-      // REST fallback
       try {
         const res = await api.post("/chat", { message: text });
         setMessages(prev => prev.map(m => m.id === optId ? res.data.data : m));

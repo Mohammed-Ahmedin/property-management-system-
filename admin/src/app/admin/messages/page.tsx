@@ -76,7 +76,19 @@ export default function MessagesPage() {
     try {
       const res = await api.get("/chat/admin/conversations");
       setConversations(res.data.data || []);
-    } catch {}
+    } catch (err: any) {
+      // If 401, retry once after a short delay (token might not be ready yet after refresh)
+      if (err?.response?.status === 401) {
+        setTimeout(async () => {
+          try {
+            const res = await api.get("/chat/admin/conversations");
+            setConversations(res.data.data || []);
+          } catch {}
+          setLoading(false);
+        }, 1500);
+        return;
+      }
+    }
     setLoading(false);
   }, []);
 
@@ -91,7 +103,11 @@ export default function MessagesPage() {
         setMessages(newMsgs);
       }
       if (!prepend) loadConversations();
-    } catch {}
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        setTimeout(() => loadMessages(userId, pageNum, prepend), 1500);
+      }
+    }
   }, [loadConversations]);
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
