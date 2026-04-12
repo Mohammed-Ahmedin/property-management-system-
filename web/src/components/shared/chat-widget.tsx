@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, ChevronUp } from "lucide-react";
+import { io, Socket } from "socket.io-client";
 import { api } from "@/hooks/api";
 import { useAppSelector } from "@/store/hooks";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+
+const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
 
 export function ChatWidget() {
   const user = useAppSelector(s => s.auth.user);
@@ -15,47 +18,95 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
 
-  const loadMessages = async () => {
+  // Init socket when authenticated
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    const token = localStorage.getItem("AUTH_TOKEN");
+    const socket = io(SERVER_URL, {
+      auth: { userId: user.id, token },
+      transports: ["websocket", "polling"],
+      reconnectionAttempts: 5,
+    });
+    socketRef.current = socket;
+
+    socket.on("message:new", (msg: any) => {
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    });
+
+    return () => { socket.disconnect(); socketRef.current = null; };
+  }, [isAuthenticated, user?.id]);
+
+  const loadMessages = async (pageNum = 1, prepend = false) => {
     if (!isAuthenticated) return;
-    setLoading(true);
+    if (pageNum === 1) setLoading(true);
     try {
-      const res = await api.get("/chat/my");
-      setMessages(res.data.data || []);
+      const res = await api.get("/chat/my", { params: { page: pageNum, limit: 50 } });
+      const msgs = res.data.data || [];
+      setTotalPages(res.data.totalPages || 1);
+      if (prepend) {
+        setMessages(prev => [...msgs, ...prev]);
+      } else {
+        setMessages(msgs);
+      }
     } catch {}
     setLoading(false);
   };
 
   useEffect(() => {
-    if (open && isAuthenticated) loadMessages();
+    if (open && isAuthenticated) {
+      setPage(1);
+      loadMessages(1);
+    }
   }, [open, isAuthenticated]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Poll for new messages when open
-  useEffect(() => {
-    if (!open || !isAuthenticated) return;
-    const interval = setInterval(loadMessages, 5000);
-    return () => clearInterval(interval);
-  }, [open, isAuthenticated]);
+  const handleLoadMore = async () => {
+    if (page >= totalPages) return;
+    setLoadingMore(true);
+    const next = page + 1;
+    setPage(next);
+    await loadMessages(next, true);
+    setLoadingMore(false);
+  };
 
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
+    if (!input.trim() || sending || !user?.id) return;
+    const text = input.trim();
     setSending(true);
-    const optimistic = { id: Date.now(), message: input, isAdmin: false, createdAt: new Date().toISOString(), user };
+    const optimistic = { id: `opt-${Date.now()}`, message: text, isAdmin: false, createdAt: new Date().toISOString(), user };
     setMessages(prev => [...prev, optimistic]);
     setInput("");
-    try {
-      const res = await api.post("/chat", { message: input });
-      setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data.data : m));
-    } catch {
-      setMessages(prev => prev.filter(m => m.id !== optimistic.id));
-      setInput(input);
-    } finally {
+
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("user:message", { userId: user.id, message: text });
       setSending(false);
+      // Remove optimistic after socket confirms
+      setTimeout(() => {
+        setMessages(prev => prev.filter(m => m.id !== optimistic.id));
+      }, 2000);
+    } else {
+      // REST fallback
+      try {
+        const res = await api.post("/chat", { message: text });
+        setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data.data : m));
+      } catch {
+        setMessages(prev => prev.filter(m => m.id !== optimistic.id));
+        setInput(text);
+      } finally {
+        setSending(false);
+      }
     }
   };
 
@@ -64,8 +115,7 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-2">
       {open && (
-        <div className="w-80 sm:w-96 bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          style={{ height: "420px" }}>
+        <div className="w-80 sm:w-96 bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden" style={{ height: "420px" }}>
           {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
@@ -74,7 +124,10 @@ export function ChatWidget() {
               </div>
               <div>
                 <p className="text-white font-semibold text-sm">Support Chat</p>
-                <p className="text-white/70 text-xs">We'll reply as soon as possible</p>
+                <p className="text-white/70 text-xs flex items-center gap-1">
+                  <span className={cn("w-1.5 h-1.5 rounded-full inline-block", socketRef.current?.connected ? "bg-green-300" : "bg-white/40")} />
+                  {socketRef.current?.connected ? "Connected" : "We'll reply as soon as possible"}
+                </p>
               </div>
             </div>
             <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white transition-colors">
@@ -84,6 +137,20 @@ export function ChatWidget() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+            {/* Load older messages */}
+            {page < totalPages && (
+              <div className="flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                >
+                  <ChevronUp className="w-3 h-3" />
+                  {loadingMore ? "Loading..." : "Load older messages"}
+                </button>
+              </div>
+            )}
+
             {loading && messages.length === 0 ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -130,7 +197,6 @@ export function ChatWidget() {
         </div>
       )}
 
-      {/* Toggle button */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-12 h-12 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all hover:scale-105 flex items-center justify-center"

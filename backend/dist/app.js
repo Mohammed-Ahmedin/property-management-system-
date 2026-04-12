@@ -45,7 +45,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.io = void 0;
 const express_1 = __importDefault(require("express"));
+const http_1 = __importDefault(require("http"));
+const socket_io_1 = require("socket.io");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const cors_1 = __importDefault(require("cors"));
 const express_fileupload_1 = __importDefault(require("express-fileupload"));
@@ -53,8 +56,10 @@ const node_1 = require("better-auth/node");
 const auth_1 = require("./lib/auth");
 const routes_1 = __importDefault(require("./routes"));
 const error_handler_1 = __importDefault(require("./middleware/error-handler"));
+const chat_socket_1 = require("./sockets/chat.socket");
 const swaggerOutput = require("../swagger-output.json");
 const app = (0, express_1.default)();
+const server = http_1.default.createServer(app);
 // ---------- Middleware ----------
 app.set("trust proxy", 1);
 const CLIENT_FRONTEND_URL = process.env.CLIENT_FRONTEND_URL;
@@ -69,23 +74,27 @@ const staticOrigins = [
     CLIENT_FRONTEND_URL,
     ADMIN_FRONTEND_URL,
 ].filter(Boolean);
-app.use((0, cors_1.default)({
-    origin: (origin, callback) => {
-        if (!origin)
-            return callback(null, true);
-        if (staticOrigins.includes(origin))
-            return callback(null, true);
-        if (allowedOriginPatterns.some((p) => p.test(origin)))
-            return callback(null, true);
-        callback(new Error(`CORS blocked: ${origin}`));
+const corsOriginFn = (origin, callback) => {
+    if (!origin)
+        return callback(null, true);
+    if (staticOrigins.includes(origin))
+        return callback(null, true);
+    if (allowedOriginPatterns.some((p) => p.test(origin)))
+        return callback(null, true);
+    callback(new Error(`CORS blocked: ${origin}`));
+};
+app.use((0, cors_1.default)({ origin: corsOriginFn, methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], credentials: true }));
+// ---------- Socket.IO ----------
+exports.io = new socket_io_1.Server(server, {
+    cors: {
+        origin: (origin, callback) => corsOriginFn(origin, callback),
+        methods: ["GET", "POST"],
+        credentials: true,
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-}));
-app.use((0, express_fileupload_1.default)({
-    useTempFiles: true,
-    tempFileDir: "/tmp/",
-}));
+    transports: ["websocket", "polling"],
+});
+(0, chat_socket_1.registerChatSocket)(exports.io);
+app.use((0, express_fileupload_1.default)({ useTempFiles: true, tempFileDir: "/tmp/" }));
 app.all("/api/auth/*splat", (0, node_1.toNodeHandler)(auth_1.auth));
 app.use(express_1.default.json());
 // ---------- Swagger ----------
@@ -94,20 +103,7 @@ app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.de
 app.use(routes_1.default);
 // ---------- Error Handler ----------
 app.use(error_handler_1.default);
-// // ---------- Create HTTP server ----------
-// const server = http.createServer(app);
-// // ---------- Socket.IO ----------
-// const io = new Server(server, {
-//   cors: {
-//     origin: ["*"],
-//     methods: ["GET", "POST"],
-//     credentials: true,
-//   },
-// });
-// ---------- Register Socket Handlers ----------
-// registerSocketHandlers(io);
 const PORT = process.env.PORT || 3000;
-// Auto-approve all PENDING properties on startup
 function autoApproveProperties() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -116,24 +112,16 @@ function autoApproveProperties() {
                 where: { status: "PENDING" },
                 data: { status: "APPROVED", visibility: true },
             });
-            if (result.count > 0) {
+            if (result.count > 0)
                 console.log(`✅ Auto-approved ${result.count} pending properties`);
-            }
         }
         catch (e) {
             console.error("Auto-approve failed:", e);
         }
     });
 }
-// ---------- Start Server ----------
-app.listen(PORT, "0.0.0.0", () => __awaiter(void 0, void 0, void 0, function* () {
+server.listen(PORT, "0.0.0.0", () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🚀 The new version is running`);
-    console.log(`📖 Swagger Docs in here http://localhost:${PORT}/api-docs`);
+    console.log(`📖 Swagger Docs: http://localhost:${PORT}/api-docs`);
     yield autoApproveProperties();
 }));
-// app.listen(PORT, () => {
-//   console.log(`🚀 Server running on http://localhost:${PORT}`);
-//   console.log(`🚀 The new version is running`);
-//   console.log(`📖 Swagger Docs in here http://localhost:${PORT}/api-docs`);
-// });

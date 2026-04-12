@@ -589,14 +589,18 @@ export default function PropertyView({ data }: { data: PropertyData }) {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
+                    e.target.value = "";
                     setUploadingLicense(true);
                     try {
+                      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dxqy5eoqf";
+                      const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "preset";
                       const fd = new FormData();
                       fd.append("file", file);
-                      fd.append("upload_preset", "preset");
-                      const res = await fetch("https://api.cloudinary.com/v1_1/dxqy5eoqf/image/upload", { method: "POST", body: fd });
+                      fd.append("upload_preset", preset);
+                      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: fd });
                       const d = await res.json();
                       if (d.secure_url) { setLicenseUrl(d.secure_url); toast.success("File uploaded"); }
+                      else { toast.error(d.error?.message || "Upload failed"); }
                     } catch { toast.error("Upload failed"); }
                     finally { setUploadingLicense(false); }
                   }}

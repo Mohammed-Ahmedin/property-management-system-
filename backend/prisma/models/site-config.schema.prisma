@@ -10,6 +10,7 @@ model SiteConfig {
   contactPhone    String?
   contactEmail    String?
   contactAddress  String?
+  extraSocials    Json?   // [{label, url}]
   updatedAt   DateTime @updatedAt
 }
 

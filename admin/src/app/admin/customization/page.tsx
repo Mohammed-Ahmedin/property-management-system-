@@ -7,9 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/hooks/api";
-import { Palette, Youtube, Send, Instagram, Globe, Type, ChevronDown, ChevronUp, Upload, Loader2 } from "lucide-react";
+import { Palette, Youtube, Send, Instagram, Globe, Type, ChevronDown, ChevronUp, Upload, Loader2, Plus, Trash2, Link } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dxqy5eoqf";
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "preset";
 
 const TIKTOK_ICON = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -18,11 +21,13 @@ const TIKTOK_ICON = () => (
 );
 
 const SOCIAL_FIELDS = [
-  { key: "youtube", label: "YouTube", icon: <Youtube className="w-4 h-4 text-red-500" />, placeholder: "https://youtube.com/@yourhandle", color: "text-red-500" },
-  { key: "tiktok", label: "TikTok", icon: <TIKTOK_ICON />, placeholder: "https://tiktok.com/@yourhandle", color: "text-foreground" },
-  { key: "telegram", label: "Telegram", icon: <Send className="w-4 h-4 text-blue-500" />, placeholder: "https://t.me/yourhandle", color: "text-blue-500" },
-  { key: "instagram", label: "Instagram", icon: <Instagram className="w-4 h-4 text-pink-500" />, placeholder: "https://instagram.com/yourhandle", color: "text-pink-500" },
+  { key: "youtube", label: "YouTube", icon: <Youtube className="w-4 h-4 text-red-500" />, placeholder: "https://youtube.com/@yourhandle" },
+  { key: "tiktok", label: "TikTok", icon: <TIKTOK_ICON />, placeholder: "https://tiktok.com/@yourhandle" },
+  { key: "telegram", label: "Telegram", icon: <Send className="w-4 h-4 text-blue-500" />, placeholder: "https://t.me/yourhandle" },
+  { key: "instagram", label: "Instagram", icon: <Instagram className="w-4 h-4 text-pink-500" />, placeholder: "https://instagram.com/yourhandle" },
 ];
+
+interface ExtraSocial { label: string; url: string }
 
 export default function CustomizationPage() {
   const [loading, setLoading] = useState(true);
@@ -31,9 +36,11 @@ export default function CustomizationPage() {
   const [socialOpen, setSocialOpen] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    siteName: "Bete", logoUrl: "", tagline: "", youtube: "", tiktok: "", telegram: "", instagram: "",
+    siteName: "Bete", logoUrl: "", tagline: "",
+    youtube: "", tiktok: "", telegram: "", instagram: "",
     contactPhone: "", contactEmail: "", contactAddress: "",
   });
+  const [extraSocials, setExtraSocials] = useState<ExtraSocial[]>([]);
 
   useEffect(() => {
     api.get("/site-config").then(res => {
@@ -43,22 +50,27 @@ export default function CustomizationPage() {
         youtube: d.youtube || "", tiktok: d.tiktok || "", telegram: d.telegram || "", instagram: d.instagram || "",
         contactPhone: d.contactPhone || "", contactEmail: d.contactEmail || "", contactAddress: d.contactAddress || "",
       });
+      if (Array.isArray(d.extraSocials)) setExtraSocials(d.extraSocials);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset input so same file can be re-selected
+    e.target.value = "";
     setUploadingLogo(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("upload_preset", "preset");
-      const res = await fetch("https://api.cloudinary.com/v1_1/dxqy5eoqf/image/upload", { method: "POST", body: fd });
+      fd.append("upload_preset", UPLOAD_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
       const data = await res.json();
       if (data.secure_url) {
         setForm(f => ({ ...f, logoUrl: data.secure_url }));
         toast.success("Logo uploaded");
+      } else {
+        toast.error(data.error?.message || "Upload failed");
       }
     } catch { toast.error("Upload failed"); }
     finally { setUploadingLogo(false); }
@@ -67,15 +79,20 @@ export default function CustomizationPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put("/site-config", form);
+      await api.put("/site-config", { ...form, extraSocials });
       toast.success("Site settings saved successfully");
     } catch { toast.error("Failed to save settings"); }
     finally { setSaving(false); }
   };
 
+  const addExtraSocial = () => setExtraSocials(prev => [...prev, { label: "", url: "" }]);
+  const removeExtraSocial = (i: number) => setExtraSocials(prev => prev.filter((_, idx) => idx !== i));
+  const updateExtraSocial = (i: number, field: "label" | "url", value: string) =>
+    setExtraSocials(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: value } : s));
+
   if (loading) return <div className="flex items-center justify-center py-20"><Spinner className="size-8" /></div>;
 
-  const activeSocialCount = SOCIAL_FIELDS.filter(f => (form as any)[f.key]).length;
+  const activeSocialCount = SOCIAL_FIELDS.filter(f => (form as any)[f.key]).length + extraSocials.filter(s => s.url).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -112,7 +129,6 @@ export default function CustomizationPage() {
               <div className="space-y-2">
                 <Label>Logo</Label>
                 <div className="flex items-start gap-4">
-                  {/* Preview */}
                   <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 shrink-0 overflow-hidden">
                     {form.logoUrl ? (
                       <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain" />
@@ -121,17 +137,39 @@ export default function CustomizationPage() {
                     )}
                   </div>
                   <div className="flex-1 space-y-2">
-                    <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                    <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}>
-                      {uploadingLogo ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</> : <><Upload className="w-3.5 h-3.5" /> Upload from device</>}
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                    >
+                      {uploadingLogo
+                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</>
+                        : <><Upload className="w-3.5 h-3.5" /> Upload from device</>}
                     </Button>
-                    <Input value={form.logoUrl} onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))} placeholder="Or paste image URL..." className="text-xs" />
+                    <Input
+                      value={form.logoUrl}
+                      onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))}
+                      placeholder="Or paste image URL..."
+                      className="text-xs"
+                    />
                     {form.logoUrl && (
-                      <Button variant="ghost" size="sm" className="text-xs text-destructive h-6 px-2" onClick={() => setForm(f => ({ ...f, logoUrl: "" }))}>Remove logo</Button>
+                      <Button variant="ghost" size="sm" className="text-xs text-destructive h-6 px-2" onClick={() => setForm(f => ({ ...f, logoUrl: "" }))}>
+                        Remove logo
+                      </Button>
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Recommended: square image, at least 64×64px. Leave empty to use the default letter logo.</p>
+                <p className="text-xs text-muted-foreground">Recommended: square image, at least 64×64px.</p>
               </div>
             </CardContent>
           </Card>
@@ -155,6 +193,7 @@ export default function CustomizationPage() {
             </button>
             {socialOpen && (
               <CardContent className="space-y-4 pt-0">
+                {/* Fixed social fields */}
                 {SOCIAL_FIELDS.map(({ key, label, icon, placeholder }) => (
                   <div key={key} className="space-y-1.5">
                     <Label className="flex items-center gap-2">{icon} {label}</Label>
@@ -166,11 +205,44 @@ export default function CustomizationPage() {
                         className={cn((form as any)[key] && "border-primary/50 bg-primary/5")}
                       />
                       {(form as any)[key] && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 font-medium">✓ Set</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 font-medium">✓</span>
                       )}
                     </div>
                   </div>
                 ))}
+
+                {/* Extra / custom social links */}
+                {extraSocials.length > 0 && (
+                  <div className="pt-2 border-t border-border space-y-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Custom Links</p>
+                    {extraSocials.map((s, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <Input
+                          value={s.label}
+                          onChange={e => updateExtraSocial(i, "label", e.target.value)}
+                          placeholder="Label (e.g. Facebook)"
+                          className="w-32 shrink-0 text-sm"
+                        />
+                        <div className="relative flex-1">
+                          <Link className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                          <Input
+                            value={s.url}
+                            onChange={e => updateExtraSocial(i, "url", e.target.value)}
+                            placeholder="https://..."
+                            className={cn("pl-8 text-sm", s.url && "border-primary/50 bg-primary/5")}
+                          />
+                        </div>
+                        <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive h-9 w-9" onClick={() => removeExtraSocial(i)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Button variant="outline" size="sm" className="w-full gap-2 mt-2" onClick={addExtraSocial}>
+                  <Plus className="w-3.5 h-3.5" /> Add another social link
+                </Button>
               </CardContent>
             )}
           </Card>
