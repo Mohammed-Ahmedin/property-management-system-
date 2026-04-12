@@ -11,8 +11,8 @@ import { Palette, Youtube, Send, Instagram, Globe, Type, ChevronDown, ChevronUp,
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dxqy5eoqf";
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "preset";
+const CLOUD_NAME = "dxqy5eoqf";
+const UPLOAD_PRESET = "preset";
 
 const TIKTOK_ICON = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

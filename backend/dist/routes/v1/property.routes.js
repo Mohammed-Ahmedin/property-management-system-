@@ -93,6 +93,12 @@ router.post("/:id/license", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["G
     });
     res.json({ success: true, message: "License added" });
 }));
+router.delete("/:id/license", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { prisma } = yield Promise.resolve().then(() => __importStar(require("../../lib/prisma")));
+    const { id: propertyId } = req.params;
+    yield prisma.license.deleteMany({ where: { propertyId } });
+    res.json({ success: true, message: "License removed" });
+}));
 router.delete("/:id", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.deleteProperty);
 router.post("/", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.createProperty);
 router.post("/dummy", properties_controller_1.default.createDummyProperty);

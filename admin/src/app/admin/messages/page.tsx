@@ -36,6 +36,8 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const selectedUserRef = useRef<any>(null);
   const socketRef = useRef<Socket | null>(null);
+  // Track pending optimistic ID for admin replies
+  const pendingOptRef = useRef<string | null>(null);
 
   // Init socket
   useEffect(() => {
@@ -51,11 +53,15 @@ export default function MessagesPage() {
       const forUser = msg.forUserId || msg.userId;
       if (selectedUserRef.current?.id === forUser) {
         setMessages(prev => {
+          // Replace pending optimistic with real message
+          if (pendingOptRef.current && msg.isAdmin) {
+            pendingOptRef.current = null;
+            return prev.map(m => m.id?.toString().startsWith("opt-") ? msg : m);
+          }
           if (prev.some(m => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
       }
-      // Refresh conversation list
       loadConversations();
     });
 
@@ -119,14 +125,11 @@ export default function MessagesPage() {
     const optimistic = { id: `opt-${Date.now()}`, message: text, isAdmin: true, createdAt: new Date().toISOString(), user: selectedUser };
     setMessages(prev => [...prev, optimistic]);
 
-    // Try socket first
     if (socketRef.current?.connected) {
+      // Mark optimistic as pending — socket reply will replace it
+      pendingOptRef.current = optimistic.id;
       socketRef.current.emit("admin:reply", { userId: selectedUser.id, message: text });
       setSending(false);
-      // Remove optimistic after socket confirms via message:new
-      setTimeout(() => {
-        setMessages(prev => prev.filter(m => m.id !== optimistic.id));
-      }, 2000);
     } else {
       // REST fallback
       try {

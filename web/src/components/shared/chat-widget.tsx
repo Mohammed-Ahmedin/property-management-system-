@@ -23,8 +23,9 @@ export function ChatWidget() {
   const [loadingMore, setLoadingMore] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  // Track pending optimistic IDs so we can replace them when socket confirms
+  const pendingOptRef = useRef<string | null>(null);
 
-  // Init socket when authenticated
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
     const token = localStorage.getItem("AUTH_TOKEN");
@@ -37,6 +38,12 @@ export function ChatWidget() {
 
     socket.on("message:new", (msg: any) => {
       setMessages(prev => {
+        // If we have a pending optimistic for this message, replace it
+        if (pendingOptRef.current && !msg.isAdmin) {
+          pendingOptRef.current = null;
+          return prev.map(m => m.id?.toString().startsWith("opt-") ? msg : m);
+        }
+        // For admin replies or if no pending opt, just append if not duplicate
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
@@ -85,24 +92,23 @@ export function ChatWidget() {
     if (!input.trim() || sending || !user?.id) return;
     const text = input.trim();
     setSending(true);
-    const optimistic = { id: `opt-${Date.now()}`, message: text, isAdmin: false, createdAt: new Date().toISOString(), user };
+    const optId = `opt-${Date.now()}`;
+    const optimistic = { id: optId, message: text, isAdmin: false, createdAt: new Date().toISOString(), user };
     setMessages(prev => [...prev, optimistic]);
     setInput("");
 
     if (socketRef.current?.connected) {
+      // Mark this optimistic as pending — socket reply will replace it
+      pendingOptRef.current = optId;
       socketRef.current.emit("user:message", { userId: user.id, message: text });
       setSending(false);
-      // Remove optimistic after socket confirms
-      setTimeout(() => {
-        setMessages(prev => prev.filter(m => m.id !== optimistic.id));
-      }, 2000);
     } else {
       // REST fallback
       try {
         const res = await api.post("/chat", { message: text });
-        setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data.data : m));
+        setMessages(prev => prev.map(m => m.id === optId ? res.data.data : m));
       } catch {
-        setMessages(prev => prev.filter(m => m.id !== optimistic.id));
+        setMessages(prev => prev.filter(m => m.id !== optId));
         setInput(text);
       } finally {
         setSending(false);
@@ -116,7 +122,6 @@ export function ChatWidget() {
     <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-2">
       {open && (
         <div className="w-80 sm:w-96 bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden" style={{ height: "420px" }}>
-          {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -135,26 +140,17 @@ export function ChatWidget() {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-            {/* Load older messages */}
             {page < totalPages && (
               <div className="flex justify-center">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  className="text-xs text-primary flex items-center gap-1 hover:underline"
-                >
+                <button onClick={handleLoadMore} disabled={loadingMore} className="text-xs text-primary flex items-center gap-1 hover:underline">
                   <ChevronUp className="w-3 h-3" />
                   {loadingMore ? "Loading..." : "Load older messages"}
                 </button>
               </div>
             )}
-
             {loading && messages.length === 0 ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              </div>
+              <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
             ) : messages.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -164,9 +160,7 @@ export function ChatWidget() {
               messages.map(msg => (
                 <div key={msg.id} className={cn("flex", msg.isAdmin ? "justify-start" : "justify-end")}>
                   <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-sm",
-                    msg.isAdmin
-                      ? "bg-muted text-foreground rounded-bl-sm"
-                      : "bg-primary text-primary-foreground rounded-br-sm"
+                    msg.isAdmin ? "bg-muted text-foreground rounded-bl-sm" : "bg-primary text-primary-foreground rounded-br-sm"
                   )}>
                     {msg.isAdmin && <p className="text-xs font-semibold mb-0.5 opacity-70">Support</p>}
                     <p>{msg.message}</p>
@@ -180,7 +174,6 @@ export function ChatWidget() {
             <div ref={endRef} />
           </div>
 
-          {/* Input */}
           <div className="p-3 border-t border-border flex gap-2 shrink-0">
             <input
               value={input}
@@ -197,11 +190,9 @@ export function ChatWidget() {
         </div>
       )}
 
-      <button
-        onClick={() => setOpen(o => !o)}
+      <button onClick={() => setOpen(o => !o)}
         className="w-12 h-12 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all hover:scale-105 flex items-center justify-center"
-        aria-label="Open chat"
-      >
+        aria-label="Open chat">
         {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
       </button>
     </div>

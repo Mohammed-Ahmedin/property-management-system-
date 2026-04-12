@@ -85,6 +85,12 @@ router.post("/:id/license", authGuard({ cantAccessBy: ["GUEST"] }), async (req, 
   });
   res.json({ success: true, message: "License added" });
 });
+router.delete("/:id/license", authGuard({ cantAccessBy: ["GUEST"] }), async (req, res) => {
+  const { prisma } = await import("../../lib/prisma");
+  const { id: propertyId } = req.params;
+  await prisma.license.deleteMany({ where: { propertyId } });
+  res.json({ success: true, message: "License removed" });
+});
 router.delete(
   "/:id",
   authGuard({ cantAccessBy: ["GUEST"] }),

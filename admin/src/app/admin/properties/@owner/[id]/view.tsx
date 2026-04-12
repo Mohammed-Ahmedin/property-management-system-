@@ -300,7 +300,19 @@ export default function PropertyView({ data }: { data: PropertyData }) {
                   <div className="flex items-center gap-3 mb-4">
                     {data.license.status === "PENDING" ? <><Clock className="h-5 w-5 text-amber-500" /><Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pending Review</Badge></> : <><CheckCircle2 className="h-5 w-5 text-emerald-500" /><Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Approved</Badge></>}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><FileText className="h-4 w-4" /><span>Submitted on {new Date(data.license.createdAt).toLocaleDateString()}</span></div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4"><FileText className="h-4 w-4" /><span>Submitted on {new Date(data.license.createdAt).toLocaleDateString()}</span></div>
+                  <div className="flex gap-2">
+                    <a href={data.license.fileUrl} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline"><FileText className="h-4 w-4 mr-2" />View File</Button>
+                    </a>
+                    <Button size="sm" variant="destructive" onClick={async () => {
+                      try {
+                        await api.delete(`/properties/${data.id}/license`);
+                        toast.success("License removed");
+                        queryClient.invalidateQueries({ queryKey: ["guest_houses", data.id] });
+                      } catch { toast.error("Failed to remove license"); }
+                    }}>Remove</Button>
+                  </div>
                 </CardContent>
               ) : (
                 <EmptyState title="No license registered" description="Add a license below." icon={<FileMinus className="h-12 w-12 text-muted-foreground" />} primaryActions={
