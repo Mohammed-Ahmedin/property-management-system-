@@ -118,9 +118,9 @@ export default function CustomizationPage() {
               <div className="space-y-2">
                 <Label>Logo</Label>
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 shrink-0 overflow-hidden">
+                  <div className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center bg-muted/30 shrink-0 overflow-hidden">
                     {form.logoUrl ? (
-                      <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                      <img src={form.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <span className="text-2xl font-bold text-primary">{form.siteName?.[0] || "B"}</span>
                     )}

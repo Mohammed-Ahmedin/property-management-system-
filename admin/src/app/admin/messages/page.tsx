@@ -39,6 +39,8 @@ export default function MessagesPage() {
   // Track pending optimistic ID for admin replies
   const pendingOptRef = useRef<string | null>(null);
 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   // Init socket
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("admin_session_token") : null;
@@ -156,7 +158,13 @@ export default function MessagesPage() {
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
       {/* Sidebar */}
-      <div className="w-72 shrink-0 border-r border-border flex flex-col bg-card">
+      <div className={cn(
+        "shrink-0 border-r border-border flex flex-col bg-card transition-all duration-200",
+        "w-72",
+        // On mobile: overlay sidebar
+        sidebarOpen ? "flex" : "hidden",
+        "md:flex"
+      )}>
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -166,9 +174,15 @@ export default function MessagesPage() {
               <span className="font-bold text-sm">Messages</span>
               {totalUnread > 0 && <Badge className="text-xs h-5 px-1.5">{totalUnread}</Badge>}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <div className={cn("w-1.5 h-1.5 rounded-full", socketRef.current?.connected ? "bg-emerald-500 animate-pulse" : "bg-amber-400")} />
-              {socketRef.current?.connected ? "Live" : "Polling"}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <div className={cn("w-1.5 h-1.5 rounded-full", socketRef.current?.connected ? "bg-emerald-500 animate-pulse" : "bg-amber-400")} />
+                {socketRef.current?.connected ? "Live" : "Polling"}
+              </div>
+              {/* Close sidebar on mobile */}
+              <button className="md:hidden p-1 rounded hover:bg-muted" onClick={() => setSidebarOpen(false)}>
+                <span className="text-xs">✕</span>
+              </button>
             </div>
           </div>
           <div className="relative">
@@ -218,6 +232,10 @@ export default function MessagesPage() {
         {selectedUser ? (
           <>
             <div className="px-5 py-3.5 border-b border-border flex items-center gap-3 bg-card shrink-0">
+              {/* Show sidebar toggle on mobile */}
+              <button className="md:hidden p-1.5 rounded-lg hover:bg-muted shrink-0" onClick={() => setSidebarOpen(true)}>
+                <Users className="h-4 w-4" />
+              </button>
               <Avatar src={selectedUser.image} fallback={selectedUser.name} size="sm" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm">{selectedUser.name}</p>
@@ -258,7 +276,7 @@ export default function MessagesPage() {
                       )}
                       <div className={cn("flex gap-2.5", msg.isAdmin ? "justify-end" : "justify-start")}>
                         {!msg.isAdmin && <Avatar src={msg.user?.image} fallback={msg.user?.name} size="sm" className="shrink-0 mt-1" />}
-                        <div className="max-w-[65%]">
+                        <div className="max-w-[80%] sm:max-w-[65%]">
                           <div className={cn("rounded-2xl px-4 py-2.5 text-sm shadow-sm",
                             msg.isAdmin
                               ? "bg-primary text-primary-foreground rounded-br-sm"
@@ -300,7 +318,10 @@ export default function MessagesPage() {
                 <MessageSquare className="h-8 w-8 text-primary" />
               </div>
               <p className="font-semibold text-base mb-1">Select a conversation</p>
-              <p className="text-sm text-muted-foreground">Choose a user from the left to start replying</p>
+              <p className="text-sm text-muted-foreground mb-4">Choose a user from the left to start replying</p>
+              <button className="md:hidden text-sm text-primary underline" onClick={() => setSidebarOpen(true)}>
+                View conversations
+              </button>
             </div>
           </div>
         )}

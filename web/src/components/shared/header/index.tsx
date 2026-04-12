@@ -100,7 +100,7 @@ export function Header() {
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow overflow-hidden">
                 {siteConfig.logoUrl ? (
-                  <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Bete"} className="w-full h-full object-contain" />
+                  <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Bete"} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-primary-foreground font-bold text-base">{(siteConfig.siteName || "Bete")[0]}</span>
                 )}
@@ -208,14 +208,16 @@ export function Header() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full"><Menu className="h-5 w-5" /></Button>
               </SheetTrigger>
-              <SheetContent side="right" className="flex flex-col justify-between px-4 pb-6 w-72">
+              <SheetContent side="right" className="flex flex-col justify-between px-4 pb-6 w-[85vw] max-w-xs overflow-y-auto">
                 <div>
                   <SheetHeader className="mb-6">
                     <SheetTitle className="text-xl font-bold flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-                        <span className="text-primary-foreground font-bold text-sm">B</span>
+                      <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
+                        {siteConfig.logoUrl
+                          ? <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Bete"} className="w-full h-full object-cover" />
+                          : <span className="text-primary-foreground font-bold text-sm">{(siteConfig.siteName || "Bete")[0]}</span>}
                       </div>
-                      Bete
+                      {siteConfig.siteName || "Bete"}
                     </SheetTitle>
                   </SheetHeader>
                   <div className="flex flex-col gap-0.5">

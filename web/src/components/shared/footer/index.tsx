@@ -45,7 +45,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               {config.logoUrl ? (
-                <img src={config.logoUrl} alt={config.siteName} className="w-8 h-8 rounded-lg object-contain" />
+                <img src={config.logoUrl} alt={config.siteName} className="w-8 h-8 rounded-lg object-cover" />
               ) : (
                 <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                   <span className="text-white font-bold text-sm">{config.siteName?.[0] || "B"}</span>
@@ -57,10 +57,10 @@ export function Footer() {
               {config.tagline || "Discover and book the best properties across Ethiopia. From hotels to guest houses, find your perfect stay."}
             </p>
             {socialLinks.length > 0 && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {socialLinks.map(({ href, icon, label }) => (
                   <a key={label} href={href} target="_blank" rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-primary flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-primary flex items-center justify-center transition-colors shrink-0"
                     aria-label={label}>
                     {icon}
                   </a>
