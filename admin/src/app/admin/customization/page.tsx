@@ -10,9 +10,7 @@ import { api } from "@/hooks/api";
 import { Palette, Youtube, Send, Instagram, Globe, Type, ChevronDown, ChevronUp, Upload, Loader2, Plus, Trash2, Link } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-
-const CLOUD_NAME = "dxqy5eoqf";
-const UPLOAD_PRESET = "preset";
+import { uploadToCloudinaryDirect } from "@/server/config/cloudinary";
 
 const TIKTOK_ICON = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -57,21 +55,12 @@ export default function CustomizationPage() {
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Reset input so same file can be re-selected
     e.target.value = "";
     setUploadingLogo(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("upload_preset", UPLOAD_PRESET);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
-      const data = await res.json();
-      if (data.secure_url) {
-        setForm(f => ({ ...f, logoUrl: data.secure_url }));
-        toast.success("Logo uploaded");
-      } else {
-        toast.error(data.error?.message || "Upload failed");
-      }
+      const data = await uploadToCloudinaryDirect(file);
+      setForm(f => ({ ...f, logoUrl: data.secure_url }));
+      toast.success("Logo uploaded");
     } catch { toast.error("Upload failed"); }
     finally { setUploadingLogo(false); }
   };

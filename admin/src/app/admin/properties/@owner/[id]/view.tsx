@@ -26,6 +26,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { api } from "@/hooks/api";
 import { useQueryClient } from "@tanstack/react-query";
+import { uploadToCloudinaryDirect } from "@/server/config/cloudinary";
 
 interface PropertyData {
   id: string;
@@ -604,15 +605,9 @@ export default function PropertyView({ data }: { data: PropertyData }) {
                     e.target.value = "";
                     setUploadingLicense(true);
                     try {
-                      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dxqy5eoqf";
-                      const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "preset";
-                      const fd = new FormData();
-                      fd.append("file", file);
-                      fd.append("upload_preset", preset);
-                      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: fd });
-                      const d = await res.json();
-                      if (d.secure_url) { setLicenseUrl(d.secure_url); toast.success("File uploaded"); }
-                      else { toast.error(d.error?.message || "Upload failed"); }
+                      const data = await uploadToCloudinaryDirect(file);
+                      setLicenseUrl(data.secure_url);
+                      toast.success("File uploaded");
                     } catch { toast.error("Upload failed"); }
                     finally { setUploadingLicense(false); }
                   }}
