@@ -129,9 +129,9 @@ export function ChatWidget() {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-2">
+    <>
       {open && (
-        <div className="w-80 sm:w-96 bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden" style={{ height: "420px" }}>
+        <div className="absolute bottom-full right-0 mb-3 w-80 sm:w-96 bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden" style={{ height: "420px" }}>
           <div className="bg-primary px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -200,11 +200,12 @@ export function ChatWidget() {
         </div>
       )}
 
+      {/* Chat toggle button — same size as AI button */}
       <button onClick={() => setOpen(o => !o)}
-        className="w-12 h-12 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all hover:scale-105 flex items-center justify-center"
-        aria-label="Open chat">
-        {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+        className="w-14 h-14 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all hover:scale-105 flex items-center justify-center"
+        aria-label="Open support chat">
+        {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>
-    </div>
+    </>
   );
 }

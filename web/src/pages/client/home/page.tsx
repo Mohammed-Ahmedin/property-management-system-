@@ -1,4 +1,3 @@
-import { ChatBotContainer } from "@/components/shared/chatbot";
 import HeroSection from "./hero-section";
 import LocationsSection from "./locations-section";
 import PropertiesSection from "./properties-section";
@@ -42,8 +41,6 @@ function HomePage() {
           </a>
         </div>
       </section>
-
-      <ChatBotContainer />
     </div>
   );
 }
