@@ -107,18 +107,18 @@ export function Header() {
           {/* Logo + Nav grouped on left */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow overflow-hidden">
+              <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow overflow-hidden">
                 {siteConfig.logoUrl ? (
                   <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Kuru Rent"} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-primary-foreground font-bold text-base">{(siteConfig.siteName || "Kuru Rent")[0]}</span>
+                  <span className="text-primary-foreground font-bold text-lg">{(siteConfig.siteName || "Kuru Rent")[0]}</span>
                 )}
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">{siteConfig.siteName || "Kuru Rent"}</span>
+              <span className="text-2xl font-bold text-white tracking-tight">{siteConfig.siteName || "Kuru Rent"}</span>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1 ml-4">
+            <nav className="hidden md:flex items-center gap-1 ml-8">
               <Link to="/"
                 className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
                   isActive("/") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
