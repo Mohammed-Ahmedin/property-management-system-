@@ -24,10 +24,15 @@ interface SiteConfig {
 }
 
 export function Footer() {
-  const [config, setConfig] = useState<SiteConfig>({ siteName: "Bete" });
+  const LOGO_URL = "https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg";
+  const [config, setConfig] = useState<SiteConfig>({ siteName: "Kuru Rent", logoUrl: LOGO_URL, tagline: "Guesthouse · Apartment · Villa" });
 
   useEffect(() => {
-    api.get("/site-config").then(res => setConfig(res.data)).catch(() => {});
+    api.get("/site-config").then(res => setConfig({
+      ...res.data,
+      siteName: res.data.siteName || "Kuru Rent",
+      logoUrl: res.data.logoUrl || LOGO_URL,
+    })).catch(() => {});
   }, []);
 
   const socialLinks = [
@@ -51,7 +56,7 @@ export function Footer() {
                   <span className="text-white font-bold text-sm">{config.siteName?.[0] || "B"}</span>
                 </div>
               )}
-              <span className="text-xl font-bold text-white">{config.siteName || "Bete"}</span>
+              <span className="text-xl font-bold text-white">{config.siteName || "Kuru Rent"}</span>
             </div>
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
               {config.tagline || "Discover and book the best properties across Ethiopia. From hotels to guest houses, find your perfect stay."}
@@ -125,7 +130,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500">
-          <p>© {new Date().getFullYear()} {config.siteName || "Bete"}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {config.siteName || "Kuru Rent"}. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-zinc-300 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-zinc-300 transition-colors">Terms of Service</a>

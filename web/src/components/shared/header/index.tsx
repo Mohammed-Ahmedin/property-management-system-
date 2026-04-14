@@ -42,11 +42,20 @@ export function Header() {
   const { signOut, isAuthenticated } = useClientAuth();
   const navigate = useNavigate();
 
-  // Load site config for logo/name
-  const [siteConfig, setSiteConfig] = useState<{ siteName?: string; logoUrl?: string }>({});
+  // Load site config for logo/name — default to Kuru Rent brand
+  const LOGO_URL = "https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg";
+  const [siteConfig, setSiteConfig] = useState<{ siteName?: string; logoUrl?: string }>({
+    siteName: "Kuru Rent",
+    logoUrl: LOGO_URL,
+  });
   useEffect(() => {
     import("@/hooks/api").then(({ api }) => {
-      api.get("/site-config").then(res => setSiteConfig(res.data)).catch(() => {});
+      api.get("/site-config").then(res => {
+        setSiteConfig({
+          siteName: res.data.siteName || "Kuru Rent",
+          logoUrl: res.data.logoUrl || LOGO_URL,
+        });
+      }).catch(() => {});
     });
   }, []);
 
@@ -91,7 +100,7 @@ export function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-[#1a4a2e]/30 bg-[#1a4a2e] text-white">
       <div className="w-full px-4 sm:px-8 lg:px-12">
         <div className="flex h-16 items-center justify-between">
 
@@ -100,19 +109,19 @@ export function Header() {
             <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow overflow-hidden">
                 {siteConfig.logoUrl ? (
-                  <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Bete"} className="w-full h-full object-cover" />
+                  <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Kuru Rent"} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-primary-foreground font-bold text-base">{(siteConfig.siteName || "Bete")[0]}</span>
+                  <span className="text-primary-foreground font-bold text-base">{(siteConfig.siteName || "Kuru Rent")[0]}</span>
                 )}
               </div>
-              <span className="text-xl font-bold text-foreground tracking-tight">{siteConfig.siteName || "Bete"}</span>
+              <span className="text-xl font-bold text-white tracking-tight">{siteConfig.siteName || "Kuru Rent"}</span>
             </Link>
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-1 ml-4">
               <Link to="/"
                 className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                  isActive("/") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
                 )}>
                 Home
               </Link>
@@ -122,7 +131,7 @@ export function Header() {
                 <button
                   onClick={() => setPropDropdown(d => !d)}
                   className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                    location.pathname.startsWith("/properties") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                    location.pathname.startsWith("/properties") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
                   )}
                 >
                   {activePropertyLabel}
@@ -163,14 +172,14 @@ export function Header() {
 
               <Link to="/nearby"
                 className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/nearby") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                  isActive("/nearby") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
                 )}>
                 <MapPin className="w-3.5 h-3.5" /> Nearby
               </Link>
 
               <Link to="/about"
                 className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/about") ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"
+                  isActive("/about") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
                 )}>
                 About
               </Link>
@@ -186,7 +195,7 @@ export function Header() {
             {isPending ? null : data?.user ? (
               <>
                 <button onClick={() => navigate("/account/bookings")}
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-full hover:bg-muted transition-colors">
+                  className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white px-3 py-2 rounded-full hover:bg-white/10 transition-colors">
                   <Heart className="w-4 h-4" />
                   <span className="hidden lg:inline">Saved</span>
                 </button>
@@ -194,8 +203,8 @@ export function Header() {
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="rounded-full" onClick={() => navigate("/auth/register")}>Register</Button>
-                <Button size="sm" className="rounded-full px-5 shadow-sm" onClick={() => navigate("/auth/signin")}>Sign in</Button>
+                <Button variant="ghost" size="sm" className="rounded-full text-white hover:bg-white/10 hover:text-white" onClick={() => navigate("/auth/register")}>Register</Button>
+                <Button size="sm" className="rounded-full px-5 bg-[#c9a227] hover:bg-[#b8911f] text-[#1a4a2e] font-bold border-0" onClick={() => navigate("/auth/signin")}>Sign in</Button>
               </div>
             )}
           </div>
@@ -206,7 +215,7 @@ export function Header() {
             {data?.user && <UserMenu />}
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full"><Menu className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-white/10"><Menu className="h-5 w-5" /></Button>
               </SheetTrigger>
               <SheetContent side="right" className="flex flex-col justify-between px-4 pb-6 w-[85vw] max-w-xs overflow-y-auto">
                 <div>
@@ -214,10 +223,10 @@ export function Header() {
                     <SheetTitle className="text-xl font-bold flex items-center gap-2">
                       <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
                         {siteConfig.logoUrl
-                          ? <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Bete"} className="w-full h-full object-cover" />
-                          : <span className="text-primary-foreground font-bold text-sm">{(siteConfig.siteName || "Bete")[0]}</span>}
+                          ? <img src={siteConfig.logoUrl} alt={siteConfig.siteName || "Kuru Rent"} className="w-full h-full object-cover" />
+                          : <span className="text-primary-foreground font-bold text-sm">{(siteConfig.siteName || "Kuru Rent")[0]}</span>}
                       </div>
-                      {siteConfig.siteName || "Bete"}
+                      {siteConfig.siteName || "Kuru Rent"}
                     </SheetTitle>
                   </SheetHeader>
                   <div className="flex flex-col gap-0.5">
