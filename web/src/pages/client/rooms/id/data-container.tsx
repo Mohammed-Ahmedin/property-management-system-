@@ -115,6 +115,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
               room={roomData}
               onBookingClick={() => setIsDialogOpen(true)}
               handleOpenBookingModal={handleOpenBookingModal}
+              isPrivate={["VILLA", "GUEST_HOUSE"].includes((roomData as any).property?.type || "")}
             />
           </div>
         </div>

@@ -18,9 +18,10 @@ interface BookingCardProps {
   room: Room;
   onBookingClick: () => void;
   handleOpenBookingModal: () => void;
+  isPrivate?: boolean;
 }
 
-export default function BookingCard({ room, handleOpenBookingModal }: BookingCardProps) {
+export default function BookingCard({ room, handleOpenBookingModal, isPrivate }: BookingCardProps) {
   const pd = room.property?.discountPercent ?? 0;
   const rd = room.discountPercent ?? 0;
   const afterProp = pd > 0 ? room.price * (1 - pd / 100) : room.price;
@@ -53,10 +54,12 @@ export default function BookingCard({ room, handleOpenBookingModal }: BookingCar
 
       <div className="p-5 space-y-4">
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Max occupancy</span>
-            <span className="font-medium">{room.maxOccupancy} guests</span>
-          </div>
+          {!isPrivate && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Max occupancy</span>
+              <span className="font-medium">{room.maxOccupancy} guests</span>
+            </div>
+          )}
           {hasDiscount && (
             <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs">
               <span>You save per night</span>

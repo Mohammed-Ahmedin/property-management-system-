@@ -153,10 +153,6 @@ export function AdminHeader() {
 
         <div className="flex items-center gap-2">
           <ModeToggle />
-          <Button variant="outline" className="hidden sm:flex" size="icon">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notification</span>
-          </Button>
         </div>
       </div>
     </header>

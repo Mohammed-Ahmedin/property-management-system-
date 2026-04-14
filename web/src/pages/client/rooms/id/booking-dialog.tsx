@@ -257,7 +257,8 @@ export default function BookingDialog({
           bookedRanges={bookedRanges}
         />
 
-        {/* Guests */}
+        {/* Guests — hidden for private property bookings */}
+        {!propertyId && (
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">
             Guests
@@ -277,6 +278,7 @@ export default function BookingDialog({
             </select>
           </div>
         </div>
+        )}
       </div>
 
       {services.length > 0 && (
@@ -376,10 +378,12 @@ export default function BookingDialog({
                 {new Date(checkOut).toLocaleDateString()}
               </span>
             </div>
+            {!propertyId && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Guests:</span>
               <span className="font-medium">{guests}</span>
             </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Nights:</span>
               <span className="font-medium">{nights}</span>
