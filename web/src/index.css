@@ -45,25 +45,25 @@
 :root {
   --radius: 0.65rem;
   --background: oklch(1 0 0);
-  /* Kuru Rent brand: gold text for main content */
-  --foreground: oklch(0.55 0.12 85);
+  /* Default white/dark text for normal content */
+  --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.55 0.12 85);
+  --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.55 0.12 85);
+  --popover-foreground: oklch(0.141 0.005 285.823);
   /* Kuru Rent brand: dark green */
   --primary: oklch(0.33 0.085 152);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Gold text on green backgrounds (navbar, footer, buttons) */
+  --primary-foreground: oklch(0.72 0.14 85);
   --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.33 0.085 152);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.5 0.08 85);
-  /* Kuru Rent brand: gold accent */
+  --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.72 0.14 85);
   --accent-foreground: oklch(0.2 0.05 152);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.88 0.02 85);
-  --input: oklch(0.88 0.02 85);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.33 0.085 152);
   --chart-1: oklch(0.33 0.085 152);
   --chart-2: oklch(0.72 0.14 85);
@@ -71,35 +71,35 @@
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.55 0.12 85);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.33 0.085 152);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-primary-foreground: oklch(0.72 0.14 85);
   --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.33 0.085 152);
-  --sidebar-border: oklch(0.88 0.02 85);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.33 0.085 152);
 }
 
 .dark {
   --background: oklch(0.141 0.005 285.823);
-  /* Kuru Rent brand: gold text in dark mode too */
-  --foreground: oklch(0.72 0.14 85);
+  /* Default white text for dark mode content */
+  --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.72 0.14 85);
+  --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.72 0.14 85);
+  --popover-foreground: oklch(0.985 0 0);
   /* Kuru Rent brand: slightly lighter green for dark mode */
   --primary: oklch(0.45 0.1 152);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Gold text on green backgrounds */
+  --primary-foreground: oklch(0.72 0.14 85);
   --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.72 0.14 85);
+  --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.6 0.1 85);
-  /* Kuru Rent brand: gold accent */
+  --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.72 0.14 85);
   --accent-foreground: oklch(0.2 0.05 152);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 15%);
+  --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.45 0.1 152);
   --chart-1: oklch(0.45 0.1 152);
@@ -108,11 +108,11 @@
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
   --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.72 0.14 85);
+  --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.45 0.1 152);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-primary-foreground: oklch(0.72 0.14 85);
   --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.72 0.14 85);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.45 0.1 152);
 }

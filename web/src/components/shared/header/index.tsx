@@ -114,14 +114,14 @@ export function Header() {
                   <span className="text-primary-foreground font-bold text-lg">{(siteConfig.siteName || "Kuru Rent")[0]}</span>
                 )}
               </div>
-              <span className="text-2xl font-bold text-white tracking-tight">{siteConfig.siteName || "Kuru Rent"}</span>
+              <span className="text-2xl font-bold text-[#c9a227] tracking-tight">{siteConfig.siteName || "Kuru Rent"}</span>
             </Link>
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-1 ml-8">
               <Link to="/"
                 className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
+                  isActive("/") ? "bg-white/20 text-[#c9a227]" : "text-[#c9a227]/80 hover:text-[#c9a227] hover:bg-white/10"
                 )}>
                 Home
               </Link>
@@ -131,7 +131,7 @@ export function Header() {
                 <button
                   onClick={() => setPropDropdown(d => !d)}
                   className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                    location.pathname.startsWith("/properties") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
+                    location.pathname.startsWith("/properties") ? "bg-white/20 text-[#c9a227]" : "text-[#c9a227]/80 hover:text-[#c9a227] hover:bg-white/10"
                   )}
                 >
                   {activePropertyLabel}
@@ -172,14 +172,14 @@ export function Header() {
 
               <Link to="/nearby"
                 className={cn("flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/nearby") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
+                  isActive("/nearby") ? "bg-white/20 text-[#c9a227]" : "text-[#c9a227]/80 hover:text-[#c9a227] hover:bg-white/10"
                 )}>
                 <MapPin className="w-3.5 h-3.5" /> Nearby
               </Link>
 
               <Link to="/about"
                 className={cn("px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                  isActive("/about") ? "bg-white/20 text-white" : "text-white/80 hover:text-white hover:bg-white/10"
+                  isActive("/about") ? "bg-white/20 text-[#c9a227]" : "text-[#c9a227]/80 hover:text-[#c9a227] hover:bg-white/10"
                 )}>
                 About
               </Link>
@@ -195,7 +195,7 @@ export function Header() {
             {isPending ? null : data?.user ? (
               <>
                 <button onClick={() => navigate("/account/bookings")}
-                  className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white px-3 py-2 rounded-full hover:bg-white/10 transition-colors">
+                  className="flex items-center gap-1.5 text-sm text-[#c9a227]/80 hover:text-[#c9a227] px-3 py-2 rounded-full hover:bg-white/10 transition-colors">
                   <Heart className="w-4 h-4" />
                   <span className="hidden lg:inline">Saved</span>
                 </button>
