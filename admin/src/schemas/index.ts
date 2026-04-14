@@ -61,10 +61,10 @@ export const createRoomValidationSchema = yup.object({
   type: yup.mixed<RoomType>().oneOf(Object.values(RoomType)).optional(),
   price: yup
     .number()
+    .transform((v) => (isNaN(v) ? 0 : v))
     .optional()
     .integer("Price must be a whole number")
     .min(0, "Price must be non-negative")
-    .typeError("Price must be a number")
     .default(0),
   description: yup
     .string()
@@ -73,17 +73,17 @@ export const createRoomValidationSchema = yup.object({
   availability: yup.boolean().optional(),
   squareMeters: yup
     .number()
+    .transform((v) => (isNaN(v) ? 0 : v))
     .optional()
     .integer("Square meters must be a whole number")
     .min(0, "Square meters must be non-negative")
-    .typeError("Square meters must be a number")
     .default(0),
   maxOccupancy: yup
     .number()
+    .transform((v) => (isNaN(v) ? 1 : v))
     .optional()
     .integer("Max occupancy must be a whole number")
     .min(0, "Max occupancy must be non-negative")
-    .typeError("Max occupancy must be a number")
     .default(1),
   propertyId: yup
     .string()

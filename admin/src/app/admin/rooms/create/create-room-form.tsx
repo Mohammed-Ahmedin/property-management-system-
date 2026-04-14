@@ -159,7 +159,7 @@ export function CreateRoomForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="price" className="text-sm font-semibold">
-                  Price (per night) <span className="text-destructive">*</span>
+                  Price (per night) <span className="text-xs text-muted-foreground font-normal">(optional for private properties)</span>
                 </Label>
                 <Input
                   id="price"
@@ -177,7 +177,7 @@ export function CreateRoomForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="squareMeters" className="text-sm font-semibold">
-                  Square Meters <span className="text-destructive">*</span>
+                  Square Meters <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                 </Label>
                 <Input
                   id="squareMeters"
@@ -195,7 +195,7 @@ export function CreateRoomForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="maxOccupancy" className="text-sm font-semibold">
-                  Max Occupancy <span className="text-destructive">*</span>
+                  Max Occupancy <span className="text-xs text-muted-foreground font-normal">(optional for private properties)</span>
                 </Label>
                 <Input
                   id="maxOccupancy"
@@ -213,7 +213,7 @@ export function CreateRoomForm() {
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="description" className="text-sm font-semibold">
-                  Description <span className="text-destructive">*</span>
+                  Description <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                 </Label>
                 <Textarea
                   id="description"

@@ -5,11 +5,11 @@ export const createRoomSchema = z.object({
   name: z.string().min(2, "Room name must be at least 2 characters"),
   roomId: z.string().min(2, "Room ID is required"),
   type: z.nativeEnum(RoomType).optional(),
-  price: z.number().int().min(0, "Price must be non-negative"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  price: z.number().int().min(0).optional().default(0),
+  description: z.string().optional().default(""),
   availability: z.boolean().optional(),
-  squareMeters: z.number().int().min(1, "Square meters must be at least 1"),
-  maxOccupancy: z.number().int().min(1, "Max occupancy must be at least 1"),
+  squareMeters: z.number().int().min(0).optional().default(0),
+  maxOccupancy: z.number().int().min(0).optional().default(1),
   propertyId: z.string().uuid(),
 
   // ✅ Simplified features (replace old living/kitchen/accessibility/hygiene)

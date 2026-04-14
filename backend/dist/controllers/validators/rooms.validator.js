@@ -10,11 +10,11 @@ exports.createRoomSchema = zod_1.default.object({
     name: zod_1.default.string().min(2, "Room name must be at least 2 characters"),
     roomId: zod_1.default.string().min(2, "Room ID is required"),
     type: zod_1.default.nativeEnum(client_1.RoomType).optional(),
-    price: zod_1.default.number().int().min(0, "Price must be non-negative"),
-    description: zod_1.default.string().min(10, "Description must be at least 10 characters"),
+    price: zod_1.default.number().int().min(0).optional().default(0),
+    description: zod_1.default.string().optional().default(""),
     availability: zod_1.default.boolean().optional(),
-    squareMeters: zod_1.default.number().int().min(1, "Square meters must be at least 1"),
-    maxOccupancy: zod_1.default.number().int().min(1, "Max occupancy must be at least 1"),
+    squareMeters: zod_1.default.number().int().min(0).optional().default(0),
+    maxOccupancy: zod_1.default.number().int().min(0).optional().default(1),
     propertyId: zod_1.default.string().uuid(),
     // ✅ Simplified features (replace old living/kitchen/accessibility/hygiene)
     features: zod_1.default
