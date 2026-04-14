@@ -114,7 +114,24 @@ export function Header() {
                   <span className="text-primary-foreground font-bold text-lg">{(siteConfig.siteName || "Kuru Rent")[0]}</span>
                 )}
               </div>
-              <span className="text-2xl font-bold text-[#c9a227] tracking-tight">{siteConfig.siteName || "Kuru Rent"}</span>
+              <span
+                className="text-2xl font-bold text-[#c9a227] tracking-tight transition-all duration-300"
+                style={{
+                  textShadow: "0 1px 0 #8a6d0a, 0 2px 0 #7a5d08, 0 3px 6px rgba(0,0,0,0.4)",
+                  display: "inline-block",
+                  transition: "transform 0.2s, text-shadow 0.2s",
+                }}
+                onMouseEnter={e => {
+                  (e.target as HTMLElement).style.transform = "perspective(200px) rotateX(8deg) scale(1.05)";
+                  (e.target as HTMLElement).style.textShadow = "0 2px 0 #8a6d0a, 0 4px 0 #7a5d08, 0 6px 12px rgba(0,0,0,0.5)";
+                }}
+                onMouseLeave={e => {
+                  (e.target as HTMLElement).style.transform = "";
+                  (e.target as HTMLElement).style.textShadow = "0 1px 0 #8a6d0a, 0 2px 0 #7a5d08, 0 3px 6px rgba(0,0,0,0.4)";
+                }}
+              >
+                {siteConfig.siteName || "Kuru Rent"}
+              </span>
             </Link>
 
             {/* Desktop Nav */}

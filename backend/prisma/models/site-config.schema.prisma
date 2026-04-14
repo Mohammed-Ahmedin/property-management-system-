@@ -1,8 +1,10 @@
 model SiteConfig {
   id          String   @id @default("singleton")
-  siteName    String   @default("Bete")
+  siteName    String   @default("Kuru Rent")
   logoUrl     String?
   tagline     String?
+  heroTitle   String?
+  heroSubtitle String?
   youtube     String?
   tiktok      String?
   telegram    String?
@@ -10,7 +12,7 @@ model SiteConfig {
   contactPhone    String?
   contactEmail    String?
   contactAddress  String?
-  extraSocials    Json?   // [{label, url}]
+  extraSocials    Json?
   updatedAt   DateTime @updatedAt
 }
 

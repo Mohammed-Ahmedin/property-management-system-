@@ -113,7 +113,7 @@ const FilterTab = () => {
                       : "bg-white border-gray-300 hover:border-primary"
                   )}
                 >
-                  <p className={cn("text-xs font-semibold mb-1", locDark ? "text-gray-400" : "text-gray-500")}>
+                  <p className={cn("text-xs font-semibold mb-1", locDark ? "text-[#c9a227]" : "text-gray-500")}>
                     Destination
                   </p>
                   <LocationFilter location={location} setLocation={setLocation} dark={locDark} />
@@ -181,7 +181,7 @@ const FilterTab = () => {
 
                 <button
                   onClick={handleSearch}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-lg py-3 px-6 text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-md"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-[#c9a227] rounded-lg py-3 px-6 text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
                   Search
@@ -262,7 +262,7 @@ const FilterTab = () => {
               <div className="flex justify-center">
                 <button
                   onClick={handleSearch}
-                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-bold uppercase tracking-wide flex items-center gap-2 transition-colors shadow-md"
+                  className="bg-primary hover:bg-primary/90 text-[#c9a227] rounded-full py-3 px-16 text-sm font-bold uppercase tracking-wide flex items-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
                   Search
@@ -364,7 +364,7 @@ const FilterTab = () => {
               <div className="flex justify-center">
                 <button
                   onClick={() => window.open("https://ride8294.com/", "_blank")}
-                  className="bg-primary hover:bg-primary/90 text-white rounded-full py-3 px-16 text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
+                  className="bg-primary hover:bg-primary/90 text-[#c9a227] rounded-full py-3 px-16 text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
                 >
                   <Search className="w-4 h-4" />
                   Search

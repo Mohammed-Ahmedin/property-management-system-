@@ -82,7 +82,12 @@ export default function HomePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary overflow-hidden">
               <img src="https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg" alt="Kuru Rent" className="w-full h-full object-cover" />
             </div>
-            <span className="text-xl font-bold">Kuru Rent</span>
+            <span
+              className="text-xl font-bold"
+              style={{ textShadow: "0 1px 0 #8a6d0a, 0 2px 4px rgba(0,0,0,0.3)", transition: "transform 0.2s, text-shadow 0.2s", display: "inline-block" }}
+              onMouseEnter={e => { (e.target as HTMLElement).style.transform = "perspective(200px) rotateX(8deg) scale(1.05)"; (e.target as HTMLElement).style.textShadow = "0 2px 0 #8a6d0a, 0 4px 8px rgba(0,0,0,0.4)"; }}
+              onMouseLeave={e => { (e.target as HTMLElement).style.transform = ""; (e.target as HTMLElement).style.textShadow = "0 1px 0 #8a6d0a, 0 2px 4px rgba(0,0,0,0.3)"; }}
+            >Kuru Rent</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -390,7 +395,12 @@ export default function HomePage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary overflow-hidden">
                 <img src="https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg" alt="Kuru Rent" className="w-full h-full object-cover" />
               </div>
-              <span className="font-bold">Kuru Rent</span>
+              <span
+                className="font-bold"
+                style={{ textShadow: "0 1px 0 #8a6d0a, 0 2px 4px rgba(0,0,0,0.3)", transition: "transform 0.2s", display: "inline-block" }}
+                onMouseEnter={e => { (e.target as HTMLElement).style.transform = "perspective(200px) rotateX(8deg) scale(1.05)"; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.transform = ""; }}
+              >Kuru Rent</span>
             </div>
             <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Kuru Rent. All rights reserved.</p>
           </div>

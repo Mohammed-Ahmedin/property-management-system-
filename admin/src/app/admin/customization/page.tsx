@@ -34,7 +34,8 @@ export default function CustomizationPage() {
   const [socialOpen, setSocialOpen] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    siteName: "Bete", logoUrl: "", tagline: "",
+    siteName: "Kuru Rent", logoUrl: "", tagline: "",
+    heroTitle: "", heroSubtitle: "",
     youtube: "", tiktok: "", telegram: "", instagram: "",
     contactPhone: "", contactEmail: "", contactAddress: "",
   });
@@ -44,7 +45,8 @@ export default function CustomizationPage() {
     api.get("/site-config").then(res => {
       const d = res.data;
       setForm({
-        siteName: d.siteName || "Bete", logoUrl: d.logoUrl || "", tagline: d.tagline || "",
+        siteName: d.siteName || "Kuru Rent", logoUrl: d.logoUrl || "", tagline: d.tagline || "",
+        heroTitle: d.heroTitle || "", heroSubtitle: d.heroSubtitle || "",
         youtube: d.youtube || "", tiktok: d.tiktok || "", telegram: d.telegram || "", instagram: d.instagram || "",
         contactPhone: d.contactPhone || "", contactEmail: d.contactEmail || "", contactAddress: d.contactAddress || "",
       });
@@ -112,6 +114,18 @@ export default function CustomizationPage() {
                 <Label>Tagline / Description</Label>
                 <Input value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))} placeholder="e.g. Discover and book the best properties across Ethiopia." />
                 <p className="text-xs text-muted-foreground">Short description shown below the logo in the footer</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Hero Title</Label>
+                <Input value={form.heroTitle} onChange={e => setForm(f => ({ ...f, heroTitle: e.target.value }))} placeholder="Find Your Perfect Stay, Anywhere" />
+                <p className="text-xs text-muted-foreground">Large heading shown on the home page hero section</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Hero Subtitle</Label>
+                <Input value={form.heroSubtitle} onChange={e => setForm(f => ({ ...f, heroSubtitle: e.target.value }))} placeholder="Discover cozy properties across Ethiopia..." />
+                <p className="text-xs text-muted-foreground">Smaller text below the hero title</p>
               </div>
 
               {/* Logo upload */}

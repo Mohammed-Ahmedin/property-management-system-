@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import FilterTab from "./_components/filter-tab";
+import { api } from "@/hooks/api";
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1561501900-3701fa6a0864?ixlib=rb-4.1.0&fm=jpg&q=60&w=3000",
@@ -14,15 +15,22 @@ const HERO_IMAGES = [
 
 const HeroSection = () => {
   const [current, setCurrent] = useState(0);
-  const [next, setNext] = useState(1);
   const [transitioning, setTransitioning] = useState(false);
+  const [heroTitle, setHeroTitle] = useState("Find Your Perfect Stay, Anywhere");
+  const [heroSubtitle, setHeroSubtitle] = useState("Discover cozy properties across Ethiopia. Compare prices and book in just a few clicks.");
+
+  useEffect(() => {
+    api.get("/site-config").then(res => {
+      if (res.data.heroTitle) setHeroTitle(res.data.heroTitle);
+      if (res.data.heroSubtitle) setHeroSubtitle(res.data.heroSubtitle);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => {
       setTransitioning(true);
       setTimeout(() => {
         setCurrent(c => (c + 1) % HERO_IMAGES.length);
-        setNext(c => (c + 2) % HERO_IMAGES.length);
         setTransitioning(false);
       }, 1000);
     }, 3000);
@@ -31,19 +39,14 @@ const HeroSection = () => {
 
   return (
     <div className="w-full relative flex flex-col items-center justify-center min-h-[480px] md:min-h-[520px] overflow-hidden">
-      {/* Background images — crossfade */}
       {HERO_IMAGES.map((src, i) => (
-        <div
-          key={src}
-          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-          style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}
-        >
+        <div key={src} className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+          style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}>
           <img className="object-cover w-full h-full" src={src} alt="" />
         </div>
       ))}
       <div className="absolute inset-0 bg-black/45 z-10" />
 
-      {/* Dot indicators */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
         {HERO_IMAGES.map((_, i) => (
           <button key={i} onClick={() => setCurrent(i)}
@@ -51,17 +54,15 @@ const HeroSection = () => {
         ))}
       </div>
 
-      {/* Hero text */}
       <div className="relative z-20 text-center px-4 mb-6">
         <h1 className="font-bold text-3xl md:text-4xl text-white mb-2 drop-shadow-lg">
-          Find Your Perfect Stay, Anywhere
+          {heroTitle}
         </h1>
         <p className="text-white/80 text-sm md:text-base max-w-lg mx-auto">
-          Discover cozy properties across Ethiopia. Compare prices and book in just a few clicks.
+          {heroSubtitle}
         </p>
       </div>
 
-      {/* Search card — centered, no animation */}
       <div className="relative z-20 w-[95%] md:w-[780px] lg:w-[860px]">
         <FilterTab />
       </div>
