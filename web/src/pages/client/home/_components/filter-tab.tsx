@@ -109,7 +109,7 @@ const FilterTab = () => {
                   className={cn(
                     "border-2 rounded-lg px-4 py-3 relative cursor-pointer transition-colors duration-700",
                     locDark
-                      ? "bg-gray-900 border-gray-900"
+                      ? "bg-[#1a4a2e] border-[#1a4a2e]"
                       : "bg-white border-gray-300 hover:border-primary"
                   )}
                 >
@@ -195,7 +195,7 @@ const FilterTab = () => {
                 className={cn(
                   "border-2 rounded-lg px-4 py-3 flex items-center gap-3 mb-3 cursor-pointer transition-colors duration-700",
                   locDark
-                    ? "bg-gray-900 border-gray-900"
+                    ? "bg-[#1a4a2e] border-[#1a4a2e]"
                     : "bg-white border-gray-300 hover:border-primary"
                 )}
               >
