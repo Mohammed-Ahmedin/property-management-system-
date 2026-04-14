@@ -625,7 +625,8 @@ export default {
               },
             }
           : undefined,
-        facilities: validatedData.facilities
+        // Only replace facilities if a non-empty array is explicitly provided
+        facilities: (validatedData.facilities && validatedData.facilities.length > 0)
           ? { deleteMany: {}, create: validatedData.facilities }
           : undefined,
         contact: validatedData.contact
@@ -636,7 +637,8 @@ export default {
               },
             }
           : undefined,
-        images: validatedData.images
+        // Only replace images if a non-empty array is explicitly provided
+        images: (validatedData.images && validatedData.images.length > 0)
           ? { deleteMany: {}, create: validatedData.images }
           : undefined,
       },

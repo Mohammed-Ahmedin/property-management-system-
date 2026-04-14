@@ -30,6 +30,8 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
     }
   };
 
+  const isPrivateRoom = ["VILLA", "GUEST_HOUSE"].includes((roomData as any).property?.type || "");
+
   return (
     <>
       <main className="mx-auto max-w-7xl px-4 py-6 md:py-8 lg:px-6">
@@ -41,7 +43,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
           </button>
         </div>
 
-        {/* Hero strip */}
+        {/* Hero strip — hide price for private properties */}
         <div className="mb-6 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -49,19 +51,10 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
               <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", roomData.availability ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400")}>
                 {roomData.availability ? "Available" : "Unavailable"}
               </span>
-              {(() => {
-                const rd = (roomData as any).discountPercent ?? 0;
-                const pd = (roomData as any).property?.discountPercent ?? 0;
-                const total = rd + pd - (rd * pd / 100);
-                return total > 0 ? (
-                  <span className="text-xs font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full">
-                    🏷️ {Math.round(total)}% OFF
-                  </span>
-                ) : null;
-              })()}
             </div>
             <h1 className="text-xl md:text-2xl font-bold">{roomData.name}</h1>
           </div>
+          {!isPrivateRoom && (
           <div className="text-right shrink-0">
             <p className="text-xs text-muted-foreground">per night</p>
             {(() => {
@@ -81,18 +74,19 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
               );
             })()}
           </div>
+          )}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Left */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className={isPrivateRoom ? "lg:col-span-3 space-y-6" : "lg:col-span-2 space-y-6"}>
             <RoomGallery images={roomData?.images} roomName={roomData.name} services={roomData.services} />
 
-            {/* Quick stats */}
+            {/* Quick stats — hide price-related for private */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { icon: <BedDouble className="w-4 h-4 text-primary" />, label: "Type", value: roomData.type },
-                { icon: <Users className="w-4 h-4 text-primary" />, label: "Max guests", value: `${roomData.maxOccupancy} guests` },
+                ...(!isPrivateRoom ? [{ icon: <Users className="w-4 h-4 text-primary" />, label: "Max guests", value: `${roomData.maxOccupancy} guests` }] : []),
                 { icon: <Maximize2 className="w-4 h-4 text-primary" />, label: "Size", value: roomData.squareMeters ? `${roomData.squareMeters} sqm` : "—" },
                 { icon: <Shield className="w-4 h-4 text-primary" />, label: "Cancellation", value: "Free" },
               ].map(({ icon, label, value }) => (
@@ -109,19 +103,22 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
             <RoomDetails room={roomData} />
           </div>
 
-          {/* Right sticky */}
+          {/* Right sticky — hidden for private properties */}
+          {!isPrivateRoom && (
           <div className="hidden lg:block">
             <BookingCard
               room={roomData}
               onBookingClick={() => setIsDialogOpen(true)}
               handleOpenBookingModal={handleOpenBookingModal}
-              isPrivate={["VILLA", "GUEST_HOUSE"].includes((roomData as any).property?.type || "")}
+              isPrivate={false}
             />
           </div>
+          )}
         </div>
       </main>
 
-      {/* Mobile sticky CTA */}
+      {/* Mobile sticky CTA — hidden for private properties */}
+      {!isPrivateRoom && (
       <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card/95 backdrop-blur-sm p-4 lg:hidden">
         <div className="flex items-center justify-between mb-2">
           <div>
@@ -134,6 +131,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
         </div>
         <p className="text-center text-xs text-muted-foreground">You won't be charged yet</p>
       </div>
+      )}
 
       <BookingDialog
         isOpen={isDialogOpen}

@@ -194,28 +194,11 @@ export default function AboutPage() {
                 Browse Properties
               </Button>
             </Link>
-            <Button
-              variant="outline"
-              size="lg"
-              className="text-base px-8 bg-transparent"
-            >
-              Learn More
-            </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer Section */}
-      <section className="px-4 py-8 md:py-12 border-t border-border">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-            © 2025 Ethiopian Properties. All rights reserved.
-          </p>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Connecting travelers with authentic Ethiopian hospitality
-          </p>
-        </div>
-      </section>
+      {/* Footer Section removed — copyright shown in main footer */}
     </main>
   );
 }
