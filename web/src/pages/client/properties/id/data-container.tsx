@@ -46,7 +46,7 @@ const DataContainer = ({ data }: Props) => {
   const heroRef = useRef<HTMLDivElement>(null);
 
   // Detect private property (Villa / Guest House — booked as a whole)
-  const isPrivate = ["VILLA", "GUEST_HOUSE"].includes(property.type) || property.accessType === "PRIVATE";
+  const isPrivate = ["VILLA", "GUEST_HOUSE"].includes(property.type) || (property as any).accessType === "PRIVATE";
   const pricePerNight = (property as any).pricePerNight as number | null | undefined;
   // For booking dialog we need a "room" object — use first room or a synthetic one
   const firstRoom = property.rooms?.[0];
