@@ -50,6 +50,20 @@ export function ChatWidget() {
       });
     });
 
+    // If socket save fails, fall back to REST
+    socket.on("message:error", async (data: any) => {
+      const text = pendingOptRef.current ? null : null; // handled below
+      // Re-send via REST — the optimistic message is already shown
+      const optMsg = pendingOptRef.current;
+      if (optMsg) {
+        pendingOptRef.current = null;
+        try {
+          const res = await api.post("/chat", { message: (window as any).__lastChatMsg || "" });
+          setMessages(prev => prev.map(m => m.id?.toString().startsWith("opt-") ? res.data.data : m));
+        } catch {}
+      }
+    });
+
     return () => { socket.disconnect(); socketRef.current = null; };
   }, [isAuthenticated, user?.id, authStatus]);
 
@@ -111,8 +125,18 @@ export function ChatWidget() {
 
     if (socketRef.current?.connected) {
       pendingOptRef.current = optId;
-      socketRef.current.emit("user:message", { userId: user.id, message: text });
-      setSending(false);
+      // Always save via REST to guarantee persistence
+      try {
+        const res = await api.post("/chat", { message: text });
+        setMessages(prev => prev.map(m => m.id === optId ? res.data.data : m));
+        // Also emit via socket for real-time delivery to admin
+        socketRef.current?.emit("user:message", { userId: user.id, message: text });
+      } catch {
+        setMessages(prev => prev.filter(m => m.id !== optId));
+        setInput(text);
+      } finally {
+        setSending(false);
+      }
     } else {
       try {
         const res = await api.post("/chat", { message: text });

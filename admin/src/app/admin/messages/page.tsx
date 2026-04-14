@@ -144,10 +144,19 @@ export default function MessagesPage() {
     setMessages(prev => [...prev, optimistic]);
 
     if (socketRef.current?.connected) {
-      // Mark optimistic as pending — socket reply will replace it
-      pendingOptRef.current = optimistic.id;
-      socketRef.current.emit("admin:reply", { userId: selectedUser.id, message: text });
-      setSending(false);
+      // Always save via REST to guarantee persistence
+      try {
+        const res = await api.post(`/chat/admin/${selectedUser.id}/reply`, { message: text });
+        setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data.data : m));
+        // Also emit via socket for real-time delivery
+        socketRef.current?.emit("admin:reply", { userId: selectedUser.id, message: text });
+      } catch {
+        setMessages(prev => prev.filter(m => m.id !== optimistic.id));
+        setReply(text);
+        toast.error("Failed to send reply");
+      } finally {
+        setSending(false);
+      }
     } else {
       // REST fallback
       try {

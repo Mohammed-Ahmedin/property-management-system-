@@ -36,14 +36,15 @@ function registerChatSocket(io) {
                     data: { userId: data.userId, message: data.message.trim(), isAdmin: false },
                     include: { user: { select: { id: true, name: true, image: true, role: true } } },
                 });
-                // Send to user's own room
                 io.to(`user:${data.userId}`).emit("message:new", msg);
-                // Send to all admins
                 io.to("admin").emit("message:new", Object.assign(Object.assign({}, msg), { forUserId: data.userId }));
-                // Update conversation list for admins
                 io.to("admin").emit("conversations:update");
             }
-            catch (_b) { }
+            catch (e) {
+                console.error("Socket user:message error:", e === null || e === void 0 ? void 0 : e.message);
+                // Emit error back to sender so client can fall back to REST
+                socket.emit("message:error", { error: e === null || e === void 0 ? void 0 : e.message });
+            }
         }));
         // Admin sends a reply to a user
         socket.on("admin:reply", (data) => __awaiter(this, void 0, void 0, function* () {

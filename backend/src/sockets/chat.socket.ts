@@ -26,13 +26,14 @@ export function registerChatSocket(io: Server) {
           data: { userId: data.userId, message: data.message.trim(), isAdmin: false },
           include: { user: { select: { id: true, name: true, image: true, role: true } } },
         });
-        // Send to user's own room
         io.to(`user:${data.userId}`).emit("message:new", msg);
-        // Send to all admins
         io.to("admin").emit("message:new", { ...msg, forUserId: data.userId });
-        // Update conversation list for admins
         io.to("admin").emit("conversations:update");
-      } catch {}
+      } catch (e: any) {
+        console.error("Socket user:message error:", e?.message);
+        // Emit error back to sender so client can fall back to REST
+        socket.emit("message:error", { error: e?.message });
+      }
     });
 
     // Admin sends a reply to a user
