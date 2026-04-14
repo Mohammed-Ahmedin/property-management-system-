@@ -32,7 +32,7 @@ export default {
         features: true,
         services: true,
         property: {
-          select: { discountPercent: true, id: true, name: true },
+          select: { discountPercent: true, id: true, name: true, type: true, accessType: true },
         },
         bookings: {
           where: { status: { in: ["PENDING", "APPROVED"] } },
