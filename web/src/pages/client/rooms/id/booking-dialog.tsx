@@ -56,6 +56,8 @@ interface BookingDialogProps {
   room: Room;
   services: Service[];
   bookedRanges?: { checkIn: string | Date; checkOut: string | Date }[];
+  /** If set, books the whole property via POST /properties/:id/book */
+  propertyId?: string;
 }
 
 export default function BookingDialog({
@@ -65,6 +67,7 @@ export default function BookingDialog({
   services,
   bookedRanges = [],
   handleOpenBookingModal,
+  propertyId,
 }: BookingDialogProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [step, setStep] = useState<"booking" | "receipt">("booking");
@@ -130,6 +133,21 @@ export default function BookingDialog({
   };
   const { user } = useClientAuth();
   const handleBookNow = async () => {
+    if (propertyId) {
+      // Property-level booking (villa/guest house)
+      const { api } = await import("@/hooks/api");
+      const res = await api.post(`/properties/${propertyId}/book`, {
+        checkIn,
+        checkOut,
+        guests: Number(guests),
+        userId: user?.id,
+      });
+      if (res.data.checkoutUrl) {
+        location.replace(res.data.checkoutUrl);
+      }
+      return;
+    }
+    // Room-level booking
     const res = await bookNowMutation.mutateAsync({
       additionalServices: [],
       checkIn: checkIn,

@@ -51,7 +51,7 @@ const DataContainer = ({ data }: Props) => {
   // For booking dialog we need a "room" object — use first room or a synthetic one
   const firstRoom = property.rooms?.[0];
   const bookingRoom = isPrivate && pricePerNight ? {
-    id: firstRoom?.id || property.id,
+    id: firstRoom?.id || "property-booking",
     name: property.name,
     price: pricePerNight,
     availability: true,
@@ -968,6 +968,7 @@ const DataContainer = ({ data }: Props) => {
           room={bookingRoom}
           services={[]}
           bookedRanges={[]}
+          propertyId={property.id}
         />
       )}
     </div>
