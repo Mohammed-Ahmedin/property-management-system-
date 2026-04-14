@@ -61,27 +61,30 @@ export const createRoomValidationSchema = yup.object({
   type: yup.mixed<RoomType>().oneOf(Object.values(RoomType)).optional(),
   price: yup
     .number()
-    .required("Price is required")
+    .optional()
     .integer("Price must be a whole number")
     .min(0, "Price must be non-negative")
-    .typeError("Price must be a number"),
+    .typeError("Price must be a number")
+    .default(0),
   description: yup
     .string()
-    .required("Description is required")
-    .min(10, "Description must be at least 10 characters"),
+    .optional()
+    .default(""),
   availability: yup.boolean().optional(),
   squareMeters: yup
     .number()
-    .required("Square meters is required")
+    .optional()
     .integer("Square meters must be a whole number")
-    .min(1, "Square meters must be at least 1")
-    .typeError("Square meters must be a number"),
+    .min(0, "Square meters must be non-negative")
+    .typeError("Square meters must be a number")
+    .default(0),
   maxOccupancy: yup
     .number()
-    .required("Max occupancy is required")
+    .optional()
     .integer("Max occupancy must be a whole number")
-    .min(1, "Max occupancy must be at least 1")
-    .typeError("Max occupancy must be a number"),
+    .min(0, "Max occupancy must be non-negative")
+    .typeError("Max occupancy must be a number")
+    .default(1),
   propertyId: yup
     .string()
     .required("Property ID is required")

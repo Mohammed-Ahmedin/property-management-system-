@@ -60,8 +60,12 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
   );
 
   if (view === "vertical") {
+    const isPrivateV = ["VILLA", "GUEST_HOUSE"].includes(type);
+    const propPricePerNight = (data as any).pricePerNight as number | null;
     const roomPricesV = (data.rooms || []).map(r => r.price).filter(p => p > 0);
-    const avgPriceV = roomPricesV.length ? Math.round(roomPricesV.reduce((a, b) => a + b, 0) / roomPricesV.length) : null;
+    const avgPriceV = isPrivateV && propPricePerNight
+      ? propPricePerNight
+      : (roomPricesV.length ? Math.round(roomPricesV.reduce((a, b) => a + b, 0) / roomPricesV.length) : null);
     const propDiscountV = (data as any).discountPercent ?? 0;
     const discountedPriceV = propDiscountV > 0 && avgPriceV ? Math.round(avgPriceV * (1 - propDiscountV / 100)) : null;
 
@@ -173,11 +177,13 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
     );
   }
 
-  // Calculate avg price from rooms
+  // Calculate avg price from rooms — for PRIVATE properties use pricePerNight
+  const isPrivateH = ["VILLA", "GUEST_HOUSE"].includes(type);
+  const propPricePerNight = (data as any).pricePerNight as number | null;
   const roomPrices = (data.rooms || []).map(r => r.price).filter(p => p > 0);
-  const avgPrice = roomPrices.length
-    ? Math.round(roomPrices.reduce((a, b) => a + b, 0) / roomPrices.length)
-    : null;
+  const avgPrice = isPrivateH && propPricePerNight
+    ? propPricePerNight
+    : (roomPrices.length ? Math.round(roomPrices.reduce((a, b) => a + b, 0) / roomPrices.length) : null);
   const allImages = images?.length ? images : [];
   const mainImage = allImages[0];
 
