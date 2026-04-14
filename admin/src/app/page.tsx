@@ -79,10 +79,10 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Home className="h-6 w-6 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary overflow-hidden">
+              <img src="https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg" alt="Kuru Rent" className="w-full h-full object-cover" />
             </div>
-            <span className="text-xl font-bold">StayNest</span>
+            <span className="text-xl font-bold">Kuru Rent</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -256,7 +256,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-2xl text-center mb-12">
             <h2 className="mb-4 text-3xl font-bold text-balance md:text-4xl">What Our Partners Say</h2>
             <p className="text-lg text-muted-foreground text-pretty">
-              Hear from property owners who have transformed their business with StayNest
+              Hear from property owners who have transformed their business with Kuru Rent
             </p>
           </div>
 
@@ -268,7 +268,7 @@ export default function HomePage() {
                 ))}
               </div>
               <p className="mb-4 text-muted-foreground leading-relaxed">
-                "StayNest has completely transformed how I manage my properties. Bookings increased by 300% in just 3
+                "Kuru Rent has completely transformed how I manage my properties. Bookings increased by 300% in just 3
                 months!"
               </p>
               <div className="flex items-center gap-3">
@@ -387,12 +387,12 @@ export default function HomePage() {
         <div className="container">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Home className="h-5 w-5 text-primary-foreground" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary overflow-hidden">
+                <img src="https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg" alt="Kuru Rent" className="w-full h-full object-cover" />
               </div>
-              <span className="font-bold">StayNest</span>
+              <span className="font-bold">Kuru Rent</span>
             </div>
-            <p className="text-sm text-muted-foreground">Builted by SimbaTech. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Kuru Rent. All rights reserved.</p>
           </div>
         </div>
       </footer>
