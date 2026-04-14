@@ -78,6 +78,9 @@ export default function PropertyView({ data }: { data: PropertyData }) {
   const setRoomDiscount = useSetRoomDiscountMutation();
   const [propertyDiscountInput, setPropertyDiscountInput] = useState(String((data as any).discountPercent ?? 0));
   const [roomDiscountInputs, setRoomDiscountInputs] = useState<Record<string, string>>({});
+  const [pricePerNightInput, setPricePerNightInput] = useState(String((data as any).pricePerNight ?? ""));
+  const [savingPrice, setSavingPrice] = useState(false);
+  const isPrivate = ["VILLA", "GUEST_HOUSE"].includes((data as any).type || "");
   const [policies, setPolicies] = useState<Array<{ key: string; value: string }>>(
     (() => {
       const p = (data as any).policies;
@@ -443,6 +446,45 @@ export default function PropertyView({ data }: { data: PropertyData }) {
           <Card>
             <CardHeader><CardTitle>Discounts</CardTitle><CardDescription>Set discount percentages for the property or individual rooms</CardDescription></CardHeader>
             <CardContent className="space-y-6">
+
+              {/* Property price — only for PRIVATE (Villa / Guest House) */}
+              {isPrivate && (
+                <div className="p-4 border-2 border-primary/30 bg-primary/5 rounded-xl">
+                  <p className="font-semibold mb-1 text-primary">Property Price per Night</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    This is the price guests pay to book the entire {(data as any).type?.replace("_", " ")} per night.
+                    {(data as any).pricePerNight ? ` Currently: ETB ${Number((data as any).pricePerNight).toLocaleString()}/night` : " Not set yet."}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-44">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">ETB</span>
+                      <Input
+                        type="number" min={0}
+                        value={pricePerNightInput}
+                        onChange={e => setPricePerNightInput(e.target.value)}
+                        className="pl-12"
+                        placeholder="e.g. 5000"
+                      />
+                    </div>
+                    <Button size="sm" disabled={savingPrice || !pricePerNightInput}
+                      onClick={async () => {
+                        setSavingPrice(true);
+                        try {
+                          await api.post(`/properties/${data.id}/price`, { pricePerNight: Number(pricePerNightInput) });
+                          toast.success("Property price saved");
+                          queryClient.invalidateQueries({ queryKey: ["guest_houses", data.id] });
+                        } catch { toast.error("Failed to save price"); }
+                        finally { setSavingPrice(false); }
+                      }}>
+                      {savingPrice ? "Saving..." : "Save Price"}
+                    </Button>
+                    {(data as any).pricePerNight > 0 && (
+                      <span className="text-sm text-emerald-600 font-medium">ETB {Number((data as any).pricePerNight).toLocaleString()}/night</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Property-wide discount */}
               <div className="p-4 border border-border rounded-xl">
                 <p className="font-semibold mb-1">Property-wide discount</p>

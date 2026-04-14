@@ -6,6 +6,8 @@ import type { GuestDetailHouseResponse } from "@/hooks/api/types/property.types"
 import { useNavigate } from "react-router-dom";
 import PropertyDetails from "./location";
 import ReviewsContainer from "./reviews-container";
+import BookingDialog from "@/pages/client/rooms/id/booking-dialog";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import {
   ArrowLeft, Bath, BedDouble, MapPin, Phone, Mail,
   Wifi, Car, UtensilsCrossed, Users, Heart,
@@ -31,6 +33,7 @@ const DataContainer = ({ data }: Props) => {
   const property = data.data;
   const navigate = useNavigate();
   const { isFavorited, toggle } = useFavorites();
+  const { isAuthenticated } = useClientAuth();
   const saved = isFavorited(property.id);
   const [activeTab, setActiveTab] = useState("Overview");
   const [stickyNav, setStickyNav] = useState(false);
@@ -39,7 +42,31 @@ const DataContainer = ({ data }: Props) => {
   const [galleryStartIdx, setGalleryStartIdx] = useState(0);
   const [panelTab, setPanelTab] = useState<string | null>(null);
   const [roomsModalOpen, setRoomsModalOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+
+  // Detect private property (Villa / Guest House — booked as a whole)
+  const isPrivate = ["VILLA", "GUEST_HOUSE"].includes(property.type) || property.accessType === "PRIVATE";
+  const pricePerNight = (property as any).pricePerNight as number | null | undefined;
+  // For booking dialog we need a "room" object — use first room or a synthetic one
+  const firstRoom = property.rooms?.[0];
+  const bookingRoom = isPrivate && pricePerNight ? {
+    id: firstRoom?.id || property.id,
+    name: property.name,
+    price: pricePerNight,
+    availability: true,
+    maxOccupancy: (property.rooms || []).reduce((sum: number, r: any) => sum + (r.maxOccupancy || 2), 0) || 10,
+    discountPercent: (property as any).discountPercent ?? 0,
+    property: { discountPercent: 0 },
+  } : null;
+
+  const handleBookProperty = () => {
+    if (!isAuthenticated) {
+      navigate(`/auth/signin?callBackUrl=/properties/${property.id}`, { state: "booking" });
+    } else {
+      setBookingOpen(true);
+    }
+  };
 
   const avgRating = property.reviews?.length
     ? property.reviews.reduce((sum: number, r: any) => sum + (r.rating ?? 0), 0) / property.reviews.length
@@ -189,8 +216,11 @@ const DataContainer = ({ data }: Props) => {
                   </li>
                 )}
               </ul>
-              <Button className="w-full rounded-full text-sm" onClick={() => { setGalleryOpen(false); setGalleryFilter("all"); scrollTo("rooms"); }}>
-                Check availability
+              <Button className="w-full rounded-full text-sm" onClick={() => {
+                setGalleryOpen(false); setGalleryFilter("all");
+                if (isPrivate) handleBookProperty(); else scrollTo("rooms");
+              }}>
+                {isPrivate ? "Book Property" : "Check availability"}
               </Button>
             </div>
           </div>
@@ -272,7 +302,7 @@ const DataContainer = ({ data }: Props) => {
                           })()}
                         </div>
                         <Button size="sm" className="rounded-full px-4 text-xs h-7" onClick={() => { setRoomsModalOpen(false); navigate(`/rooms/${r.id}`); }}>
-                          Book this room
+                          {isPrivate ? "View Details" : "Book this room"}
                         </Button>
                       </div>
                     </div>
@@ -463,8 +493,8 @@ const DataContainer = ({ data }: Props) => {
           {/* Rooms */}
           <section id="rooms" className="mb-10">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold">Select your room</h2>
-              <span className="text-sm text-muted-foreground">{property.rooms?.length ?? 0} room types</span>
+              <h2 className="text-xl font-bold">{isPrivate ? "Property Details" : "Select your room"}</h2>
+              <span className="text-sm text-muted-foreground">{property.rooms?.length ?? 0} {isPrivate ? "spaces" : "room types"}</span>
             </div>
             <div className="flex flex-col gap-4">
               {property?.rooms?.length > 0 ? property.rooms.map((r: any) => {
@@ -525,7 +555,7 @@ const DataContainer = ({ data }: Props) => {
                           })()}
                         </div>
                         <Button size="sm" className="rounded-full px-5" onClick={() => navigate(`/rooms/${r.id}`)}>
-                          Book this room
+                          {isPrivate ? "View Details" : "Book this room"}
                         </Button>
                       </div>
                     </div>
@@ -688,22 +718,40 @@ const DataContainer = ({ data }: Props) => {
           <div className="sticky top-24 rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
             {/* Price header */}
             <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-5">
-              <p className="text-xs opacity-70 mb-1">Avg price per night</p>
-              {avgPrice ? (
-                (() => {
-                  const propDiscount = (property as any).discountPercent ?? 0;
-                  const discountedPrice = propDiscount > 0 ? Math.round(avgPrice * (1 - propDiscount / 100)) : null;
-                  return discountedPrice ? (
-                    <div>
-                      <p className="text-lg line-through opacity-60">ETB {avgPrice.toLocaleString()}</p>
-                      <p className="text-3xl font-bold">ETB {discountedPrice.toLocaleString()}</p>
-                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">{propDiscount}% off</span>
-                    </div>
-                  ) : (
-                    <p className="text-3xl font-bold">ETB {avgPrice.toLocaleString()}</p>
-                  );
-                })()
-              ) : <p className="text-lg font-semibold opacity-80">Contact for price</p>}
+              <p className="text-xs opacity-70 mb-1">{isPrivate ? "Price per night (whole property)" : "Avg price per night"}</p>
+              {isPrivate ? (
+                pricePerNight ? (
+                  (() => {
+                    const propDiscount = (property as any).discountPercent ?? 0;
+                    const discountedPrice = propDiscount > 0 ? Math.round(pricePerNight * (1 - propDiscount / 100)) : null;
+                    return discountedPrice ? (
+                      <div>
+                        <p className="text-lg line-through opacity-60">ETB {pricePerNight.toLocaleString()}</p>
+                        <p className="text-3xl font-bold">ETB {discountedPrice.toLocaleString()}</p>
+                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">{propDiscount}% off</span>
+                      </div>
+                    ) : (
+                      <p className="text-3xl font-bold">ETB {pricePerNight.toLocaleString()}</p>
+                    );
+                  })()
+                ) : <p className="text-lg font-semibold opacity-80">Price not set</p>
+              ) : (
+                avgPrice ? (
+                  (() => {
+                    const propDiscount = (property as any).discountPercent ?? 0;
+                    const discountedPrice = propDiscount > 0 ? Math.round(avgPrice * (1 - propDiscount / 100)) : null;
+                    return discountedPrice ? (
+                      <div>
+                        <p className="text-lg line-through opacity-60">ETB {avgPrice.toLocaleString()}</p>
+                        <p className="text-3xl font-bold">ETB {discountedPrice.toLocaleString()}</p>
+                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">{propDiscount}% off</span>
+                      </div>
+                    ) : (
+                      <p className="text-3xl font-bold">ETB {avgPrice.toLocaleString()}</p>
+                    );
+                  })()
+                ) : <p className="text-lg font-semibold opacity-80">Contact for price</p>
+              )}
               {avgRating > 0 && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded">{avgRating.toFixed(1)}</div>
@@ -713,9 +761,19 @@ const DataContainer = ({ data }: Props) => {
             </div>
 
             <div className="p-5">
-              <Button className="w-full mb-4 font-bold rounded-xl h-11" onClick={() => scrollTo("rooms")}>
-                Check availability
-              </Button>
+              {isPrivate ? (
+                <Button
+                  className="w-full mb-4 font-bold rounded-xl h-11"
+                  onClick={handleBookProperty}
+                  disabled={!pricePerNight}
+                >
+                  {pricePerNight ? "Book Property" : "Price not set yet"}
+                </Button>
+              ) : (
+                <Button className="w-full mb-4 font-bold rounded-xl h-11" onClick={() => scrollTo("rooms")}>
+                  Check availability
+                </Button>
+              )}
 
               {/* Contact */}
               {(property.contact?.phone || property.contact?.email) && (
@@ -900,6 +958,17 @@ const DataContainer = ({ data }: Props) => {
             </div>
           </div>
         </div>
+      )}
+      {/* Booking Dialog for private properties */}
+      {isPrivate && bookingRoom && (
+        <BookingDialog
+          isOpen={bookingOpen}
+          onClose={() => setBookingOpen(false)}
+          handleOpenBookingModal={handleBookProperty}
+          room={bookingRoom}
+          services={[]}
+          bookedRanges={[]}
+        />
       )}
     </div>
   );

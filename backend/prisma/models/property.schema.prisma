@@ -10,6 +10,9 @@ model Property {
   // Discount
   discountPercent Float @default(0) // e.g. 20 = 20% off
 
+  // Price for private properties (villa/guest house booked as a whole)
+  pricePerNight   Float? // set by admin for PRIVATE properties
+
   // Policies (stored as JSON array of {key, value} objects)
   policies Json?
 

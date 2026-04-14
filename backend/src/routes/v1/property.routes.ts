@@ -73,6 +73,18 @@ router.post("/:id/facilities", authGuard({ cantAccessBy: ["GUEST"] }), propertie
 router.post("/:id/images", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.addPropertyImage);
 router.delete("/:id/images", propertiesController.deletePropertyImage);
 router.post("/:id/discount", authGuard({ cantAccessBy: ["GUEST"] }), propertiesController.setPropertyDiscount);
+// Set price per night for private properties (villa/guest house)
+router.post("/:id/price", authGuard({ cantAccessBy: ["GUEST"] }), async (req, res) => {
+  const { prisma } = await import("../../lib/prisma");
+  const { id: propertyId } = req.params;
+  const { pricePerNight } = req.body;
+  if (pricePerNight === undefined || pricePerNight === null) return res.status(400).json({ message: "pricePerNight is required" });
+  const updated = await prisma.property.update({
+    where: { id: propertyId },
+    data: { pricePerNight: Number(pricePerNight) },
+  });
+  res.json({ success: true, message: "Property price updated", data: updated });
+});
 router.post("/:id/license", authGuard({ cantAccessBy: ["GUEST"] }), async (req, res) => {
   const { prisma } = await import("../../lib/prisma");
   const { id: propertyId } = req.params;

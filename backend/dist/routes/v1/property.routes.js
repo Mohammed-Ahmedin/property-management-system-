@@ -80,6 +80,19 @@ router.post("/:id/facilities", (0, auth_middleware_1.authGuard)({ cantAccessBy: 
 router.post("/:id/images", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.addPropertyImage);
 router.delete("/:id/images", properties_controller_1.default.deletePropertyImage);
 router.post("/:id/discount", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), properties_controller_1.default.setPropertyDiscount);
+// Set price per night for private properties (villa/guest house)
+router.post("/:id/price", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { prisma } = yield Promise.resolve().then(() => __importStar(require("../../lib/prisma")));
+    const { id: propertyId } = req.params;
+    const { pricePerNight } = req.body;
+    if (pricePerNight === undefined || pricePerNight === null)
+        return res.status(400).json({ message: "pricePerNight is required" });
+    const updated = yield prisma.property.update({
+        where: { id: propertyId },
+        data: { pricePerNight: Number(pricePerNight) },
+    });
+    res.json({ success: true, message: "Property price updated", data: updated });
+}));
 router.post("/:id/license", (0, auth_middleware_1.authGuard)({ cantAccessBy: ["GUEST"] }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { prisma } = yield Promise.resolve().then(() => __importStar(require("../../lib/prisma")));
     const { id: propertyId } = req.params;
