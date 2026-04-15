@@ -88,6 +88,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginUser, logoutUser, setUserToken, clearUserToken, setStatus } = authSlice.actions;
+export const { loginUser, logoutUser, setUserToken, clearUserToken, setStatus, updateUser } = authSlice.actions;
 
 export default authSlice;
