@@ -82,22 +82,26 @@ router.put("/me", (0, auth_middleware_1.authGuard)(), (req, res) => __awaiter(vo
 router.post("/upload-avatar", (0, auth_middleware_1.authGuard)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { v2: cloudinary } = yield Promise.resolve().then(() => __importStar(require("cloudinary")));
+        const fs = yield Promise.resolve().then(() => __importStar(require("fs")));
         cloudinary.config({
             cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
             api_key: process.env.CLOUDINARY_API_KEY,
             api_secret: process.env.CLOUDINARY_API_SECRET,
         });
-        // express-fileupload stores files in req.files
         const files = req.files;
         if (!files || Object.keys(files).length === 0) {
             return res.status(400).json({ message: "No file provided" });
         }
-        // Get the file — could be under 'file' or first key
         const file = files.file || files[Object.keys(files)[0]];
         if (!file)
             return res.status(400).json({ message: "No file found" });
-        // Handle both single file and array
         const fileObj = Array.isArray(file) ? file[0] : file;
+        // With useTempFiles:true, file is stored in tempFilePath — upload directly from path
+        if (fileObj.tempFilePath) {
+            const result = yield cloudinary.uploader.upload(fileObj.tempFilePath, { folder: "avatars" });
+            return res.json({ url: result.secure_url });
+        }
+        // Fallback: use buffer data
         const buffer = fileObj.data;
         if (!buffer || buffer.length === 0) {
             return res.status(400).json({ message: "Empty file" });

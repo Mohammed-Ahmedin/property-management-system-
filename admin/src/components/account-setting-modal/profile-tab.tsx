@@ -62,20 +62,20 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
         }
       }
 
-      // Update name via Better Auth (handles session)
+      // Update name via Better Auth — this invalidates the session cache
       await authClient.updateUser({ name }).catch(() => {})
 
       // Update name + image directly in DB
       const { api } = await import("@/hooks/api")
       await api.put("/users/me", { name, image: imageUrl || undefined })
 
-      // Update localStorage with new values
+      // Update localStorage with new values so it shows immediately
       const updatedUser = { ...initialUser, name, image: imageUrl }
       localStorage.setItem("admin_session_user", JSON.stringify(updatedUser))
       setImage(imageUrl)
       setPendingFile(null)
       toast.success("Profile updated")
-      // Reload to show updated avatar everywhere
+      // Reload — session cache is now invalidated so fresh data loads
       setTimeout(() => window.location.reload(), 600)
     } catch (e: any) {
       toast.error(`Failed to update profile: ${e?.message || "unknown"}`)

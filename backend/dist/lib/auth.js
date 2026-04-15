@@ -75,8 +75,7 @@ exports.auth = (0, better_auth_1.betterAuth)({
     session: {
         storeSessionInDatabase: true,
         cookieCache: {
-            enabled: true,
-            maxAge: 60 * 5, // cache for 5 minutes
+            enabled: false, // Disabled so profile updates reflect immediately
         },
         preserveSessionInDatabase: true,
     },
