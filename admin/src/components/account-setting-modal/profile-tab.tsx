@@ -48,15 +48,16 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
       let imageUrl = initialUser.image || ""
 
       if (pendingFile) {
+        const { api } = await import("@/hooks/api")
         const fd = new FormData()
         fd.append("file", pendingFile)
-        const res = await fetch("/api/upload", { method: "POST", body: fd })
-        if (res.ok) {
-          const data = await res.json()
-          imageUrl = data.secure_url || imageUrl
+        const uploadRes = await api.post("/users/upload-avatar", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+        if (uploadRes.data?.url) {
+          imageUrl = uploadRes.data.url
         } else {
-          const err = await res.json().catch(() => ({}))
-          toast.error(`Image upload failed: ${err?.error || "unknown"}`)
+          toast.error("Image upload failed")
           setSaving(false)
           return
         }
@@ -68,7 +69,6 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
       // Update name + image directly in DB
       const { api } = await import("@/hooks/api")
       await api.put("/users/me", { name, image: imageUrl || undefined })
-
       // Update localStorage with new values so it shows immediately
       const updatedUser = { ...initialUser, name, image: imageUrl }
       localStorage.setItem("admin_session_user", JSON.stringify(updatedUser))

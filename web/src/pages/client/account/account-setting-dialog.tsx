@@ -37,24 +37,15 @@ interface AccountSettingsDialogProps {
 }
 
 async function uploadToCloudinary(file: File): Promise<string> {
-  // Upload via backend which has proper Cloudinary server-side credentials
-  const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
-  const token = localStorage.getItem("AUTH_TOKEN") || "";
+  const { api } = await import("@/hooks/api");
   const fd = new FormData();
   fd.append("file", file);
-  // Don't set Content-Type — let browser set multipart boundary automatically
-  const res = await fetch(`${SERVER_URL}/api/v1/users/upload-avatar`, {
-    method: "POST",
-    body: fd,
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  // Use axios api instance which has auth headers
+  const res = await api.post("/users/upload-avatar", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message || "Upload failed");
-  }
-  const data = await res.json();
-  if (!data.url) throw new Error("No URL returned");
-  return data.url;
+  if (!res.data?.url) throw new Error("No URL returned");
+  return res.data.url;
 }
 
 export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSettingsDialogProps) {
@@ -83,33 +74,19 @@ export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSetti
         }
       }
 
-      // Update name via Better Auth
-      const { error } = await authClient.updateUser({ name: data.name });
-      if (error) {
-        toast.error(error.message, { position: "top-center" });
-        setIsPending(false);
-        return;
-      }
+      // Use the api axios instance which has auth headers configured
+      const { api } = await import("@/hooks/api");
+      const updateRes = await api.put("/users/me", { name: data.name, image: imageUrl || undefined });
 
-      // Update image directly in DB
-      const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
-      const token = localStorage.getItem("AUTH_TOKEN") || "";
-      const updateRes = await fetch(`${SERVER_URL}/api/v1/users/me`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ name: data.name, image: imageUrl || undefined }),
-      });
-
-      if (!updateRes.ok) {
+      if (!updateRes.data?.success) {
         toast.error("Failed to save profile");
         setIsPending(false);
         return;
       }
 
-      const updateData = await updateRes.json();
+      // Also update Better Auth session name
+      await authClient.updateUser({ name: data.name }).catch(() => {});
+
       const updatedUser = { ...user, name: data.name, image: imageUrl || user.image };
       dispatch(loginUser({ user: updatedUser as any }));
       localStorage.setItem("AUTH_USER", JSON.stringify(updatedUser));
