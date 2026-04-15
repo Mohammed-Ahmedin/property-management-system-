@@ -87,13 +87,23 @@ router.post("/upload-avatar", (0, auth_middleware_1.authGuard)(), (req, res) => 
             api_key: process.env.CLOUDINARY_API_KEY,
             api_secret: process.env.CLOUDINARY_API_SECRET,
         });
+        // express-fileupload stores files in req.files
         const files = req.files;
-        const file = files === null || files === void 0 ? void 0 : files.file;
-        if (!file)
+        if (!files || Object.keys(files).length === 0) {
             return res.status(400).json({ message: "No file provided" });
-        const buffer = Buffer.isBuffer(file.data) ? file.data : Buffer.from(file.data);
+        }
+        // Get the file — could be under 'file' or first key
+        const file = files.file || files[Object.keys(files)[0]];
+        if (!file)
+            return res.status(400).json({ message: "No file found" });
+        // Handle both single file and array
+        const fileObj = Array.isArray(file) ? file[0] : file;
+        const buffer = fileObj.data;
+        if (!buffer || buffer.length === 0) {
+            return res.status(400).json({ message: "Empty file" });
+        }
         const base64 = buffer.toString("base64");
-        const mimeType = file.mimetype || "image/jpeg";
+        const mimeType = fileObj.mimetype || "image/jpeg";
         const dataUri = `data:${mimeType};base64,${base64}`;
         const result = yield cloudinary.uploader.upload(dataUri, { folder: "avatars" });
         res.json({ url: result.secure_url });

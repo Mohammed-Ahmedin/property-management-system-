@@ -62,24 +62,21 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
         }
       }
 
-      // Update name via Better Auth
+      // Update name via Better Auth (handles session)
       await authClient.updateUser({ name }).catch(() => {})
 
-      // Update name + image directly in DB via backend
+      // Update name + image directly in DB
       const { api } = await import("@/hooks/api")
-      const updateRes = await api.put("/users/me", { name, image: imageUrl || undefined })
-      if (!updateRes.data?.success) {
-        toast.error("Failed to save profile")
-        setSaving(false)
-        return
-      }
+      await api.put("/users/me", { name, image: imageUrl || undefined })
 
+      // Update localStorage with new values
       const updatedUser = { ...initialUser, name, image: imageUrl }
       localStorage.setItem("admin_session_user", JSON.stringify(updatedUser))
       setImage(imageUrl)
       setPendingFile(null)
       toast.success("Profile updated")
-      setTimeout(() => window.location.reload(), 800)
+      // Reload to show updated avatar everywhere
+      setTimeout(() => window.location.reload(), 600)
     } catch (e: any) {
       toast.error(`Failed to update profile: ${e?.message || "unknown"}`)
     } finally {
