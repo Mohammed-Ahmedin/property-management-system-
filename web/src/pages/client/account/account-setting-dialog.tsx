@@ -14,8 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/store/hooks";
-import { updateUser } from "@/store/slices/auth.slices";
-import { api } from "@/hooks/api";
+import { loginUser } from "@/store/slices/auth.slices";
 
 const validationSchema = yup.object().shape({
   name: yup.string().required("Name is required").min(2, "Name must be at least 2 characters"),
@@ -37,6 +36,22 @@ interface AccountSettingsDialogProps {
   };
 }
 
+async function uploadToCloudinary(file: File): Promise<string> {
+  // Use the backend as a proxy to avoid CORS/auth issues
+  const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
+  const fd = new FormData();
+  fd.append("file", file);
+  const token = localStorage.getItem("AUTH_TOKEN") || "";
+  const res = await fetch(`${SERVER_URL}/api/v1/users/upload-avatar`, {
+    method: "POST",
+    body: fd,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Upload failed");
+  const data = await res.json();
+  return data.url;
+}
+
 export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSettingsDialogProps) {
   const [profileImage, setProfileImage] = useState(user.image);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -53,33 +68,40 @@ export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSetti
     try {
       let imageUrl = user.image || "";
 
-      // Upload image if a new file was selected
       if (pendingFile) {
-        const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
-        const fd = new FormData();
-        fd.append("file", pendingFile);
-        const uploadRes = await fetch(`${SERVER_URL}/api/v1/users/upload-avatar`, {
-          method: "POST",
-          body: fd,
-          headers: { Authorization: `Bearer ${localStorage.getItem("AUTH_TOKEN") || ""}` },
-        });
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          imageUrl = uploadData.url || imageUrl;
+        try {
+          imageUrl = await uploadToCloudinary(pendingFile);
+        } catch {
+          toast.error("Image upload failed — saving name only");
         }
       }
 
-      const { error } = await authClient.updateUser({ name: data.name, image: imageUrl });
+      const { error } = await authClient.updateUser({ name: data.name, image: imageUrl || undefined });
       if (error) {
         toast.error(error.message, { position: "top-center" });
+        return;
+      }
+
+      // Re-fetch session to get the updated user from server
+      const { data: session } = await authClient.getSession();
+      if (session?.user) {
+        const updatedUser = session.user as any;
+        const tok = session.session?.token;
+        dispatch(loginUser({ user: updatedUser, token: tok }));
+        localStorage.setItem("AUTH_USER", JSON.stringify(updatedUser));
+        setProfileImage(updatedUser.image || imageUrl);
       } else {
+        // Fallback: update locally
         const updatedUser = { ...user, name: data.name, image: imageUrl };
-        dispatch(updateUser({ user: updatedUser as any }));
+        dispatch(loginUser({ user: updatedUser as any }));
         localStorage.setItem("AUTH_USER", JSON.stringify(updatedUser));
         setProfileImage(imageUrl);
-        setPendingFile(null);
-        toast.success("Profile updated successfully", { position: "top-center" });
       }
+
+      setPendingFile(null);
+      toast.success("Profile updated successfully", { position: "top-center" });
+      // Reload to refresh session everywhere (header avatar, account page, etc.)
+      setTimeout(() => window.location.reload(), 800);
     } catch {
       toast.error("Failed to update profile");
     } finally {

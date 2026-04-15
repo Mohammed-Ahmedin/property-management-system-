@@ -19,7 +19,6 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
   const [image, setImage] = useState(initialUser?.image || "")
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!initialUser) {
@@ -37,7 +36,6 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
     const file = e.target.files?.[0]
     if (!file) return
     setPendingFile(file)
-    // Show preview
     const reader = new FileReader()
     reader.onload = (ev) => setImage(ev.target?.result as string)
     reader.readAsDataURL(file)
@@ -49,9 +47,8 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
     try {
       let imageUrl = initialUser.image || ""
 
-      // Upload image if a new file was selected
+      // Upload image via Next.js API route (uses server-side Cloudinary)
       if (pendingFile) {
-        setUploading(true)
         const fd = new FormData()
         fd.append("file", pendingFile)
         const res = await fetch("/api/upload", { method: "POST", body: fd })
@@ -59,20 +56,32 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
           const data = await res.json()
           imageUrl = data.secure_url || imageUrl
         } else {
-          toast.error("Image upload failed")
-          setSaving(false)
-          setUploading(false)
-          return
+          toast.error("Image upload failed — saving name only")
         }
-        setUploading(false)
       }
 
-      await authClient.updateUser({ name, image: imageUrl })
-      const updated = { ...initialUser, name, image: imageUrl }
-      localStorage.setItem("admin_session_user", JSON.stringify(updated))
-      setImage(imageUrl)
+      // Update user via Better Auth
+      const { error } = await authClient.updateUser({ name, image: imageUrl || undefined })
+      if (error) {
+        toast.error(error.message || "Failed to update profile")
+        return
+      }
+
+      // Re-fetch session to get updated user data from server
+      const { data: session } = await authClient.getSession()
+      const updatedUser = session?.user
+        ? { ...initialUser, ...session.user }
+        : { ...initialUser, name, image: imageUrl }
+
+      // Update localStorage so it persists across refreshes
+      localStorage.setItem("admin_session_user", JSON.stringify(updatedUser))
+      setImage(updatedUser.image || imageUrl)
       setPendingFile(null)
+
       toast.success("Profile updated")
+
+      // Force page reload to update all components (sidebar, header, etc.)
+      setTimeout(() => window.location.reload(), 800)
     } catch {
       toast.error("Failed to update profile")
     } finally {
@@ -132,7 +141,7 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border">
         <Button onClick={handleSave} disabled={saving || !name.trim()}>
-          {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> {uploading ? "Uploading..." : "Saving..."}</> : "Save Changes"}
+          {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : "Save Changes"}
         </Button>
       </div>
     </div>
