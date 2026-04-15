@@ -37,22 +37,17 @@ interface AccountSettingsDialogProps {
 }
 
 async function uploadToCloudinary(file: File): Promise<string> {
-  const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
   const fd = new FormData();
   fd.append("file", file);
-  const token = localStorage.getItem("AUTH_TOKEN") || "";
-  // Don't set Content-Type — let fetch set it with the correct multipart boundary
-  const res = await fetch(`${SERVER_URL}/api/v1/users/upload-avatar`, {
+  fd.append("upload_preset", "preset");
+  const res = await fetch("https://api.cloudinary.com/v1_1/dmhsqmdbc/image/upload", {
     method: "POST",
     body: fd,
-    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message || "Upload failed");
-  }
+  if (!res.ok) throw new Error("Upload failed");
   const data = await res.json();
-  return data.url;
+  if (!data.secure_url) throw new Error(data.error?.message || "Upload failed");
+  return data.secure_url;
 }
 
 export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSettingsDialogProps) {

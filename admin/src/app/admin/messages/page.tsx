@@ -148,8 +148,8 @@ export default function MessagesPage() {
       try {
         const res = await api.post(`/chat/admin/${selectedUser.id}/reply`, { message: text });
         setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data.data : m));
-        // Also emit via socket for real-time delivery
-        socketRef.current?.emit("admin:reply", { userId: selectedUser.id, message: text });
+        // Notify user via socket (no DB save — already saved via REST)
+        socketRef.current?.emit("admin:reply:notify", { userId: selectedUser.id, message: res.data.data });
       } catch {
         setMessages(prev => prev.filter(m => m.id !== optimistic.id));
         setReply(text);

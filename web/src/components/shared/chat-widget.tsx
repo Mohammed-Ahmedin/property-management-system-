@@ -125,12 +125,11 @@ export function ChatWidget() {
 
     if (socketRef.current?.connected) {
       pendingOptRef.current = optId;
-      // Always save via REST to guarantee persistence
       try {
         const res = await api.post("/chat", { message: text });
         setMessages(prev => prev.map(m => m.id === optId ? res.data.data : m));
-        // Also emit via socket for real-time delivery to admin
-        socketRef.current?.emit("user:message", { userId: user.id, message: text });
+        // Notify admin via socket (no DB save — already saved via REST)
+        socketRef.current?.emit("user:message:notify", { userId: user.id, message: res.data.data });
       } catch {
         setMessages(prev => prev.filter(m => m.id !== optId));
         setInput(text);

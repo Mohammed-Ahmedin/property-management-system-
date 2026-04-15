@@ -66,6 +66,8 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
       const { api } = await import("@/hooks/api")
       const updateRes = await api.put("/users/me", { name, image: imageUrl || undefined })
       const updatedUser = updateRes.data?.user || { ...initialUser, name, image: imageUrl }
+      // Also update Better Auth session with image
+      await authClient.updateUser({ name, image: imageUrl || undefined }).catch(() => {})
 
       localStorage.setItem("admin_session_user", JSON.stringify({ ...initialUser, ...updatedUser }))
       setImage(updatedUser.image || imageUrl)
