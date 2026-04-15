@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { authClient } from "@/lib/auth-client"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
-import { User } from "lucide-react"
+import { User, Upload, Loader2 } from "lucide-react"
 
 interface ProfileTabProps {
   initialUser?: any
@@ -16,7 +16,11 @@ interface ProfileTabProps {
 
 export function ProfileTab({ initialUser }: ProfileTabProps) {
   const [name, setName] = useState(initialUser?.name || "")
+  const [image, setImage] = useState(initialUser?.image || "")
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!initialUser) {
     return (
@@ -27,15 +31,47 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
     )
   }
 
-  const initials = initialUser.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "?"
+  const initials = name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "?"
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPendingFile(file)
+    // Show preview
+    const reader = new FileReader()
+    reader.onload = (ev) => setImage(ev.target?.result as string)
+    reader.readAsDataURL(file)
+  }
 
   const handleSave = async () => {
     if (!name.trim()) return
     setSaving(true)
     try {
-      await authClient.updateUser({ name })
-      const updated = { ...initialUser, name }
+      let imageUrl = initialUser.image || ""
+
+      // Upload image if a new file was selected
+      if (pendingFile) {
+        setUploading(true)
+        const fd = new FormData()
+        fd.append("file", pendingFile)
+        const res = await fetch("/api/upload", { method: "POST", body: fd })
+        if (res.ok) {
+          const data = await res.json()
+          imageUrl = data.secure_url || imageUrl
+        } else {
+          toast.error("Image upload failed")
+          setSaving(false)
+          setUploading(false)
+          return
+        }
+        setUploading(false)
+      }
+
+      await authClient.updateUser({ name, image: imageUrl })
+      const updated = { ...initialUser, name, image: imageUrl }
       localStorage.setItem("admin_session_user", JSON.stringify(updated))
+      setImage(imageUrl)
+      setPendingFile(null)
       toast.success("Profile updated")
     } catch {
       toast.error("Failed to update profile")
@@ -52,15 +88,28 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
       </div>
 
       <div className="flex items-center gap-5">
-        <Avatar className="h-20 w-20">
-          <AvatarImage src={initialUser.image || ""} alt={initialUser.name} />
-          <AvatarFallback className="text-lg font-bold bg-primary text-primary-foreground">{initials}</AvatarFallback>
-        </Avatar>
+        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={image || ""} alt={name} />
+            <AvatarFallback className="text-lg font-bold bg-primary text-primary-foreground">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Upload className="w-5 h-5 text-white" />
+          </div>
+        </div>
         <div>
-          <p className="font-semibold text-base">{initialUser.name}</p>
+          <p className="font-semibold text-base">{name || initialUser.name}</p>
           <p className="text-sm text-muted-foreground">{initialUser.email}</p>
           {initialUser.role && <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wide">{initialUser.role}</p>}
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline mt-1"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {pendingFile ? `✓ ${pendingFile.name}` : "Change photo"}
+          </button>
         </div>
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       </div>
 
       <div className="space-y-4">
@@ -83,7 +132,7 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
 
       <div className="flex justify-end gap-3 pt-4 border-t border-border">
         <Button onClick={handleSave} disabled={saving || !name.trim()}>
-          {saving ? <><Spinner className="mr-2 size-4" /> Saving...</> : "Save Changes"}
+          {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> {uploading ? "Uploading..." : "Saving..."}</> : "Save Changes"}
         </Button>
       </div>
     </div>
