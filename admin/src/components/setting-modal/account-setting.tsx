@@ -124,19 +124,43 @@ const FormContainer = ({
   const onSubmit = async (data: UserUpdateForm) => {
     startTransition(async () => {
       try {
+        let imageUrl = userData.image || "";
+
+        // Upload image if one was selected
+        if (selectedProfileImage) {
+          const fd = new FormData();
+          fd.append("file", selectedProfileImage);
+          const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            imageUrl = uploadData.secure_url || imageUrl;
+          } else {
+            toast.error("Image upload failed");
+            return;
+          }
+        }
+
+        // Update name via Better Auth
         await authClient.updateUser({ name: data.name });
-        // Update localStorage so mobile sees the new name
+
+        // Update name + image directly in DB
+        const { api } = await import("@/hooks/api");
+        const payload: any = { name: data.name };
+        if (imageUrl) payload.image = imageUrl;
+        await api.put("/users/me", payload);
+
+        // Update localStorage
         try {
           const raw = localStorage.getItem("admin_session_user");
-          if (raw) {
-            const stored = JSON.parse(raw);
-            localStorage.setItem("admin_session_user", JSON.stringify({ ...stored, name: data.name }));
-          }
+          const stored = raw ? JSON.parse(raw) : {};
+          localStorage.setItem("admin_session_user", JSON.stringify({ ...stored, name: data.name, image: imageUrl }));
         } catch {}
+
         toast.success("Profile updated");
-        refetch();
-      } catch {
-        toast.error("Failed to update profile");
+        // Reload to show updated avatar everywhere
+        setTimeout(() => window.location.reload(), 600);
+      } catch (e: any) {
+        toast.error(`Failed to update profile: ${e?.message || "unknown"}`);
       }
     });
   };
