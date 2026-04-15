@@ -37,17 +37,20 @@ interface AccountSettingsDialogProps {
 }
 
 async function uploadToCloudinary(file: File): Promise<string> {
-  // Use the backend as a proxy to avoid CORS/auth issues
   const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
   const fd = new FormData();
   fd.append("file", file);
   const token = localStorage.getItem("AUTH_TOKEN") || "";
+  // Don't set Content-Type — let fetch set it with the correct multipart boundary
   const res = await fetch(`${SERVER_URL}/api/v1/users/upload-avatar`, {
     method: "POST",
     body: fd,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
   });
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || "Upload failed");
+  }
   const data = await res.json();
   return data.url;
 }
@@ -76,7 +79,16 @@ export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSetti
         }
       }
 
-      const { error } = await authClient.updateUser({ name: data.name, image: imageUrl || undefined });
+      const { error } = await authClient.updateUser({ name: data.name });
+      // Also update image directly in DB (authClient.updateUser may not persist image)
+      const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
+      const token = localStorage.getItem("AUTH_TOKEN") || "";
+      await fetch(`${SERVER_URL}/api/v1/users/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ name: data.name, image: imageUrl || undefined }),
+      });
+
       if (error) {
         toast.error(error.message, { position: "top-center" });
         return;

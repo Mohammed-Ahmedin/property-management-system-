@@ -49,6 +49,7 @@ exports.UsersRouter = void 0;
 const express_1 = require("express");
 const users_controller_1 = __importDefault(require("../../controllers/users.controller"));
 const auth_middleware_1 = require("../../middleware/auth-middleware");
+const prisma_1 = require("../../lib/prisma");
 const router = (0, express_1.Router)();
 exports.UsersRouter = router;
 router.get("/management", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), users_controller_1.default.getUsers);
@@ -58,10 +59,24 @@ router.put("/management/:id", (0, auth_middleware_1.authGuard)({ accessedBy: ["A
 router.post("/management/:id/ban", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), users_controller_1.default.banUser);
 router.post("/management/:id/unban", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), users_controller_1.default.unbanUser);
 router.delete("/management/:id", (0, auth_middleware_1.authGuard)({ accessedBy: ["ADMIN"] }), users_controller_1.default.deleteUser);
-// Get current authenticated user (used as mobile fallback for profile tab)
+// Get current authenticated user
 router.get("/me", (0, auth_middleware_1.authGuard)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.user;
-    res.json({ user });
+    res.json({ user: req.user });
+}));
+// Update current user's profile (name + image) — direct DB update bypasses Better Auth limitations
+router.put("/me", (0, auth_middleware_1.authGuard)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.id;
+        const { name, image } = req.body;
+        const updated = yield prisma_1.prisma.user.update({
+            where: { id: userId },
+            data: Object.assign(Object.assign({}, (name ? { name } : {})), (image ? { image } : {})),
+        });
+        res.json({ success: true, user: updated });
+    }
+    catch (e) {
+        res.status(500).json({ message: (e === null || e === void 0 ? void 0 : e.message) || "Update failed" });
+    }
 }));
 // Upload avatar image for current user
 router.post("/upload-avatar", (0, auth_middleware_1.authGuard)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {

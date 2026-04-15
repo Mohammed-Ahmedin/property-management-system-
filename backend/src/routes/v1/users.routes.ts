@@ -1,6 +1,7 @@
 import { Router } from "express";
 import userController from "../../controllers/users.controller";
 import { authGuard } from "../../middleware/auth-middleware";
+import { prisma } from "../../lib/prisma";
 
 const router = Router();
 
@@ -12,10 +13,27 @@ router.post("/management/:id/ban", authGuard({ accessedBy: ["ADMIN"] }), userCon
 router.post("/management/:id/unban", authGuard({ accessedBy: ["ADMIN"] }), userController.unbanUser);
 router.delete("/management/:id", authGuard({ accessedBy: ["ADMIN"] }), userController.deleteUser);
 
-// Get current authenticated user (used as mobile fallback for profile tab)
-router.get("/me", authGuard(), async (req, res) => {
-  const user = (req as any).user;
-  res.json({ user });
+// Get current authenticated user
+router.get("/me", authGuard(), async (req: any, res) => {
+  res.json({ user: req.user });
+});
+
+// Update current user's profile (name + image) — direct DB update bypasses Better Auth limitations
+router.put("/me", authGuard(), async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, image } = req.body;
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name ? { name } : {}),
+        ...(image ? { image } : {}),
+      },
+    });
+    res.json({ success: true, user: updated });
+  } catch (e: any) {
+    res.status(500).json({ message: e?.message || "Update failed" });
+  }
 });
 
 // Upload avatar image for current user
@@ -28,7 +46,7 @@ router.post("/upload-avatar", authGuard(), async (req: any, res) => {
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
-    const files = (req as any).files;
+    const files = req.files;
     const file = files?.file;
     if (!file) return res.status(400).json({ message: "No file provided" });
 

@@ -60,21 +60,14 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
         }
       }
 
-      // Update user via Better Auth
-      const { error } = await authClient.updateUser({ name, image: imageUrl || undefined })
-      if (error) {
-        toast.error(error.message || "Failed to update profile")
-        return
-      }
+      // Update via Better Auth (name) + direct DB update (image)
+      await authClient.updateUser({ name })
+      // Update image directly in DB since authClient may not persist image
+      const { api } = await import("@/hooks/api")
+      const updateRes = await api.put("/users/me", { name, image: imageUrl || undefined })
+      const updatedUser = updateRes.data?.user || { ...initialUser, name, image: imageUrl }
 
-      // Re-fetch session to get updated user data from server
-      const { data: session } = await authClient.getSession()
-      const updatedUser = session?.user
-        ? { ...initialUser, ...session.user }
-        : { ...initialUser, name, image: imageUrl }
-
-      // Update localStorage so it persists across refreshes
-      localStorage.setItem("admin_session_user", JSON.stringify(updatedUser))
+      localStorage.setItem("admin_session_user", JSON.stringify({ ...initialUser, ...updatedUser }))
       setImage(updatedUser.image || imageUrl)
       setPendingFile(null)
 
