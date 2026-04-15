@@ -47,7 +47,6 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
     try {
       let imageUrl = initialUser.image || ""
 
-      // Upload image via Next.js API route (uses server-side Cloudinary)
       if (pendingFile) {
         const fd = new FormData()
         fd.append("file", pendingFile)
@@ -56,29 +55,33 @@ export function ProfileTab({ initialUser }: ProfileTabProps) {
           const data = await res.json()
           imageUrl = data.secure_url || imageUrl
         } else {
-          toast.error("Image upload failed — saving name only")
+          const err = await res.json().catch(() => ({}))
+          toast.error(`Image upload failed: ${err?.error || "unknown"}`)
+          setSaving(false)
+          return
         }
       }
 
-      // Update via Better Auth (name) + direct DB update (image)
-      await authClient.updateUser({ name })
-      // Update image directly in DB since authClient may not persist image
+      // Update name via Better Auth
+      await authClient.updateUser({ name }).catch(() => {})
+
+      // Update name + image directly in DB via backend
       const { api } = await import("@/hooks/api")
       const updateRes = await api.put("/users/me", { name, image: imageUrl || undefined })
-      const updatedUser = updateRes.data?.user || { ...initialUser, name, image: imageUrl }
-      // Also update Better Auth session with image
-      await authClient.updateUser({ name, image: imageUrl || undefined }).catch(() => {})
+      if (!updateRes.data?.success) {
+        toast.error("Failed to save profile")
+        setSaving(false)
+        return
+      }
 
-      localStorage.setItem("admin_session_user", JSON.stringify({ ...initialUser, ...updatedUser }))
-      setImage(updatedUser.image || imageUrl)
+      const updatedUser = { ...initialUser, name, image: imageUrl }
+      localStorage.setItem("admin_session_user", JSON.stringify(updatedUser))
+      setImage(imageUrl)
       setPendingFile(null)
-
       toast.success("Profile updated")
-
-      // Force page reload to update all components (sidebar, header, etc.)
       setTimeout(() => window.location.reload(), 800)
-    } catch {
-      toast.error("Failed to update profile")
+    } catch (e: any) {
+      toast.error(`Failed to update profile: ${e?.message || "unknown"}`)
     } finally {
       setSaving(false)
     }

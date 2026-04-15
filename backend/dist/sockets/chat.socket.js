@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerChatSocket = registerChatSocket;
-const prisma_1 = require("../lib/prisma");
 // Map userId -> socketId for online tracking
 const onlineUsers = new Map();
 function registerChatSocket(io) {
@@ -29,41 +28,34 @@ function registerChatSocket(io) {
         // User sends a message to admin
         socket.on("user:message", (data) => __awaiter(this, void 0, void 0, function* () {
             var _a;
+            // Legacy handler — just notify, don't save (REST handles saving)
             if (!((_a = data.message) === null || _a === void 0 ? void 0 : _a.trim()) || !data.userId)
                 return;
-            try {
-                const msg = yield prisma_1.prisma.chatMessage.create({
-                    data: { userId: data.userId, message: data.message.trim(), isAdmin: false },
-                    include: { user: { select: { id: true, name: true, image: true, role: true } } },
-                });
-                io.to(`user:${data.userId}`).emit("message:new", msg);
-                io.to("admin").emit("message:new", Object.assign(Object.assign({}, msg), { forUserId: data.userId }));
-                io.to("admin").emit("conversations:update");
-            }
-            catch (e) {
-                console.error("Socket user:message error:", e === null || e === void 0 ? void 0 : e.message);
-                // Emit error back to sender so client can fall back to REST
-                socket.emit("message:error", { error: e === null || e === void 0 ? void 0 : e.message });
-            }
+            io.to("admin").emit("conversations:update");
         }));
         // Admin sends a reply to a user
         socket.on("admin:reply", (data) => __awaiter(this, void 0, void 0, function* () {
             var _a;
+            // Legacy handler — just notify, don't save (REST handles saving)
             if (!((_a = data.message) === null || _a === void 0 ? void 0 : _a.trim()) || !data.userId)
                 return;
-            try {
-                const msg = yield prisma_1.prisma.chatMessage.create({
-                    data: { userId: data.userId, message: data.message.trim(), isAdmin: true },
-                    include: { user: { select: { id: true, name: true, image: true, role: true } } },
-                });
-                // Send to the specific user
-                io.to(`user:${data.userId}`).emit("message:new", msg);
-                // Echo back to all admins viewing that conversation
-                io.to("admin").emit("message:new", Object.assign(Object.assign({}, msg), { forUserId: data.userId }));
-                io.to("admin").emit("conversations:update");
-            }
-            catch (_b) { }
         }));
+        // User notifies admin of new message (already saved via REST — no DB write)
+        socket.on("user:message:notify", (data) => {
+            if (!(data === null || data === void 0 ? void 0 : data.userId) || !(data === null || data === void 0 ? void 0 : data.message))
+                return;
+            // Forward the already-saved message to admin for real-time display
+            io.to("admin").emit("message:new", Object.assign(Object.assign({}, data.message), { forUserId: data.userId }));
+            io.to("admin").emit("conversations:update");
+        });
+        // Admin notifies user of new reply (already saved via REST — no DB write)
+        socket.on("admin:reply:notify", (data) => {
+            if (!(data === null || data === void 0 ? void 0 : data.userId) || !(data === null || data === void 0 ? void 0 : data.message))
+                return;
+            // Forward the already-saved message to the user for real-time display
+            io.to(`user:${data.userId}`).emit("message:new", data.message);
+            io.to("admin").emit("conversations:update");
+        });
         // Admin joins a specific user conversation room
         socket.on("admin:join", (targetUserId) => {
             socket.join(`conv:${targetUserId}`);

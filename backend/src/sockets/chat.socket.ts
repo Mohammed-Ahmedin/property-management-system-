@@ -31,16 +31,18 @@ export function registerChatSocket(io: Server) {
       if (!data.message?.trim() || !data.userId) return;
     });
 
-    // User notifies admin of new message (already saved via REST)
-    socket.on("user:message:notify", (msg: any) => {
-      if (!msg?.userId) return;
-      io.to("admin").emit("message:new", { ...msg.message, forUserId: msg.userId });
+    // User notifies admin of new message (already saved via REST — no DB write)
+    socket.on("user:message:notify", (data: { userId: string; message: any }) => {
+      if (!data?.userId || !data?.message) return;
+      // Forward the already-saved message to admin for real-time display
+      io.to("admin").emit("message:new", { ...data.message, forUserId: data.userId });
       io.to("admin").emit("conversations:update");
     });
 
-    // Admin notifies user of new reply (already saved via REST)
+    // Admin notifies user of new reply (already saved via REST — no DB write)
     socket.on("admin:reply:notify", (data: { userId: string; message: any }) => {
-      if (!data?.userId) return;
+      if (!data?.userId || !data?.message) return;
+      // Forward the already-saved message to the user for real-time display
       io.to(`user:${data.userId}`).emit("message:new", data.message);
       io.to("admin").emit("conversations:update");
     });

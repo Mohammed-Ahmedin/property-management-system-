@@ -37,17 +37,24 @@ interface AccountSettingsDialogProps {
 }
 
 async function uploadToCloudinary(file: File): Promise<string> {
+  // Upload via backend which has proper Cloudinary server-side credentials
+  const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
+  const token = localStorage.getItem("AUTH_TOKEN") || "";
   const fd = new FormData();
   fd.append("file", file);
-  fd.append("upload_preset", "preset");
-  const res = await fetch("https://api.cloudinary.com/v1_1/dmhsqmdbc/image/upload", {
+  // Don't set Content-Type — let browser set multipart boundary automatically
+  const res = await fetch(`${SERVER_URL}/api/v1/users/upload-avatar`, {
     method: "POST",
     body: fd,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || "Upload failed");
+  }
   const data = await res.json();
-  if (!data.secure_url) throw new Error(data.error?.message || "Upload failed");
-  return data.secure_url;
+  if (!data.url) throw new Error("No URL returned");
+  return data.url;
 }
 
 export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSettingsDialogProps) {
@@ -69,48 +76,49 @@ export function AccountSettingsDialog({ open, onOpenChange, user }: AccountSetti
       if (pendingFile) {
         try {
           imageUrl = await uploadToCloudinary(pendingFile);
-        } catch {
-          toast.error("Image upload failed — saving name only");
+        } catch (e: any) {
+          toast.error(`Image upload failed: ${e?.message || "unknown error"}`);
+          setIsPending(false);
+          return;
         }
       }
 
+      // Update name via Better Auth
       const { error } = await authClient.updateUser({ name: data.name });
-      // Also update image directly in DB (authClient.updateUser may not persist image)
-      const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
-      const token = localStorage.getItem("AUTH_TOKEN") || "";
-      await fetch(`${SERVER_URL}/api/v1/users/me`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ name: data.name, image: imageUrl || undefined }),
-      });
-
       if (error) {
         toast.error(error.message, { position: "top-center" });
+        setIsPending(false);
         return;
       }
 
-      // Re-fetch session to get the updated user from server
-      const { data: session } = await authClient.getSession();
-      if (session?.user) {
-        const updatedUser = session.user as any;
-        const tok = session.session?.token;
-        dispatch(loginUser({ user: updatedUser, token: tok }));
-        localStorage.setItem("AUTH_USER", JSON.stringify(updatedUser));
-        setProfileImage(updatedUser.image || imageUrl);
-      } else {
-        // Fallback: update locally
-        const updatedUser = { ...user, name: data.name, image: imageUrl };
-        dispatch(loginUser({ user: updatedUser as any }));
-        localStorage.setItem("AUTH_USER", JSON.stringify(updatedUser));
-        setProfileImage(imageUrl);
+      // Update image directly in DB
+      const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
+      const token = localStorage.getItem("AUTH_TOKEN") || "";
+      const updateRes = await fetch(`${SERVER_URL}/api/v1/users/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ name: data.name, image: imageUrl || undefined }),
+      });
+
+      if (!updateRes.ok) {
+        toast.error("Failed to save profile");
+        setIsPending(false);
+        return;
       }
 
+      const updateData = await updateRes.json();
+      const updatedUser = { ...user, name: data.name, image: imageUrl || user.image };
+      dispatch(loginUser({ user: updatedUser as any }));
+      localStorage.setItem("AUTH_USER", JSON.stringify(updatedUser));
+      setProfileImage(imageUrl || user.image || "");
       setPendingFile(null);
       toast.success("Profile updated successfully", { position: "top-center" });
-      // Reload to refresh session everywhere (header avatar, account page, etc.)
       setTimeout(() => window.location.reload(), 800);
-    } catch {
-      toast.error("Failed to update profile");
+    } catch (e: any) {
+      toast.error(`Failed to update profile: ${e?.message || "unknown error"}`);
     } finally {
       setIsPending(false);
     }
