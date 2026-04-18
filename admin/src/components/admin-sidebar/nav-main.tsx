@@ -155,15 +155,15 @@ export function NavMain({ role }: NavMainProps) {
                         tooltip={item.title}
                         className={`w-full px-4 justify-start ${
                           hasActive
-                            ? "bg-secondary text-secondary-foreground"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            ? "bg-[#c9a227]/20 text-[#c9a227]"
+                            : "text-white/70 hover:bg-white/10 hover:text-[#c9a227]"
                         }`}
                       >
                         <item.icon
                           className={`h-5 w-5 shrink-0 transition-colors duration-200 ${
                             hasActive
-                              ? "text-primary"
-                              : "text-gray-500 dark:text-gray-400"
+                              ? "text-[#c9a227]"
+                              : "text-white/50"
                           }`}
                         />
                         <span className="font-medium flex-1 text-left">
@@ -188,15 +188,15 @@ export function NavMain({ role }: NavMainProps) {
                                 href={subItem.url}
                                 className={`relative flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 ease-in-out ${
                                   isActive(subItem.url)
-                                    ? "bg-secondary text-secondary-foreground"
-                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    ? "bg-[#c9a227]/20 text-[#c9a227]"
+                                    : "text-white/70 hover:bg-white/10 hover:text-[#c9a227]"
                                 }`}
                               >
                                 <subItem.icon
                                   className={`h-4 w-4 shrink-0 transition-colors duration-200 ${
                                     isActive(subItem.url)
-                                      ? "text-primary"
-                                      : "text-gray-500 dark:text-gray-400"
+                                      ? "text-[#c9a227]"
+                                      : "text-white/50"
                                   }`}
                                 />
                                 <span className="font-medium text-sm">
@@ -204,15 +204,11 @@ export function NavMain({ role }: NavMainProps) {
                                 </span>
                                 {isActive(subItem.url) && (
                                   <motion.span
-                                    className="absolute left-0 top-1/2 w-1 h-4 bg-primary rounded-r-full"
+                                    className="absolute left-0 top-1/2 w-1 h-4 bg-[#c9a227] rounded-r-full"
                                     layoutId="activeIndicator"
                                     initial={{ opacity: 0, y: -8 }}
                                     animate={{ opacity: 1, y: -8 }}
-                                    transition={{
-                                      type: "spring",
-                                      stiffness: 300,
-                                      damping: 30,
-                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                   />
                                 )}
                               </Link>
@@ -234,29 +230,25 @@ export function NavMain({ role }: NavMainProps) {
                     href={item.url!}
                     className={`w-full relative flex items-center px-4 py-2 rounded-lg transition-all duration-200 ease-in-out ${
                       isActive(item.url!)
-                        ? "bg-secondary text-secondary-foreground"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-[#c9a227]/20 text-[#c9a227]"
+                        : "text-white/70 hover:bg-white/10 hover:text-[#c9a227]"
                     }`}
                   >
                     <item.icon
                       className={`mr-3 h-5 w-5 shrink-0 transition-colors duration-200 ${
                         isActive(item.url!)
-                          ? "text-primary"
-                          : "text-gray-500 dark:text-gray-400"
+                          ? "text-[#c9a227]"
+                          : "text-white/50"
                       }`}
                     />
                     <span className="font-medium">{item.title}</span>
                     {isActive(item.url!) && (
                       <motion.span
-                        className="absolute left-0 top-1/2 w-1 h-5 bg-primary rounded-r-full"
+                        className="absolute left-0 top-1/2 w-1 h-5 bg-[#c9a227] rounded-r-full"
                         layoutId="activeIndicator"
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: -10 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 30,
-                        }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
                   </Link>

@@ -123,17 +123,17 @@ export function AdminHeader() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/70 backdrop-blur-lg border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-[#1a4a2e] border-b border-white/10 shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="ml-[-4px]" />
-          <Separator orientation="vertical" className="h-6" />
+          <SidebarTrigger className="ml-[-4px] text-white/70 hover:text-[#c9a227] hover:bg-white/10" />
+          <Separator orientation="vertical" className="h-6 bg-white/20" />
           <div className="flex items-center gap-2">
             {headerItem.backButton && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 text-white/70 hover:text-[#c9a227] hover:bg-white/10"
                 onClick={() => router.back()}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -141,9 +141,9 @@ export function AdminHeader() {
               </Button>
             )}
             <div>
-              <h1 className="text-lg font-semibold">{headerItem.title}</h1>
+              <h1 className="text-lg font-semibold text-[#c9a227]">{headerItem.title}</h1>
               {headerItem.description && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/50">
                   {headerItem.description}
                 </p>
               )}
