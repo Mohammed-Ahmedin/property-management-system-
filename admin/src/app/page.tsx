@@ -76,14 +76,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-[#1a4a2e]/30 bg-[#1a4a2e]">
         <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary overflow-hidden">
               <img src="https://res.cloudinary.com/dmhsqmdbc/image/upload/v1776093694/bete_uploads/nvducfh9nbyixyatxrp9.jpg" alt="Kuru Rent" className="w-full h-full object-cover" />
             </div>
             <span
-              className="text-xl font-bold"
+              className="text-xl font-bold text-[#c9a227]"
               style={{ textShadow: "0 1px 0 #8a6d0a, 0 2px 4px rgba(0,0,0,0.3)", transition: "transform 0.2s, text-shadow 0.2s", display: "inline-block" }}
               onMouseEnter={e => { (e.target as HTMLElement).style.transform = "perspective(200px) rotateX(8deg) scale(1.05)"; (e.target as HTMLElement).style.textShadow = "0 2px 0 #8a6d0a, 0 4px 8px rgba(0,0,0,0.4)"; }}
               onMouseLeave={e => { (e.target as HTMLElement).style.transform = ""; (e.target as HTMLElement).style.textShadow = "0 1px 0 #8a6d0a, 0 2px 4px rgba(0,0,0,0.3)"; }}
@@ -98,8 +98,8 @@ export default function HomePage() {
                 onClick={() => scrollToSection(item.id)}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   activeSection === item.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-white/20 text-[#c9a227]"
+                    : "text-[#c9a227]/80 hover:text-[#c9a227] hover:bg-white/10"
                 }`}
               >
                 {item.label}
@@ -113,7 +113,7 @@ export default function HomePage() {
         </div>
 
         {/* Mobile Navigation */}
-        <nav className="md:hidden border-t bg-background/95 backdrop-blur">
+        <nav className="md:hidden border-t border-[#1a4a2e]/30 bg-[#1a4a2e]">
           <div className="container px-4 py-2 flex items-center gap-1 overflow-x-auto">
             {navItems.map((item) => (
               <button
@@ -121,8 +121,8 @@ export default function HomePage() {
                 onClick={() => scrollToSection(item.id)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
                   activeSection === item.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-white/20 text-[#c9a227]"
+                    : "text-[#c9a227]/80 hover:text-[#c9a227] hover:bg-white/10"
                 }`}
               >
                 {item.label}
