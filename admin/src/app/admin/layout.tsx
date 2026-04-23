@@ -14,21 +14,17 @@ const ADMIN_USER_KEY = "admin_session_user";
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const { data, isPending } = authClient.useSession();
   const router = useRouter();
-  const [grace, setGrace] = useState(true);
   const [localUser, setLocalUser] = useState<any>(null);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    // Restore user from localStorage immediately on mount
+    // Read from localStorage immediately
     try {
       const raw = localStorage.getItem(ADMIN_USER_KEY);
       if (raw) setLocalUser(JSON.parse(raw));
     } catch {}
-    const t = setTimeout(() => setGrace(false), 3000);
-    return () => clearTimeout(t);
+    setChecked(true);
   }, []);
-
-  // Prefer live session user, fall back to stored user
-  const userData = data?.user ?? localUser;
 
   // Keep localStorage in sync when live session loads
   useEffect(() => {
@@ -36,24 +32,32 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.user));
       const token = (data as any)?.session?.token;
       if (token) localStorage.setItem(ADMIN_TOKEN_KEY, token);
-    } else if (localUser) {
-      // Re-write localUser to ensure key is correct
-      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(localUser));
+      setLocalUser(data.user);
     }
-  }, [data?.user, localUser]);
+  }, [data?.user]);
+
+  // Prefer live session user, fall back to stored user
+  const userData = data?.user ?? localUser;
 
   useEffect(() => {
-    if (isPending || grace) return;
-    if (!userData) {
-      router.replace("/auth");
+    if (!checked) return;
+    // Only redirect if we're sure there's no session AND no localStorage user
+    if (isPending) return; // still loading — wait
+    if (userData) {
+      // Has user — check role
+      if ((userData as any).role === "GUEST") {
+        router.replace("/auth");
+      }
       return;
     }
-    if ((userData as any).role === "GUEST") {
+    // No live session and no localStorage user → redirect
+    if (!localUser) {
       router.replace("/auth");
     }
-  }, [isPending, userData, grace]);
+  }, [isPending, userData, localUser, checked]);
 
-  if (isPending || grace) return <LoaderState />;
+  // Show loader while checking auth
+  if (!checked || (isPending && !localUser)) return <LoaderState />;
   if (!userData) return <LoaderState />;
 
   return (

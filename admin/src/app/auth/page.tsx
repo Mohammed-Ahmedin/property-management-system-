@@ -1,8 +1,9 @@
 import LoginView from "./login-view";
-import SignupView from "./signup-view";
+import AuthGuard from "./auth-guard";
 
 export default function LoginPage() {
   return (
+    <AuthGuard>
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left Side - Login Form */}
       <div className="flex items-center justify-center lg:p-8 bg-background">
@@ -12,60 +13,36 @@ export default function LoginPage() {
             <p className="text-muted-foreground">Sign in to your Property management panel</p>
           </div>
           <LoginView />
-          {/* <SignupView/> */}
         </div>
       </div>
 
-      {/* Right Side - Animated Image */}
-      <div className="relative hidden lg:block overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-950">
-        {/* Background */}
-        <div className="absolute inset-0">
-          <div className="w-full h-full bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900" />
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        </div>
-
-        {/* Animated Text Content */}
+      {/* Right Side */}
+      <div className="relative hidden lg:block overflow-hidden bg-[#1a4a2e]">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-12 text-white">
-          <div className="space-y-6 animate-in slide-in-from-bottom-8 fade-in duration-1000 delay-300">
+          <div className="space-y-6">
             <div className="inline-block">
-              <div className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 animate-in fade-in slide-in-from-left-4 duration-700 delay-500">
-                <span className="text-sm font-medium">Management Panel</span>
+              <div className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
+                <span className="text-sm font-medium text-[#c9a227]">Kuru Rent Admin Panel</span>
               </div>
             </div>
-
-            <h2 className="text-4xl lg:text-5xl font-bold leading-tight animate-in slide-in-from-bottom-6 fade-in duration-700 delay-700">
-              Manage Your
-              <br />
-              <span className="text-blue-300">Property</span>
-              <br />
-              With Ease
+            <h2 className="text-4xl lg:text-5xl font-bold leading-tight text-[#c9a227]">
+              Manage Your<br />Property<br />With Ease
             </h2>
-
-            <p className="text-lg text-white/90 max-w-md leading-relaxed animate-in slide-in-from-bottom-4 fade-in duration-700 delay-1000">
-              Streamline bookings, manage guests, and grow your hospitality business with our powerful management
-              platform.
+            <p className="text-lg text-white/80 max-w-md leading-relaxed">
+              Streamline bookings, manage guests, and grow your hospitality business.
             </p>
-
-            {/* Feature Pills */}
-            <div className="flex flex-wrap gap-3 animate-in fade-in duration-700 delay-1200">
-              <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                <span className="text-sm">📅 Smart Booking</span>
-              </div>
-              <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                <span className="text-sm">👥 Guest Management</span>
-              </div>
-              <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                <span className="text-sm">📊 Analytics</span>
-              </div>
+            <div className="flex flex-wrap gap-3">
+              {["📅 Smart Booking", "👥 Guest Management", "📊 Analytics"].map(t => (
+                <div key={t} className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <span className="text-sm text-[#c9a227]">{t}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* Floating Animation Elements */}
-          <div className="absolute top-20 right-20 w-20 h-20 bg-blue-400/20 rounded-full blur-2xl animate-pulse" />
-          <div className="absolute top-40 right-40 w-32 h-32 bg-indigo-400/20 rounded-full blur-3xl animate-pulse delay-700" />
         </div>
       </div>
     </div>
-  )
+    </AuthGuard>
+  );
 }

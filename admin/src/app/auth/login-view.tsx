@@ -10,7 +10,7 @@ import { useSignInWithEmailMutation } from "@/hooks/api/use-auth";
 
 const validationSchema = yup.object({
   email: yup.string().email().required(),
-  password: yup.string().required().min(4).max(12),
+  password: yup.string().required().min(4).max(100),
 });
 
 type FormType = yup.InferType<typeof validationSchema>;
