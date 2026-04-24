@@ -82,8 +82,8 @@ export function AccountSettingsModal({
   const accountForm = useForm<AccountForm>({
     resolver: yupResolver(accountSchema as any),
     defaultValues: {
-      name: "John Doe",
-      email: "john.doe@example.com",
+      name: user?.name || "",
+      email: user?.email || "",
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
