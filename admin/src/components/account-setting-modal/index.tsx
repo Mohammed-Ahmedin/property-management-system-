@@ -105,10 +105,20 @@ export function AccountSettingsModal({
     toast.message("Settings updated");
   };
 
-  const onAccountSubmit = (data: AccountForm) => {
-    console.log("Account data:", data);
-
-    toast.message("Account updated");
+  const onAccountSubmit = async (data: AccountForm) => {
+    try {
+      const { api } = await import("@/hooks/api");
+      await api.put("/users/me", { name: data.name });
+      // Update localStorage so useAuthSession picks up the new name immediately
+      try {
+        const raw = localStorage.getItem("admin_session_user");
+        const stored = raw ? JSON.parse(raw) : {};
+        localStorage.setItem("admin_session_user", JSON.stringify({ ...stored, name: data.name }));
+      } catch {}
+      toast.success("Account updated");
+    } catch (e: any) {
+      toast.error(`Failed to update account: ${e?.response?.data?.message || e?.message || "unknown"}`);
+    }
   };
 
   const onNotificationSubmit = (data: NotificationForm) => {
