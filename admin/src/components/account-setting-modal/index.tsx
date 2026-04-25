@@ -108,16 +108,34 @@ export function AccountSettingsModal({
   const onAccountSubmit = async (data: AccountForm) => {
     try {
       const { api } = await import("@/hooks/api");
-      await api.put("/users/me", { name: data.name });
-      // Update localStorage so useAuthSession picks up the new name immediately
-      try {
-        const raw = localStorage.getItem("admin_session_user");
-        const stored = raw ? JSON.parse(raw) : {};
-        localStorage.setItem("admin_session_user", JSON.stringify({ ...stored, name: data.name }));
-      } catch {}
+
+      // Update name if provided
+      if (data.name) {
+        await api.put("/users/me", { name: data.name });
+        try {
+          const raw = localStorage.getItem("admin_session_user");
+          const stored = raw ? JSON.parse(raw) : {};
+          localStorage.setItem("admin_session_user", JSON.stringify({ ...stored, name: data.name }));
+        } catch {}
+      }
+
+      // Change password if fields are filled
+      if (data.currentPassword && data.newPassword) {
+        const res = await api.post("/auth/change-password", {
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword,
+        });
+        if (!res.data?.success) {
+          toast.error(res.data?.message || "Failed to change password");
+          return;
+        }
+        // Clear password fields after success
+        accountForm.reset({ ...data, currentPassword: "", newPassword: "", confirmPassword: "" });
+      }
+
       toast.success("Account updated");
     } catch (e: any) {
-      toast.error(`Failed to update account: ${e?.response?.data?.message || e?.message || "unknown"}`);
+      toast.error(e?.response?.data?.message || e?.message || "Failed to update account");
     }
   };
 

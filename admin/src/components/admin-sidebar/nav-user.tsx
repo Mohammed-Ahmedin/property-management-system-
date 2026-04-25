@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Bell, FlipVertical, LogOut, MoreVertical, User } from "lucide-react";
+import { FlipVertical, LogOut, MoreVertical, User } from "lucide-react";
 import { Avatar } from "../shared/avatar";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -89,10 +89,6 @@ export function NavUser({
                   Account
                 </Button>
               </AccountSettingsModal>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
