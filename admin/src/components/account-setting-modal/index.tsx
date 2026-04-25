@@ -315,6 +315,7 @@ export function AccountSettingsModal({
                         <Input
                           id="currentPassword"
                           type="password"
+                          autoComplete="current-password"
                           {...accountForm.register("currentPassword")}
                           placeholder="Enter current password"
                         />
@@ -333,6 +334,7 @@ export function AccountSettingsModal({
                         <Input
                           id="newPassword"
                           type="password"
+                          autoComplete="new-password"
                           {...accountForm.register("newPassword")}
                           placeholder="Enter new password"
                         />
@@ -350,6 +352,7 @@ export function AccountSettingsModal({
                         <Input
                           id="confirmPassword"
                           type="password"
+                          autoComplete="new-password"
                           {...accountForm.register("confirmPassword")}
                           placeholder="Confirm new password"
                         />
