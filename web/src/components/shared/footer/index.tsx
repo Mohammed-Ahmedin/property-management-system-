@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Mail, Youtube, Instagram, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Youtube, Instagram, Send, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/hooks/api";
 
@@ -15,6 +15,7 @@ interface SiteConfig {
   siteName: string; logoUrl?: string; tagline?: string;
   youtube?: string; tiktok?: string; telegram?: string; instagram?: string;
   contactPhone?: string; contactEmail?: string; contactAddress?: string;
+  extraSocials?: { label: string; url: string }[];
 }
 
 export function Footer() {
@@ -34,6 +35,11 @@ export function Footer() {
     { href: config.tiktok, icon: <TikTokIcon />, label: "TikTok" },
     { href: config.telegram, icon: <Send className="w-4 h-4" />, label: "Telegram" },
     { href: config.instagram, icon: <Instagram className="w-4 h-4" />, label: "Instagram" },
+    ...(config.extraSocials || []).filter(s => s.url).map(s => ({
+      href: s.url,
+      icon: <Globe className="w-4 h-4" />,
+      label: s.label || "Link",
+    })),
   ].filter(s => s.href);
 
   return (
