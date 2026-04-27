@@ -56,7 +56,7 @@ export function ChatBotContainer() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm BETE Property booking AI Assistant. How can I help you today?",
+      text: "Hello! I'm Kuru Rent AI Assistant. How can I help you today?",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -121,7 +121,7 @@ export function ChatBotContainer() {
                   <Bot className="h-6 w-6" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Booking Assistant</CardTitle>
+                  <CardTitle className="text-lg">Kuru Rent AI</CardTitle>
                   <p className="text-xs text-primary-foreground/80">AI operations helper</p>
                 </div>
               </div>

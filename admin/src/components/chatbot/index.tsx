@@ -126,7 +126,7 @@ export function ChatBotContainer() {
                   <Bot className="h-6 w-6" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Management Assistant</CardTitle>
+                  <CardTitle className="text-lg">Kuru Rent AI</CardTitle>
                   <p className="text-xs text-primary-foreground/80">
                     AI operations helper
                   </p>
