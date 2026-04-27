@@ -52,6 +52,10 @@ export async function POST(req: NextRequest) {
     return withCors(NextResponse.json({ success: true, reply }), origin);
   } catch (error: any) {
     const detail = error?.response?.data?.error?.message ?? error?.message ?? "Unknown error";
-    return withCors(NextResponse.json({ success: false, reply: `AI error: ${detail}` }), origin);
+    const isOverloaded = detail.toLowerCase().includes("high demand") || detail.toLowerCase().includes("overloaded") || error?.response?.status === 429 || error?.response?.status === 503;
+    const reply = isOverloaded
+      ? "I'm a bit busy right now due to high demand. Please try again in a moment."
+      : `AI error: ${detail}`;
+    return withCors(NextResponse.json({ success: false, reply }), origin);
   }
 }

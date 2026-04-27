@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { handleTanstackError } from "@/hooks/api/handlers/error";
 import { api } from "@/hooks/api";
 
 interface Message {
@@ -40,7 +39,17 @@ export function ChatBotContainer() {
       });
       return res.json() as Promise<{ reply: string; success: boolean }>;
     },
-    onError: (error) => handleTanstackError({ error }),
+    onError: (error) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          text: "I'm a bit busy right now. Please try again in a moment.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ]);
+    },
     onSuccess: (res) => {
       const botMessage: Message = {
         id: Date.now(),
