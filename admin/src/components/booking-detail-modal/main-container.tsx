@@ -352,9 +352,9 @@ export function BookingDetailContent({
                   <p className="text-sm text-muted-foreground mb-2">
                     Email Address
                   </p>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <p className="font-medium">{guestInfo.email || "N/A"}</p>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 min-w-0">
+                    <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <p className="font-medium truncate">{guestInfo.email || "N/A"}</p>
                   </div>
                 </div>
                 <div>
@@ -388,8 +388,8 @@ export function BookingDetailContent({
                     <p className="text-sm text-muted-foreground mb-2">
                       User ID
                     </p>
-                    <div className="p-3 rounded-lg bg-muted/50">
-                      <p className="font-mono text-sm">{booking.userId}</p>
+                    <div className="p-3 rounded-lg bg-muted/50 overflow-hidden">
+                      <p className="font-mono text-sm break-all">{booking.userId}</p>
                     </div>
                   </div>
                 )}
