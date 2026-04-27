@@ -19,17 +19,6 @@ const userUpdateSchema = yup.object({
     .required("Name is required")
     .min(2, "Name must be at least 2 characters")
     .max(50, "Name must be less than 50 characters"),
-  username: yup
-    .string()
-    .optional()
-    .nullable()
-    .transform((value) => value || null)
-    .matches(
-      /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscores"
-    )
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be less than 20 characters"),
   email: yup
     .string()
     .required("Email is required")
@@ -72,7 +61,6 @@ export default function AccountSetting({
           id: user.id,
           name: user.name,
           email: user.email,
-          username: user.username ?? null,
           image: user.image ?? null,
         }}
       />
@@ -87,15 +75,11 @@ const FormContainer = ({
     id: string;
     name: string;
     email: string;
-    username: string | null;
     image: string | null;
   };
 }) => {
   const [isSubmitting, startTransition] = useTransition();
-  const { refetch } = authClient.useSession();
-  const [selectedProfileImage, setSelectedProfileImage] = useState<File | null>(
-    null
-  );
+  const [selectedProfileImage, setSelectedProfileImage] = useState<File | null>(null);
 
   const {
     register,
@@ -105,20 +89,13 @@ const FormContainer = ({
     resolver: yupResolver(userUpdateSchema as any),
     defaultValues: {
       name: userData?.name,
-      username: userData.username || "",
       email: userData?.email,
     },
   });
 
-  const handleProfileImageFileInputChage = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleProfileImageFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-
-    if (files) {
-      setSelectedProfileImage(files[0]);
-      console.log(files[0]);
-    }
+    if (files) setSelectedProfileImage(files[0]);
   };
 
   const onSubmit = async (data: UserUpdateForm) => {
@@ -126,7 +103,6 @@ const FormContainer = ({
       try {
         let imageUrl = userData.image || "";
 
-        // Upload image if one was selected
         if (selectedProfileImage) {
           const fd = new FormData();
           fd.append("file", selectedProfileImage);
@@ -140,16 +116,13 @@ const FormContainer = ({
           }
         }
 
-        // Update name via Better Auth
         await authClient.updateUser({ name: data.name });
 
-        // Update name + image directly in DB
         const { api } = await import("@/hooks/api");
         const payload: any = { name: data.name };
         if (imageUrl) payload.image = imageUrl;
         await api.put("/users/me", payload);
 
-        // Update localStorage
         try {
           const raw = localStorage.getItem("admin_session_user");
           const stored = raw ? JSON.parse(raw) : {};
@@ -157,7 +130,6 @@ const FormContainer = ({
         } catch {}
 
         toast.success("Profile updated");
-        // Reload to show updated avatar everywhere
         setTimeout(() => window.location.reload(), 600);
       } catch (e: any) {
         toast.error(`Failed to update profile: ${e?.message || "unknown"}`);
@@ -182,11 +154,10 @@ const FormContainer = ({
           interactive
           fallback={userData.name}
         />
-
         <div className="flex flex-col items-center space-y-2">
           <Label
             htmlFor="image-upload"
-            className="cursor-pointer inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-white text-black  hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="cursor-pointer inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium bg-white text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <Upload className="h-4 w-4 mr-2" />
             Upload Image
@@ -196,9 +167,8 @@ const FormContainer = ({
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={handleProfileImageFileInputChage}
+            onChange={handleProfileImageFileInputChange}
           />
-          <p className="text-xs text-gray-500">Or enter an image URL below</p>
         </div>
       </div>
 
@@ -211,32 +181,12 @@ const FormContainer = ({
           id="name"
           type="text"
           placeholder="Enter your full name"
-          className="transition-colors text-sm py-6 "
+          className="transition-colors text-sm py-6"
           {...register("name")}
         />
         {errors.name && (
           <p className="text-sm text-red-600">{errors.name.message}</p>
         )}
-      </div>
-
-      {/* Username Input */}
-      <div className="space-y-2">
-        <Label htmlFor="username" className="text-sm font-medium">
-          Username
-        </Label>
-        <Input
-          id="username"
-          type="text"
-          placeholder="Enter your username"
-          className="transition-colors text-sm py-6"
-          {...register("username")}
-        />
-        {errors.username && (
-          <p className="text-sm text-red-600">{errors.username.message}</p>
-        )}
-        <p className="text-xs text-gray-500">
-          Optional. Can only contain letters, numbers, and underscores.
-        </p>
       </div>
 
       {/* Email Input (Disabled) */}
@@ -252,14 +202,15 @@ const FormContainer = ({
           {...register("email")}
         />
         <p className="text-xs text-gray-500">
-          Email cannot be changed. Contact support if you need to update your
-          email.
+          Email cannot be changed. Contact support if you need to update your email.
         </p>
       </div>
 
       {/* Submit Button */}
       <div className="pt-4">
-        <Button type="submit">Update Profile</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Update Profile"}
+        </Button>
       </div>
     </form>
   );
