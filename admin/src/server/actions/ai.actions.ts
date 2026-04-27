@@ -41,26 +41,17 @@ export async function guesthouseManagementAI({
     ];
 
     const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
-    const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
-
-    let textResponse = "Sorry, I couldn't process that request right now.";
-
-    for (const model of models) {
-      try {
-        const geminiRes = await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            system_instruction: { parts: [{ text: characterPrompt }] },
-            contents: aiContents,
-          }
-        );
-        textResponse = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text ?? textResponse;
-        break;
-      } catch (err: any) {
-        const status = err?.response?.status;
-        if (status !== 429 && status !== 503) throw err;
+    const geminiRes = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        system_instruction: { parts: [{ text: characterPrompt }] },
+        contents: aiContents,
       }
-    }
+    );
+
+    const textResponse =
+      geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text ??
+      "Sorry, I couldn't process that request right now.";
 
     return { success: true, reply: textResponse };
   } catch (error: any) {
