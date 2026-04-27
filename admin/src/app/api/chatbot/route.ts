@@ -41,11 +41,11 @@ export async function POST(req: NextRequest) {
 
     const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
 
-    // Try gemini-2.5-flash first, fall back to gemini-1.5-flash on overload
+    // Try models in order, fall back on 429/503
     const models = [
-      "gemini-2.5-flash",
+      "gemini-2.5-flash-preview-05-20",
       "gemini-2.0-flash",
-      "gemini-1.5-flash",
+      "gemini-1.5-flash-latest",
     ];
 
     let reply = "Sorry, I couldn't process that request right now.";
