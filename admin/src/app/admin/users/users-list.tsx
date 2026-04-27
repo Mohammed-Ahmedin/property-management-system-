@@ -51,12 +51,14 @@ import {
   Mail,
   Phone,
   Calendar,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/shared/avatar";
 import { formatDate } from "date-fns";
 import {
   useBanUserMutation,
+  useCreateUserMutation,
   useDeleteUserMutation,
   useUnbanUserMutation,
   useUpdateUserMutation,
@@ -83,6 +85,14 @@ export function UsersListContainer({ users }: { users: any[] }) {
   const unbanMutation = useUnbanUserMutation();
   const deleteMutation = useDeleteUserMutation();
   const updateMutation = useUpdateUserMutation();
+  const createMutation = useCreateUserMutation();
+
+  // Add user state
+  const [addUserOpen, setAddUserOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState("GUEST");
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -165,6 +175,9 @@ export function UsersListContainer({ users }: { users: any[] }) {
                 <SelectItem value="unverified">Unverified</SelectItem>
               </SelectContent>
             </Select>
+            <Button onClick={() => { setNewName(""); setNewEmail(""); setNewPassword(""); setNewRole("GUEST"); setAddUserOpen(true); }}>
+              <UserPlus className="h-4 w-4 mr-2" /> Add User
+            </Button>
           </div>
         </div>
 
@@ -445,6 +458,54 @@ export function UsersListContainer({ users }: { users: any[] }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add User Dialog */}
+      <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add New User</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input placeholder="Enter full name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Email Address</Label>
+              <Input type="email" placeholder="Enter email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input type="password" placeholder="Set a password (min 4 chars)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" />
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GUEST">Guest</SelectItem>
+                  <SelectItem value="STAFF">Staff</SelectItem>
+                  <SelectItem value="OWNER">Owner</SelectItem>
+                  <SelectItem value="BROKER">Broker</SelectItem>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddUserOpen(false)}>Cancel</Button>
+            <Button
+              disabled={createMutation.isPending || !newName.trim() || !newEmail.trim() || newPassword.length < 4}
+              onClick={() => {
+                createMutation.mutate(
+                  { name: newName, email: newEmail, password: newPassword, role: newRole },
+                  { onSuccess: () => setAddUserOpen(false) }
+                );
+              }}
+            >
+              {createMutation.isPending ? "Creating..." : "Create User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

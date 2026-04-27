@@ -27,7 +27,7 @@ export function ChatBotContainer() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm Property Manager AI. How can I help you manage your operations today?",
+      text: "Hello! I'm Kuru Rent AI. How can I help you manage your operations today?",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -71,6 +71,17 @@ export function ChatBotContainer() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMessage]);
+    },
+    onError: () => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ]);
     },
   });
 

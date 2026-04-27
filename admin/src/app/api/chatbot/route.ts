@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const EN_PROMPT = `You are "BETE Property AI" — a friendly assistant for the BETE Property Booking Platform. Help users with room availability, booking procedures, pricing, cancellation policies, and platform navigation. Always respond in a friendly, clear, and helpful tone.`;
-    const AM_PROMPT = `ለBETE Property ተጠቃሚዎች ስለ ክፍሎች፣ ማስያዣዎች፣ አገልግሎቶች እና የፕላትፎርም አጠቃቀም መረጃ ይስጡ።`;
+    const EN_PROMPT = `You are "Kuru Rent AI" — a friendly assistant for the Kuru Rent Property Booking Platform. Help users with room availability, booking procedures, pricing, cancellation policies, and platform navigation. Always respond in a friendly, clear, and helpful tone.`;
+    const AM_PROMPT = `ለKuru Rent ተጠቃሚዎች ስለ ክፍሎች፣ ማስያዣዎች፣ አገልግሎቶች እና የፕላትፎርም አጠቃቀም መረጃ ይስጡ።`;
     const prompt = lang === "am" ? AM_PROMPT : EN_PROMPT;
 
     const aiContents = [

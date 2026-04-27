@@ -119,6 +119,53 @@ export default {
     res.json({ message: "User unbanned successfully" });
   }),
 
+  createUser: tryCatch(async (req, res) => {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: "name, email, password and role are required" });
+    }
+
+    // Check if email already exists
+    const existing = await prisma.user.findFirst({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ message: "A user with this email already exists" });
+    }
+
+    // Hash password using better-auth's scrypt
+    const { auth } = await import("../lib/auth");
+    const ctx = await auth.$context;
+    const hashedPassword = await ctx.password.hash(password);
+
+    // Create user + credential account in a transaction
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          id: crypto.randomUUID(),
+          name,
+          email,
+          emailVerified: true,
+          role,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+      await tx.account.create({
+        data: {
+          id: crypto.randomUUID(),
+          userId: newUser.id,
+          accountId: newUser.id,
+          providerId: "credential",
+          password: hashedPassword,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+      return newUser;
+    });
+
+    res.status(201).json({ message: "User created successfully", data: user });
+  }),
+
   deleteUser: tryCatch(async (req, res) => {
     const { id } = req.params;
 

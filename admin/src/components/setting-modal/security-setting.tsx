@@ -16,7 +16,7 @@ const schema = yup.object({
   newPassword: yup
     .string()
     .required("New password is required")
-    .min(8, "Password must be at least 8 characters"),
+    .min(4, "Password must be at least 4 characters"),
   confirmPassword: yup
     .string()
     .required("Please confirm your new password")
@@ -40,7 +40,6 @@ const SecuritySetting = () => {
   const onSubmit = (data: SecurityForm) => {
     startTransition(async () => {
       try {
-        // Use our custom endpoint that supports Bearer token (works on mobile)
         const { api } = await import("@/hooks/api");
         const res = await api.post("/auth/change-password", {
           currentPassword: data.currentPassword,

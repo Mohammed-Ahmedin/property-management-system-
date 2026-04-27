@@ -8,6 +8,7 @@ const router = Router();
 router.get("/management", authGuard({ accessedBy: ["ADMIN"] }), userController.getUsers);
 router.get("/management/stats", authGuard({ accessedBy: ["ADMIN"] }), userController.getStats);
 router.get("/clients", authGuard({ accessedBy: ["BROKER", "ADMIN"] }), userController.getClients);
+router.post("/management", authGuard({ accessedBy: ["ADMIN"] }), userController.createUser);
 router.put("/management/:id", authGuard({ accessedBy: ["ADMIN"] }), userController.updateUser);
 router.post("/management/:id/ban", authGuard({ accessedBy: ["ADMIN"] }), userController.banUser);
 router.post("/management/:id/unban", authGuard({ accessedBy: ["ADMIN"] }), userController.unbanUser);

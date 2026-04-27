@@ -136,3 +136,21 @@ export const useDeleteUserMutation = () => {
     },
   });
 };
+
+export const useCreateUserMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name: string; email: string; password: string; role: string }) => {
+      const response = await api.post("/users/management", data);
+      return response.data;
+    },
+    onSuccess: ({ message }) => {
+      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users_stats"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to create user");
+    },
+  });
+};
