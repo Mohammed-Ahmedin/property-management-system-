@@ -14,6 +14,20 @@ router.post("/management/:id/ban", authGuard({ accessedBy: ["ADMIN"] }), userCon
 router.post("/management/:id/unban", authGuard({ accessedBy: ["ADMIN"] }), userController.unbanUser);
 router.delete("/management/:id", authGuard({ accessedBy: ["ADMIN"] }), userController.deleteUser);
 
+// Get registration request for a specific user (by user id)
+router.get("/management/:id/registration", authGuard({ accessedBy: ["ADMIN"] }), async (req: any, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { email: true } });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    const reg = await prisma.registrationRequest.findFirst({ where: { email: user.email }, orderBy: { createdAt: "desc" } });
+    if (!reg) return res.json({ data: null });
+    const { json, ...rest } = reg;
+    res.json({ data: { ...rest, ...(json as object) } });
+  } catch (e: any) {
+    res.status(500).json({ message: e?.message || "Failed to fetch registration" });
+  }
+});
+
 // Get current authenticated user
 router.get("/me", authGuard(), async (req: any, res) => {
   res.json({ user: req.user });

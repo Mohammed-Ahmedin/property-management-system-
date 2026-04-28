@@ -72,7 +72,14 @@ export const useGetUsersStats = () => {
 export const useUpdateUserMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name?: string; role?: string } }) => {
+    mutationFn: async ({ id, data }: {
+      id: string;
+      data: {
+        name?: string; role?: string; phone?: string; image?: string;
+        companyName?: string; companyDescription?: string;
+        businessFileUrl?: string; nationalId?: string;
+      }
+    }) => {
       const response = await api.put(`/users/management/${id}`, data);
       return response.data;
     },
@@ -82,6 +89,19 @@ export const useUpdateUserMutation = () => {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to update user");
+    },
+  });
+};
+
+export const useGetUserRegistration = (userId: string | null) => {
+  const { isAuthenticated } = useAuthSession();
+  return useQuery<{ data: any }>({
+    queryKey: ["user_registration", userId],
+    enabled: isAuthenticated && !!userId,
+    retry: false,
+    queryFn: async () => {
+      const response = await api.get(`/users/management/${userId}/registration`);
+      return response.data;
     },
   });
 };

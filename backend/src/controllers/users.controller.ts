@@ -82,12 +82,39 @@ export default {
 
   updateUser: tryCatch(async (req, res) => {
     const { id } = req.params;
-    const { name, role } = req.body;
+    const { name, role, phone, image, companyName, companyDescription, businessFileUrl, nationalId } = req.body;
 
     const user = await prisma.user.update({
       where: { id },
-      data: { ...(name && { name }), ...(role && { role }) },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(role !== undefined && { role }),
+        ...(phone !== undefined && { phone }),
+        ...(image !== undefined && { image }),
+      },
     });
+
+    // Also update the linked registration request if registration fields are provided
+    const hasRegFields = companyName !== undefined || companyDescription !== undefined || businessFileUrl !== undefined || nationalId !== undefined || phone !== undefined;
+    if (hasRegFields) {
+      const regRequest = await prisma.registrationRequest.findFirst({ where: { email: user.email } });
+      if (regRequest) {
+        const existingJson = (regRequest.json as any) || {};
+        await prisma.registrationRequest.update({
+          where: { id: regRequest.id },
+          data: {
+            ...(phone !== undefined && { phone }),
+            ...(nationalId !== undefined && { nationalId }),
+            json: {
+              ...existingJson,
+              ...(companyName !== undefined && { companyName }),
+              ...(companyDescription !== undefined && { companyDescription }),
+              ...(businessFileUrl !== undefined && { businessFileUrl }),
+            },
+          },
+        });
+      }
+    }
 
     res.json({ message: "User updated successfully", data: user });
   }),

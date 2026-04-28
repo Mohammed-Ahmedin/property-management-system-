@@ -52,6 +52,10 @@ import {
   Phone,
   Calendar,
   UserPlus,
+  Upload,
+  ExternalLink,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/shared/avatar";
@@ -60,6 +64,7 @@ import {
   useBanUserMutation,
   useCreateUserMutation,
   useDeleteUserMutation,
+  useGetUserRegistration,
   useUnbanUserMutation,
   useUpdateUserMutation,
 } from "@/hooks/api/use-users";
@@ -93,6 +98,17 @@ export function UsersListContainer({ users }: { users: any[] }) {
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState("GUEST");
+
+  // Edit user extended state
+  const [editPhone, setEditPhone] = useState("");
+  const [editCompanyName, setEditCompanyName] = useState("");
+  const [editCompanyDescription, setEditCompanyDescription] = useState("");
+  const [editBusinessFileUrl, setEditBusinessFileUrl] = useState("");
+  const [editNationalId, setEditNationalId] = useState("");
+  const [editLicenseUploading, setEditLicenseUploading] = useState(false);
+  const [editRegUserId, setEditRegUserId] = useState<string | null>(null);
+
+  const { data: editRegData } = useGetUserRegistration(editRegUserId);
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -270,6 +286,12 @@ export function UsersListContainer({ users }: { users: any[] }) {
                             setEditUser(user);
                             setEditName(user.name);
                             setEditRole(user.role);
+                            setEditPhone(user.phone || "");
+                            setEditCompanyName("");
+                            setEditCompanyDescription("");
+                            setEditBusinessFileUrl("");
+                            setEditNationalId("");
+                            setEditRegUserId(user.id);
                           }}>
                             Edit User
                           </DropdownMenuItem>
@@ -338,38 +360,27 @@ export function UsersListContainer({ users }: { users: any[] }) {
 
       {/* View Details Dialog */}
       <Dialog open={!!viewUser} onOpenChange={() => setViewUser(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>User Details</DialogTitle></DialogHeader>
           {viewUser && (
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-3">
-                <Avatar src={viewUser.image} alt={viewUser.name} fallback={viewUser.name} size="lg" />
-                <div>
-                  <p className="font-semibold text-base">{viewUser.name}</p>
-                  <p className="text-muted-foreground">{viewUser.role}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                <div><p className="text-muted-foreground text-xs">Email</p><p className="break-all">{viewUser.email}</p></div>
-                <div><p className="text-muted-foreground text-xs">Phone</p><p>{viewUser.phone || "—"}</p></div>
-                <div><p className="text-muted-foreground text-xs">Verified</p><p>{viewUser.emailVerified ? "Yes" : "No"}</p></div>
-                <div><p className="text-muted-foreground text-xs">Banned</p><p>{viewUser.banned ? "Yes" : "No"}</p></div>
-                <div><p className="text-muted-foreground text-xs">Joined</p><p>{formatDate(viewUser.createdAt, "PPP")}</p></div>
-                <div><p className="text-muted-foreground text-xs">ID</p><p className="font-mono text-xs break-all">{viewUser.id}</p></div>
-              </div>
-            </div>
+            <ViewUserDetails user={viewUser} />
           )}
         </DialogContent>
       </Dialog>
 
       {/* Edit User Dialog */}
-      <Dialog open={!!editUser} onOpenChange={() => setEditUser(null)}>
-        <DialogContent>
+      <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) { setEditUser(null); setEditRegUserId(null); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Basic info */}
             <div className="space-y-2">
-              <Label>Name</Label>
+              <Label>Full Name</Label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone Number</Label>
+              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="+251..." />
             </div>
             <div className="space-y-2">
               <Label>Role</Label>
@@ -384,15 +395,135 @@ export function UsersListContainer({ users }: { users: any[] }) {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Registration fields — shown when reg data exists or role is OWNER/BROKER */}
+            {(editRegData?.data || editRole === "OWNER" || editRole === "BROKER") && (
+              <>
+                <div className="border-t pt-4 space-y-4">
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Registration Details</p>
+
+                  {(editRegData?.data?.registrationType === "OWNER" || editRole === "OWNER") && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Company Name</Label>
+                        <Input
+                          value={editCompanyName || editRegData?.data?.companyName || ""}
+                          onChange={(e) => setEditCompanyName(e.target.value)}
+                          placeholder="Company name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Company Description</Label>
+                        <Input
+                          value={editCompanyDescription || editRegData?.data?.companyDescription || ""}
+                          onChange={(e) => setEditCompanyDescription(e.target.value)}
+                          placeholder="Brief description"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Business License</Label>
+                        {(editBusinessFileUrl || editRegData?.data?.businessFileUrl) && (
+                          <a
+                            href={editBusinessFileUrl || editRegData?.data?.businessFileUrl}
+                            target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-primary hover:underline mb-2"
+                          >
+                            <FileText className="h-4 w-4" /> View current license <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                        <div className="flex gap-2">
+                          <Input
+                            value={editBusinessFileUrl || editRegData?.data?.businessFileUrl || ""}
+                            onChange={(e) => setEditBusinessFileUrl(e.target.value)}
+                            placeholder="License URL or upload below"
+                            className="flex-1"
+                          />
+                          <label className="cursor-pointer">
+                            <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setEditLicenseUploading(true);
+                              try {
+                                const fd = new FormData();
+                                fd.append("file", file);
+                                const res = await fetch("/api/upload", { method: "POST", body: fd });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  setEditBusinessFileUrl(data.secure_url || "");
+                                }
+                              } finally { setEditLicenseUploading(false); }
+                            }} />
+                            <div className="h-9 px-3 flex items-center gap-1 border rounded-md text-sm hover:bg-muted cursor-pointer">
+                              {editLicenseUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>National ID Document</Label>
+                    {(editNationalId || editRegData?.data?.nationalId) && (
+                      <a
+                        href={editNationalId || editRegData?.data?.nationalId}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-primary hover:underline mb-2"
+                      >
+                        <FileText className="h-4 w-4" /> View current ID <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        value={editNationalId || editRegData?.data?.nationalId || ""}
+                        onChange={(e) => setEditNationalId(e.target.value)}
+                        placeholder="National ID URL or upload below"
+                        className="flex-1"
+                      />
+                      <label className="cursor-pointer">
+                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setEditLicenseUploading(true);
+                          try {
+                            const fd = new FormData();
+                            fd.append("file", file);
+                            const res = await fetch("/api/upload", { method: "POST", body: fd });
+                            if (res.ok) {
+                              const data = await res.json();
+                              setEditNationalId(data.secure_url || "");
+                            }
+                          } finally { setEditLicenseUploading(false); }
+                        }} />
+                        <div className="h-9 px-3 flex items-center gap-1 border rounded-md text-sm hover:bg-muted cursor-pointer">
+                          {editLicenseUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditUser(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setEditUser(null); setEditRegUserId(null); }}>Cancel</Button>
             <Button
               disabled={updateMutation.isPending}
               onClick={() => {
                 updateMutation.mutate(
-                  { id: editUser.id, data: { name: editName, role: editRole } },
-                  { onSuccess: () => setEditUser(null) }
+                  {
+                    id: editUser.id,
+                    data: {
+                      name: editName,
+                      role: editRole,
+                      phone: editPhone || undefined,
+                      companyName: editCompanyName || editRegData?.data?.companyName || undefined,
+                      companyDescription: editCompanyDescription || editRegData?.data?.companyDescription || undefined,
+                      businessFileUrl: editBusinessFileUrl || editRegData?.data?.businessFileUrl || undefined,
+                      nationalId: editNationalId || editRegData?.data?.nationalId || undefined,
+                    }
+                  },
+                  { onSuccess: () => { setEditUser(null); setEditRegUserId(null); } }
                 );
               }}
             >
@@ -506,6 +637,65 @@ export function UsersListContainer({ users }: { users: any[] }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function ViewUserDetails({ user }: { user: any }) {
+  const { data: regData } = useGetUserRegistration(user.id);
+  const reg = regData?.data;
+
+  return (
+    <div className="space-y-4 text-sm">
+      <div className="flex items-center gap-3">
+        <Avatar src={user.image} alt={user.name} fallback={user.name} size="lg" />
+        <div>
+          <p className="font-semibold text-base">{user.name}</p>
+          <p className="text-muted-foreground">{user.role}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        <div><p className="text-muted-foreground text-xs">Email</p><p className="break-all">{user.email}</p></div>
+        <div><p className="text-muted-foreground text-xs">Phone</p><p>{user.phone || "—"}</p></div>
+        <div><p className="text-muted-foreground text-xs">Verified</p><p>{user.emailVerified ? "Yes" : "No"}</p></div>
+        <div><p className="text-muted-foreground text-xs">Banned</p><p>{user.banned ? "Yes" : "No"}</p></div>
+        <div><p className="text-muted-foreground text-xs">Joined</p><p>{formatDate(user.createdAt, "PPP")}</p></div>
+        <div><p className="text-muted-foreground text-xs">ID</p><p className="font-mono text-xs break-all">{user.id}</p></div>
+      </div>
+
+      {reg && (
+        <>
+          <div className="border-t pt-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Registration Details</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div><p className="text-muted-foreground text-xs">Type</p><p>{reg.registrationType}</p></div>
+              <div><p className="text-muted-foreground text-xs">Status</p><p>{reg.status}</p></div>
+              {reg.companyName && <div><p className="text-muted-foreground text-xs">Company</p><p>{reg.companyName}</p></div>}
+              {reg.companyDescription && <div className="sm:col-span-2"><p className="text-muted-foreground text-xs">Description</p><p>{reg.companyDescription}</p></div>}
+              {reg.phone && <div><p className="text-muted-foreground text-xs">Reg. Phone</p><p>{reg.phone}</p></div>}
+              {reg.businessFileUrl && (
+                <div className="sm:col-span-2">
+                  <p className="text-muted-foreground text-xs mb-1">Business License</p>
+                  <a href={reg.businessFileUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-primary hover:underline text-xs">
+                    <FileText className="h-3.5 w-3.5" /> View License <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+              {reg.nationalId && (
+                <div className="sm:col-span-2">
+                  <p className="text-muted-foreground text-xs mb-1">National ID</p>
+                  <a href={reg.nationalId} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-primary hover:underline text-xs">
+                    <FileText className="h-3.5 w-3.5" /> View National ID <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
