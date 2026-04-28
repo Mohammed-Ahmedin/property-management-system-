@@ -174,3 +174,21 @@ export const useCreateUserMutation = () => {
     },
   });
 };
+
+export const useVerifyUserByEmailMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ email, emailVerified }: { email: string; emailVerified: boolean }) => {
+      const response = await api.post("/users/management/verify-by-email", { email, emailVerified });
+      return response.data;
+    },
+    onSuccess: ({ message }) => {
+      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update verification status");
+    },
+  });
+};

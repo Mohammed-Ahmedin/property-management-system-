@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Building2,
   User,
@@ -27,8 +28,10 @@ import {
   FileText,
   ExternalLink,
   Briefcase,
+  CheckCircle2,
 } from "lucide-react";
 import { useUpdateRegisterationStatusMutation } from "@/hooks/api/use-registration-request";
+import { useVerifyUserByEmailMutation } from "@/hooks/api/use-users";
 import { Spinner } from "@/components/ui/spinner";
 
 export interface Registration {
@@ -61,6 +64,11 @@ export function RegistrationModal({
   const [newStatus, setNewStatus] = useState(registration.status);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const updateMutation = useUpdateRegisterationStatusMutation();
+  const verifyMutation = useVerifyUserByEmailMutation();
+
+  // We don't know emailVerified from the registration object, so track it locally
+  // Default: if status is APPROVED, assume verified (common case)
+  const [isVerified, setIsVerified] = useState(registration.status === "APPROVED");
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -139,6 +147,34 @@ export function RegistrationModal({
                   size="sm"
                 >
                   {updateMutation.isPending ? <Spinner /> : "Update"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Email Verification Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className={`h-4 w-4 ${isVerified ? "text-emerald-500" : "text-muted-foreground"}`} />
+                <span className="text-sm font-medium text-foreground">Email Verified:</span>
+                <Badge variant="outline" className={isVerified ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground"}>
+                  {isVerified ? "Verified" : "Unverified"}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-3">
+                <Label htmlFor="verified-toggle" className="text-sm font-medium">
+                  {isVerified ? "Mark as Unverified" : "Mark as Verified"}
+                </Label>
+                <Switch
+                  id="verified-toggle"
+                  checked={isVerified}
+                  onCheckedChange={setIsVerified}
+                />
+                <Button
+                  size="sm"
+                  disabled={verifyMutation.isPending}
+                  onClick={() => verifyMutation.mutate({ email: registration.email, emailVerified: isVerified })}
+                >
+                  {verifyMutation.isPending ? <Spinner /> : "Update"}
                 </Button>
               </div>
             </div>

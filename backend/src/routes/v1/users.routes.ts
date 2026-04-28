@@ -14,7 +14,19 @@ router.post("/management/:id/ban", authGuard({ accessedBy: ["ADMIN"] }), userCon
 router.post("/management/:id/unban", authGuard({ accessedBy: ["ADMIN"] }), userController.unbanUser);
 router.delete("/management/:id", authGuard({ accessedBy: ["ADMIN"] }), userController.deleteUser);
 
-// Get registration request for a specific user (by user id)
+// Verify/unverify a user by email (used from registration modal)
+router.post("/management/verify-by-email", authGuard({ accessedBy: ["ADMIN"] }), async (req: any, res) => {
+  try {
+    const { email, emailVerified } = req.body;
+    if (!email) return res.status(400).json({ message: "email is required" });
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user) return res.status(404).json({ message: "No user found with this email" });
+    await prisma.user.update({ where: { id: user.id }, data: { emailVerified: !!emailVerified } });
+    res.json({ success: true, message: `User ${emailVerified ? "verified" : "unverified"} successfully` });
+  } catch (e: any) {
+    res.status(500).json({ message: e?.message || "Failed to update verification status" });
+  }
+});
 router.get("/management/:id/registration", authGuard({ accessedBy: ["ADMIN"] }), async (req: any, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { email: true } });
