@@ -70,7 +70,7 @@ rootRouter.post("/api/v1/auth/change-password", async (req, res) => {
 
 // ── Forgot Password flow ──────────────────────────────────────────────────────
 
-// Helper: mark all expired codes as inactive (runs on every forgot-password request)
+// Helper: mark all expired codes as inactive
 async function expireOldCodes(prisma: any) {
   await prisma.$executeRawUnsafe(
     `UPDATE "password_reset_code" SET "active" = false, "updatedAt" = NOW()
@@ -78,17 +78,29 @@ async function expireOldCodes(prisma: any) {
   );
 }
 
+// Scheduled job: expire codes every 60 seconds automatically (no endpoint call needed)
+import("../lib/prisma").then(({ prisma }) => {
+  setInterval(() => {
+    expireOldCodes(prisma).catch((e: any) =>
+      console.error("expireOldCodes scheduler error:", e?.message)
+    );
+  }, 60 * 1000); // every 1 minute
+});
+
 // Step 1: Send reset code to email
 rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
   try {
     const { prisma } = await import("../lib/prisma");
-    // Expire any codes that have passed their 5-minute window
     await expireOldCodes(prisma);
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
+    // Check user exists and is approved
     const user = await prisma.user.findFirst({ where: { email } });
-    if (!user) return res.status(404).json({ message: "No account found with this email" });
+    if (!user) return res.status(404).json({ message: "This email is not registered in the system" });
+    if ((user as any).status && (user as any).status !== "APPROVED") {
+      return res.status(403).json({ message: "This account is not approved to use the system" });
+    }
 
     // Expire any existing active codes for this email
     await (prisma as any).$executeRawUnsafe(
