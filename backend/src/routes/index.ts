@@ -118,12 +118,10 @@ rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
       email, code, expiresAt
     );
 
-    // Respond immediately — don't wait for email to avoid timeout
-    res.json({ success: true, message: "Reset code sent to your email" });
-
-    // Send email in background (non-blocking)
-    import("../utils/email").then(({ sendEmail }) => {
-      sendEmail({
+    // Send email — await it so errors surface to the user
+    const { sendEmail } = await import("../utils/email");
+    try {
+      await sendEmail({
         to: email,
         subject: "Kuru Rent — Password Reset Code",
         html: `
@@ -134,8 +132,13 @@ rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
             <p style="color:#6b7280;font-size:13px;margin-top:20px;">If you didn't request this, ignore this email. Your password won't change.</p>
           </div>
         `,
-      }).catch(e => console.error("Failed to send reset email:", e?.message));
-    });
+      });
+    } catch (emailErr: any) {
+      console.error("Reset email send failed:", emailErr?.message);
+      return res.status(500).json({ message: `Failed to send email: ${emailErr?.message || "SMTP error"}` });
+    }
+
+    return res.json({ success: true, message: "Reset code sent to your email" });
 
   } catch (err: any) {
     return res.status(500).json({ message: err?.message || "Failed to send reset code" });

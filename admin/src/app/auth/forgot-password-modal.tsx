@@ -49,7 +49,7 @@ export function ForgotPasswordModal({
       toast.success("Reset code sent — check your inbox");
       setStep("code");
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to send code");
+      toast.error(e?.response?.data?.message || "Failed to send code. Check your email address.");
     } finally {
       setLoading(false);
     }
