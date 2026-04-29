@@ -12,16 +12,37 @@ export const sendEmail = async ({
   html: string;
   from?: string;
 }) => {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const senderEmail = process.env.SMTP_USER || "noreply@kururent.et";
+  const senderName = "Kuru Rent";
 
-  // Use Resend HTTP API if key is available (works on Render — no SMTP port blocking)
+  // Option 1: Brevo HTTP API (works on Render, 300 emails/day free, any recipient)
+  if (BREVO_API_KEY) {
+    await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      },
+      {
+        headers: {
+          "api-key": BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+    return;
+  }
+
+  // Option 2: Resend HTTP API (works on Render, 100 emails/day free, requires domain for any recipient)
   if (RESEND_API_KEY) {
-    const senderEmail = process.env.SMTP_USER || "noreply@kururent.et";
-    const fromAddress = from || `Kuru Rent <onboarding@resend.dev>`;
-
     await axios.post(
       "https://api.resend.com/emails",
-      { from: fromAddress, to, subject, html },
+      { from: from || `${senderName} <onboarding@resend.dev>`, to, subject, html },
       {
         headers: {
           Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -33,21 +54,17 @@ export const sendEmail = async ({
     return;
   }
 
-  // Fallback: nodemailer SMTP (works locally, may be blocked on some cloud hosts)
-  const senderEmail = process.env.SMTP_USER;
+  // Fallback: nodemailer SMTP (works locally, blocked on some cloud hosts)
   const transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: {
-      user: senderEmail,
-      pass: process.env.SMTP_PASS,
-    },
+    auth: { user: senderEmail, pass: process.env.SMTP_PASS },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
   } as any);
 
   await transporter.sendMail({
-    from: from || `"Kuru Rent" <${senderEmail}>`,
+    from: from || `"${senderName}" <${senderEmail}>`,
     to,
     subject,
     html,
