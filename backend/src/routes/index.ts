@@ -70,10 +70,20 @@ rootRouter.post("/api/v1/auth/change-password", async (req, res) => {
 
 // ── Forgot Password flow ──────────────────────────────────────────────────────
 
+// Helper: mark all expired codes as inactive (runs on every forgot-password request)
+async function expireOldCodes(prisma: any) {
+  await prisma.$executeRawUnsafe(
+    `UPDATE "password_reset_code" SET "active" = false, "updatedAt" = NOW()
+     WHERE "active" = true AND "expiresAt" < NOW()`
+  );
+}
+
 // Step 1: Send reset code to email
 rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
   try {
     const { prisma } = await import("../lib/prisma");
+    // Expire any codes that have passed their 5-minute window
+    await expireOldCodes(prisma);
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
@@ -124,6 +134,7 @@ rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
 rootRouter.post("/api/v1/auth/verify-reset-code", async (req, res) => {
   try {
     const { prisma } = await import("../lib/prisma");
+    await expireOldCodes(prisma);
     const { email, code } = req.body;
     if (!email || !code) return res.status(400).json({ message: "Email and code are required" });
 
@@ -155,6 +166,7 @@ rootRouter.post("/api/v1/auth/reset-password", async (req, res) => {
   try {
     const { prisma } = await import("../lib/prisma");
     const { auth } = await import("../lib/auth");
+    await expireOldCodes(prisma);
     const { email, code, newPassword } = req.body;
     if (!email || !code || !newPassword) return res.status(400).json({ message: "email, code and newPassword are required" });
     if (newPassword.length < 4) return res.status(400).json({ message: "Password must be at least 4 characters" });
