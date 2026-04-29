@@ -59,7 +59,7 @@ const LoginView = () => {
 
       <div className="mb-8 space-y-2 ">
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome to <span className="text-primary font-semibold">Bete</span>
+          Welcome to <span className="text-primary font-semibold">Kuru Rent</span>
         </h1>
         <p className="text-muted-foreground">
           Sign in to explore and book your perfect stay

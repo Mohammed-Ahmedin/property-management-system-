@@ -1,4 +1,4 @@
-﻿import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { useAppDispatch } from "@/store/hooks";
 import { loginUser } from "@/store/slices/auth.slices";
 import { useMutation } from "@tanstack/react-query";
@@ -22,7 +22,7 @@ export const useSignInWithEmailMutation = () => {
       if (res.data?.user) {
         toast.success("Login successful!", { position: "top-center" });
         const token = (res.data as any)?.token;
-        if (token) localStorage.setItem("bete_token", token);
+        if (token) localStorage.setItem("kururent_token", token);
         dispatch(loginUser({ user: res.data?.user as any, token }));
         // Hard reload so authClient.useSession() picks up the new cookie/token
         window.location.href = "/";
@@ -66,7 +66,7 @@ export const useSignUpWithEmailMutation = () => {
       if (res.data?.user && res.data?.token) {
         toast.success("Account created!", { position: "top-center" });
         const token = res.data?.token;
-        if (token) localStorage.setItem("bete_token", token);
+        if (token) localStorage.setItem("kururent_token", token);
         dispatch(loginUser({ user: res.data?.user as any, token }));
         window.location.href = "/";
         return res.data;
@@ -85,3 +85,4 @@ export const useSignUpWithEmailMutation = () => {
     },
   });
 };
+

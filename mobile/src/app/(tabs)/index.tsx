@@ -123,7 +123,7 @@ export default function Tab() {
           }}
         >
           <AppText style={{ fontSize: 22, color: "#fff" }} weight="medium">
-            Bete
+            Kuru Rent
           </AppText>
           <AppText style={{ color: "white", fontSize: 18 }}>EN</AppText>
         </View>

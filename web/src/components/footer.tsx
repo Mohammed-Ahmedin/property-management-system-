@@ -22,7 +22,7 @@ export function Footer() {
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
                 <span className="text-white font-bold text-base">B</span>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">Bete</span>
+              <span className="text-xl font-bold text-white tracking-tight">Kuru Rent</span>
             </Link>
             <p className="text-sm text-zinc-500 leading-relaxed mb-5">
               Discover and book the best properties across Ethiopia. From luxury hotels to cozy guest houses — your perfect stay awaits.
@@ -95,14 +95,14 @@ export function Footer() {
                 <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
                   <Mail className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <a href="mailto:info@bete.et" className="hover:text-primary transition-colors">info@bete.et</a>
+                <a href="mailto:info@kururent.et" className="hover:text-primary transition-colors">info@kururent.et</a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-zinc-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
-          <p>© {new Date().getFullYear()} <span className="text-zinc-400 font-medium">Bete</span>. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} <span className="text-zinc-400 font-medium">Kuru Rent</span>. All rights reserved.</p>
           <div className="flex items-center gap-5">
             {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((label) => (
               <a key={label} href="#" className="hover:text-zinc-300 transition-colors">{label}</a>

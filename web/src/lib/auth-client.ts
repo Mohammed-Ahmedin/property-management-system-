@@ -8,8 +8,8 @@ export const authClient = createAuthClient({
     credentials: "include",
     headers: {
       // Include stored token as fallback for mobile browsers that block cookies
-      ...(typeof window !== "undefined" && localStorage.getItem("bete_token")
-        ? { Authorization: `Bearer ${localStorage.getItem("bete_token")}` }
+      ...(typeof window !== "undefined" && localStorage.getItem("kururent_token")
+        ? { Authorization: `Bearer ${localStorage.getItem("kururent_token")}` }
         : {}),
     },
   },

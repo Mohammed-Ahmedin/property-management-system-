@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "./api";
 import { useClientAuth } from "./use-client-auth";
 
-const LS_KEY = "bete_favorites";
+const LS_KEY = "kururent_favorites";
 
 function getLSFavorites(): string[] {
   try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; }

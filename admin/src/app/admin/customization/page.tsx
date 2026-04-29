@@ -106,7 +106,7 @@ export default function CustomizationPage() {
             <CardContent className="space-y-5">
               <div className="space-y-1.5">
                 <Label>Site Name</Label>
-                <Input value={form.siteName} onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} placeholder="e.g. Bete" />
+                <Input value={form.siteName} onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} placeholder="e.g. Kuru Rent" />
                 <p className="text-xs text-muted-foreground">Shown in the header, footer and browser tab</p>
               </div>
 
@@ -263,7 +263,7 @@ export default function CustomizationPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Email Address</Label>
-                <Input value={form.contactEmail} onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))} placeholder="info@bete.et" />
+                <Input value={form.contactEmail} onChange={e => setForm(f => ({ ...f, contactEmail: e.target.value }))} placeholder="info@kururent.et" />
               </div>
               <div className="space-y-1.5">
                 <Label>Address / Location</Label>
