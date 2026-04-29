@@ -13,6 +13,7 @@ import SingleProperty from "@/pages/client/properties/id/page";
 import SingleRoomPage from "@/pages/client/rooms/id/page";
 import SignupPage from "@/pages/client/auth/signup/page";
 import LoginPage from "@/pages/client/auth/login/page";
+import ForgotPasswordPage from "@/pages/client/auth/forgot-password/page";
 import BookingsPage from "@/pages/client/account/bookings/page";
 import AccountSettingPage from "@/pages/client/account/setting/page";
 import AccountPage from "@/pages/client/account/page";
@@ -101,6 +102,10 @@ const Routes = () => {
         {
           path: "/auth/register",
           element: !isAuthenticated ? <SignupPage /> : <Navigate to={"/"} />,
+        },
+        {
+          path: "/auth/forgot-password",
+          element: <ForgotPasswordPage />,
         },
       ],
     },
