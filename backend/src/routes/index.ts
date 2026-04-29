@@ -68,6 +68,135 @@ rootRouter.post("/api/v1/auth/change-password", async (req, res) => {
   }
 });
 
+// ── Forgot Password flow ──────────────────────────────────────────────────────
+
+// Step 1: Send reset code to email
+rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
+  try {
+    const { prisma } = await import("../lib/prisma");
+    const { sendEmail } = await import("../utils/email");
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user) return res.status(404).json({ message: "No account found with this email" });
+
+    // Expire any existing active codes for this email
+    await (prisma as any).$executeRawUnsafe(
+      `UPDATE "password_reset_code" SET "active" = false, "updatedAt" = NOW() WHERE "email" = $1 AND "active" = true`,
+      email
+    );
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    await (prisma as any).$executeRawUnsafe(
+      `INSERT INTO "password_reset_code" ("id","email","code","active","expiresAt","createdAt","updatedAt")
+       VALUES (gen_random_uuid()::text, $1, $2, true, $3, NOW(), NOW())`,
+      email, code, expiresAt
+    );
+
+    await sendEmail({
+      to: email,
+      subject: "Kuru Rent — Password Reset Code",
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:10px;">
+          <h2 style="color:#1a4a2e;margin-bottom:8px;">Password Reset</h2>
+          <p style="color:#374151;margin-bottom:20px;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
+          <div style="background:#1a4a2e;color:#fff;font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:18px 24px;border-radius:8px;">${code}</div>
+          <p style="color:#6b7280;font-size:13px;margin-top:20px;">If you didn't request this, ignore this email. Your password won't change.</p>
+        </div>
+      `,
+    });
+
+    return res.json({ success: true, message: "Reset code sent to your email" });
+  } catch (err: any) {
+    return res.status(500).json({ message: err?.message || "Failed to send reset code" });
+  }
+});
+
+// Step 2: Verify the reset code
+rootRouter.post("/api/v1/auth/verify-reset-code", async (req, res) => {
+  try {
+    const { prisma } = await import("../lib/prisma");
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ message: "Email and code are required" });
+
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(
+      `SELECT * FROM "password_reset_code" WHERE "email" = $1 AND "code" = $2 AND "active" = true ORDER BY "createdAt" DESC LIMIT 1`,
+      email, code
+    );
+
+    if (!rows.length) return res.status(400).json({ message: "Invalid or expired code" });
+
+    const record = rows[0];
+    if (new Date(record.expiresAt) < new Date()) {
+      // Mark as inactive
+      await (prisma as any).$executeRawUnsafe(
+        `UPDATE "password_reset_code" SET "active" = false, "updatedAt" = NOW() WHERE "id" = $1`,
+        record.id
+      );
+      return res.status(400).json({ message: "Code has expired. Please request a new one." });
+    }
+
+    return res.json({ success: true, message: "Code verified" });
+  } catch (err: any) {
+    return res.status(500).json({ message: err?.message || "Failed to verify code" });
+  }
+});
+
+// Step 3: Reset password using verified code
+rootRouter.post("/api/v1/auth/reset-password", async (req, res) => {
+  try {
+    const { prisma } = await import("../lib/prisma");
+    const { auth } = await import("../lib/auth");
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) return res.status(400).json({ message: "email, code and newPassword are required" });
+    if (newPassword.length < 4) return res.status(400).json({ message: "Password must be at least 4 characters" });
+
+    const rows: any[] = await (prisma as any).$queryRawUnsafe(
+      `SELECT * FROM "password_reset_code" WHERE "email" = $1 AND "code" = $2 AND "active" = true ORDER BY "createdAt" DESC LIMIT 1`,
+      email, code
+    );
+
+    if (!rows.length) return res.status(400).json({ message: "Invalid or expired code" });
+
+    const record = rows[0];
+    if (new Date(record.expiresAt) < new Date()) {
+      await (prisma as any).$executeRawUnsafe(
+        `UPDATE "password_reset_code" SET "active" = false, "updatedAt" = NOW() WHERE "id" = $1`,
+        record.id
+      );
+      return res.status(400).json({ message: "Code has expired. Please request a new one." });
+    }
+
+    // Hash new password using better-auth's scrypt
+    const ctx = await auth.$context;
+    const hashed = await ctx.password.hash(newPassword);
+
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const account = await prisma.account.findFirst({ where: { userId: user.id, providerId: "credential" } });
+    if (!account) return res.status(400).json({ message: "No password account found" });
+
+    await prisma.account.update({ where: { id: account.id }, data: { password: hashed } });
+
+    // Mark code as used and inactive
+    await (prisma as any).$executeRawUnsafe(
+      `UPDATE "password_reset_code" SET "active" = false, "usedAt" = NOW(), "updatedAt" = NOW() WHERE "id" = $1`,
+      record.id
+    );
+
+    return res.json({ success: true, message: "Password reset successfully" });
+  } catch (err: any) {
+    return res.status(500).json({ message: err?.message || "Failed to reset password" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Public stats endpoint — no auth required
 rootRouter.get("/api/v1/public/stats", async (req, res) => {
   try {
