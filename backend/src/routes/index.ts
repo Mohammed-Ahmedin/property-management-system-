@@ -74,7 +74,6 @@ rootRouter.post("/api/v1/auth/change-password", async (req, res) => {
 rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
   try {
     const { prisma } = await import("../lib/prisma");
-    const { sendEmail } = await import("../utils/email");
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
@@ -97,20 +96,25 @@ rootRouter.post("/api/v1/auth/forgot-password", async (req, res) => {
       email, code, expiresAt
     );
 
-    await sendEmail({
-      to: email,
-      subject: "Kuru Rent — Password Reset Code",
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:10px;">
-          <h2 style="color:#1a4a2e;margin-bottom:8px;">Password Reset</h2>
-          <p style="color:#374151;margin-bottom:20px;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
-          <div style="background:#1a4a2e;color:#fff;font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:18px 24px;border-radius:8px;">${code}</div>
-          <p style="color:#6b7280;font-size:13px;margin-top:20px;">If you didn't request this, ignore this email. Your password won't change.</p>
-        </div>
-      `,
+    // Respond immediately — don't wait for email to avoid timeout
+    res.json({ success: true, message: "Reset code sent to your email" });
+
+    // Send email in background (non-blocking)
+    import("../utils/email").then(({ sendEmail }) => {
+      sendEmail({
+        to: email,
+        subject: "Kuru Rent — Password Reset Code",
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:10px;">
+            <h2 style="color:#1a4a2e;margin-bottom:8px;">Password Reset</h2>
+            <p style="color:#374151;margin-bottom:20px;">Use the code below to reset your password. It expires in <strong>5 minutes</strong>.</p>
+            <div style="background:#1a4a2e;color:#fff;font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:18px 24px;border-radius:8px;">${code}</div>
+            <p style="color:#6b7280;font-size:13px;margin-top:20px;">If you didn't request this, ignore this email. Your password won't change.</p>
+          </div>
+        `,
+      }).catch(e => console.error("Failed to send reset email:", e?.message));
     });
 
-    return res.json({ success: true, message: "Reset code sent to your email" });
   } catch (err: any) {
     return res.status(500).json({ message: err?.message || "Failed to send reset code" });
   }

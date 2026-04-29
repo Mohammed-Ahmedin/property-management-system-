@@ -11,16 +11,21 @@ export const sendEmail = async ({
   html: string;
   from?: string;
 }) => {
+  const senderEmail = process.env.SMTP_USER;
+
   const transporter = nodemailer.createTransport({
-    service: "gmail", // you can use any (e.g., smtp.mailtrap.io for dev)
+    service: "gmail",
     auth: {
-      user: process.env.SMTP_USER, // your email
-      pass: process.env.SMTP_PASS, // app password or mailtrap credentials
+      user: senderEmail,
+      pass: process.env.SMTP_PASS,
     },
-  });
+    connectionTimeout: 10000, // 10s
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  } as any);
 
   const mailOptions = {
-    from: `"Property Booking" <${process.env.EMAIL_USER}>`,
+    from: from || `"Kuru Rent" <${senderEmail}>`,
     to,
     subject,
     html,
