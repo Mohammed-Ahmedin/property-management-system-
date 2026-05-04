@@ -71,7 +71,8 @@ export const useGetTrendingProperties = () => {
   return useQuery<{ data: any; success: boolean }>({
     queryKey: ["trending_properties"],
     staleTime: 0,
-    retry: false,
+    retry: 2,
+    retryDelay: 3000,
     queryFn: async () => {
       const res = await api.get<{ data: any; success: boolean }>(
         "/properties/trendings"
@@ -161,7 +162,8 @@ export const useGetProperties = (
 ) => {
   return useQuery<PaginatedPropertyDataResponse>({
     queryKey: ["properties", JSON.stringify(input.filters), input.page, input.limit, input.sortDirection, (input as any).sortField],
-    retry: false,
+    retry: 2,
+    retryDelay: 3000,
     queryFn: async () => {
       const res = await api.get<PaginatedPropertyDataResponse>(
         "/properties",

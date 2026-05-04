@@ -8,7 +8,7 @@ export const api = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
-  timeout: 20_000,
+  timeout: 60_000, // 60s — allows for Render cold start wake-up time
 });
 
 // Attach Bearer token from localStorage on every request (needed on mobile where cookies aren't sent)

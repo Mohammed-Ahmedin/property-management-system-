@@ -326,7 +326,7 @@ export default function PropertiesPage() {
       );
     }
     if (dataQuery.isError || !dataQuery.data?.data) {
-      return <ErrorState title="Something went wrong, please try again" refetch={dataQuery.refetch} />;
+      return <ErrorState title="The server is waking up, please wait a moment and try again" refetch={dataQuery.refetch} />;
     }
     if (dataQuery.data.data.length === 0) {
       return <DataContainer data={[]} pagination={dataQuery.data.pagination} locationParam={locationParam} totalItems={0} />;
