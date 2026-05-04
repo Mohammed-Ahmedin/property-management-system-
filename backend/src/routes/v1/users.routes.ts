@@ -63,6 +63,45 @@ router.put("/me", authGuard(), async (req: any, res) => {
   }
 });
 
+// Public upload endpoint — for registration documents (no auth required)
+router.post("/upload-public", async (req: any, res) => {
+  try {
+    const { v2: cloudinary } = await import("cloudinary");
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    const files = req.files;
+    if (!files || Object.keys(files).length === 0) {
+      return res.status(400).json({ message: "No file provided" });
+    }
+
+    const file = files.file || files[Object.keys(files)[0]];
+    if (!file) return res.status(400).json({ message: "No file found" });
+
+    const fileObj = Array.isArray(file) ? file[0] : file;
+
+    if (fileObj.tempFilePath) {
+      const result = await cloudinary.uploader.upload(fileObj.tempFilePath, { folder: "registration_docs" });
+      return res.json({ url: result.secure_url });
+    }
+
+    const buffer = fileObj.data;
+    if (!buffer || buffer.length === 0) {
+      return res.status(400).json({ message: "Empty file" });
+    }
+    const base64 = buffer.toString("base64");
+    const mimeType = fileObj.mimetype || "image/jpeg";
+    const dataUri = `data:${mimeType};base64,${base64}`;
+    const result = await cloudinary.uploader.upload(dataUri, { folder: "registration_docs" });
+    res.json({ url: result.secure_url });
+  } catch (e: any) {
+    res.status(500).json({ message: e?.message || "Upload failed" });
+  }
+});
+
 // Upload avatar image for current user
 router.post("/upload-avatar", authGuard(), async (req: any, res) => {
   try {

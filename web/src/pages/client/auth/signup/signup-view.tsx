@@ -50,8 +50,8 @@ const SignupView = () => {
       const { api } = await import("@/hooks/api");
       const fd = new FormData();
       fd.append("file", file);
-      // Use backend upload endpoint (has Cloudinary credentials)
-      const res = await api.post("/users/upload-avatar", fd, {
+      // Public upload endpoint — no auth required (for registration docs)
+      const res = await api.post("/users/upload-public", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const url = res.data?.url || res.data?.secure_url || "";
