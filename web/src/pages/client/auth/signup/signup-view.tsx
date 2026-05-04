@@ -47,12 +47,16 @@ const SignupView = () => {
   const uploadFile = async (file: File, setter: (url: string) => void, loadingSetter: (v: boolean) => void) => {
     loadingSetter(true);
     try {
+      const { api } = await import("@/hooks/api");
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (res.ok) {
-        const data = await res.json();
-        setter(data.secure_url || "");
+      // Use backend upload endpoint (has Cloudinary credentials)
+      const res = await api.post("/users/upload-avatar", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const url = res.data?.url || res.data?.secure_url || "";
+      if (url) {
+        setter(url);
         toast.success("File uploaded");
       } else {
         toast.error("Upload failed");
