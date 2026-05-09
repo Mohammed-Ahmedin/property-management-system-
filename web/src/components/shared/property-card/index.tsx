@@ -153,7 +153,9 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
           {/* Price */}
           <div className="mt-auto pt-3 border-t border-border/50 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">per night</p>
+              {["HOTEL", "APARTMENT"].includes(type) && (
+                <p className="text-xs text-muted-foreground">per night</p>
+              )}
               {avgPriceV ? (
                 discountedPriceV ? (
                   <div>
@@ -319,7 +321,7 @@ export function PropertyCard({ data, view = "horizontal", distance }: PropertyCa
           <span className="text-xs text-muted-foreground">No reviews yet</span>
         )}
         <div className="text-right sm:mt-auto">
-          <p className="text-xs text-muted-foreground mb-0.5">Avg price per night</p>
+          <p className="text-xs text-muted-foreground mb-0.5">{["HOTEL", "APARTMENT"].includes(type) ? "Avg price per night" : "Avg price"}</p>
           {avgPrice ? (
             (() => {
               const propDiscount = (data as any).discountPercent ?? 0;

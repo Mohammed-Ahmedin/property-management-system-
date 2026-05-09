@@ -114,10 +114,10 @@ export function RoomCard({ room }: { room: Room }) {
               {discountedPrice ? (
                 <>
                   <p className="text-xs line-through text-muted-foreground">ETB {room.price.toLocaleString()}</p>
-                  <p className="text-lg font-bold text-red-500">ETB {discountedPrice.toLocaleString()}<span className="text-xs font-normal text-muted-foreground">/night</span></p>
+                  <p className="text-lg font-bold text-red-500">ETB {discountedPrice.toLocaleString()}{["HOTEL", "APARTMENT"].includes((room as any).property?.type || "") ? <span className="text-xs font-normal text-muted-foreground">/night</span> : null}</p>
                 </>
               ) : (
-                <FormatedAmount amount={room.price} showSymbol suffix="/night" className="text-lg font-bold text-primary" />
+                <FormatedAmount amount={room.price} showSymbol suffix={["HOTEL", "APARTMENT"].includes((room as any).property?.type || "") ? "/night" : ""} className="text-lg font-bold text-primary" />
               )}
             </div>
           </div>

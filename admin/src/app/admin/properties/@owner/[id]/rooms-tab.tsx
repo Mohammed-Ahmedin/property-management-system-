@@ -15,11 +15,12 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const RoomsTab = ({ propertyId }: { propertyId: string }) => {
+const RoomsTab = ({ propertyId, propertyType }: { propertyId: string; propertyType?: string }) => {
   const { data: rooms, isFetching, isError } = useRoomsForList({ propertyId });
   const router = useRouter();
   const deleteMutation = useDeleteRoomMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const showPerNight = ["HOTEL", "APARTMENT"].includes(propertyType || "");
 
   return (
     <TabsContent value="rooms">
@@ -79,7 +80,7 @@ const RoomsTab = ({ propertyId }: { propertyId: string }) => {
                         </p>
                       )}
                       <div className="flex justify-between items-center">
-                        <FormatedAmount amount={room.price} suffix="/night" />
+                        <FormatedAmount amount={room.price} suffix={showPerNight ? "/night" : ""} />
                         <div className="flex gap-2">
                           <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/rooms/${room.id}`)}>
                             <Edit className="h-4 w-4" />

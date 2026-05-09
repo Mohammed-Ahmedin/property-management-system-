@@ -47,6 +47,7 @@ const DataContainer = ({ data }: Props) => {
 
   // Detect private property (Villa / Guest House — booked as a whole)
   const isPrivate = ["VILLA", "GUEST_HOUSE"].includes(property.type) || (property as any).accessType === "PRIVATE";
+  const showPerNight = ["HOTEL", "APARTMENT"].includes(property.type);
   const pricePerNight = (property as any).pricePerNight as number | null | undefined;
   // For booking dialog we need a "room" object — use first room or a synthetic one
   const firstRoom = property.rooms?.[0];
@@ -278,7 +279,7 @@ const DataContainer = ({ data }: Props) => {
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-xs text-muted-foreground">per night</p>
+                            {showPerNight && <p className="text-xs text-muted-foreground">per night</p>}
                             <FormatedAmount amount={r.price} className="font-bold text-base text-red-500" />
                           </div>
                         </div>
@@ -531,7 +532,7 @@ const DataContainer = ({ data }: Props) => {
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-xs text-muted-foreground">per night</p>
+                            {showPerNight && <p className="text-xs text-muted-foreground">per night</p>}
                             <FormatedAmount amount={r.price} className="font-bold text-xl text-red-500" />
                           </div>
                         </div>
@@ -721,7 +722,7 @@ const DataContainer = ({ data }: Props) => {
           <div className="sticky top-24 rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
             {/* Price header */}
             <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-5">
-              <p className="text-xs opacity-70 mb-1">{isPrivate ? "Price per night (whole property)" : "Avg price per night"}</p>
+              <p className="text-xs opacity-70 mb-1">{isPrivate ? "Price" + (showPerNight ? " per night (whole property)" : "") : "Avg price" + (showPerNight ? " per night" : "")}</p>
               {isPrivate ? (
                 pricePerNight ? (
                   (() => {
@@ -979,3 +980,4 @@ const DataContainer = ({ data }: Props) => {
 };
 
 export default DataContainer;
+

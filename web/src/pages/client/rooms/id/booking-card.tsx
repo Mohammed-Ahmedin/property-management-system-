@@ -11,7 +11,7 @@ interface Room {
   availability: boolean;
   maxOccupancy: number;
   discountPercent?: number;
-  property?: { discountPercent?: number };
+  property?: { discountPercent?: number; type?: string };
 }
 
 interface BookingCardProps {
@@ -29,11 +29,12 @@ export default function BookingCard({ room, handleOpenBookingModal, isPrivate }:
   const effectiveRounded = Math.round(effective * 100) / 100;
   const hasDiscount = effectiveRounded < room.price;
   const totalPct = pd + rd - (pd * rd / 100);
+  const showPerNight = ["HOTEL", "APARTMENT"].includes(room.property?.type || "");
 
   return (
     <div className="sticky top-20 rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
       <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-5">
-        <p className="text-xs opacity-70 mb-1">Price per night</p>
+        <p className="text-xs opacity-70 mb-1">{showPerNight ? "Price per night" : "Price"}</p>
         {hasDiscount ? (
           <div>
             <p className="text-sm line-through opacity-60">ETB {room.price.toLocaleString()}</p>
@@ -62,7 +63,7 @@ export default function BookingCard({ room, handleOpenBookingModal, isPrivate }:
           )}
           {hasDiscount && (
             <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs">
-              <span>You save per night</span>
+              <span>{showPerNight ? "You save per night" : "You save"}</span>
               <span className="font-semibold">ETB {(room.price - effectiveRounded).toLocaleString()}</span>
             </div>
           )}

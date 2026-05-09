@@ -31,6 +31,8 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
   };
 
   const isPrivateRoom = ["VILLA", "GUEST_HOUSE"].includes((roomData as any).property?.type || "");
+  const propertyType = (roomData as any).property?.type || "";
+  const showPerNight = ["HOTEL", "APARTMENT"].includes(propertyType);
 
   return (
     <>
@@ -56,7 +58,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
           </div>
           {!isPrivateRoom && (
           <div className="text-right shrink-0">
-            <p className="text-xs text-muted-foreground">per night</p>
+            {showPerNight && <p className="text-xs text-muted-foreground">per night</p>}
             {(() => {
               const rd = (roomData as any).discountPercent ?? 0;
               const pd = (roomData as any).property?.discountPercent ?? 0;
@@ -122,7 +124,7 @@ const DataContainer = ({ data, isDialogOpen, setIsDialogOpen }: Props) => {
       <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card/95 backdrop-blur-sm p-4 lg:hidden">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <p className="text-xs text-muted-foreground">per night</p>
+            {showPerNight && <p className="text-xs text-muted-foreground">per night</p>}
             <FormatedAmount amount={roomData.price} className="font-bold text-lg text-primary" />
           </div>
           <Button onClick={handleOpenBookingModal} className="rounded-full px-8 font-bold">

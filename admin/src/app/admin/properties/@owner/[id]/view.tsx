@@ -372,7 +372,7 @@ export default function PropertyView({ data }: { data: PropertyData }) {
         </TabsContent>
 
         {/* Rooms */}
-        <RoomsTab propertyId={data.id} />
+        <RoomsTab propertyId={data.id} propertyType={(data as any).type} />
 
         {/* Bookings */}
         <TabsContent value="bookings">
